@@ -1475,14 +1475,21 @@ function importMenu(tierId) {
 }
 
 function showOcrResult(items, tierId) {
-  // TODO: 显示 OCR 结果确认弹窗
-  // 确认后批量添加到菜单
-  if (tierId) {
-    const tier = form.value.tiers.find(t => t.id === tierId)
-    if (tier) tier.menu.push(...items)
-  } else {
-    form.value.menu.push(...items)
-  }
+  uni.showModal({
+    title: '识别结果',
+    content: `识别到 ${items.length} 道菜品，是否导入？`,
+    success: (res) => {
+      if (res.confirm) {
+        if (tierId) {
+          const tier = form.value.tiers.find(t => t.id === tierId)
+          if (tier) tier.menu.push(...items)
+        } else {
+          form.value.menu.push(...items)
+        }
+        uni.showToast({ title: `已导入 ${items.length} 道菜品`, icon: 'success' })
+      }
+    }
+  })
 }
 
 function save() {
@@ -3105,6 +3112,7 @@ git commit -m "feat: AI 菜单识别与创意海报生成"
 import { ref } from 'vue'
 import { shopStore } from '../../store/shop-store'
 import { recordStore } from '../../store/record-store'
+import { Storage } from '../../store/storage'
 
 const lastBackup = ref('')
 
@@ -3157,7 +3165,9 @@ function importData() {
               success: (modalRes) => {
                 if (modalRes.confirm) {
                   // 清空现有数据并导入
-                  shopStore.clear?.() || data.shops.forEach(s => shopStore.create(s))
+                  uni.clearStorageSync()
+                  const shopStorage = new Storage('shops')
+                  data.shops.forEach(s => shopStorage.save(s))
                   recordStore.importAll(JSON.stringify(data.records))
                   uni.showToast({ title: '导入成功', icon: 'success' })
                 }
