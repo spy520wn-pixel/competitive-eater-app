@@ -59,6 +59,9 @@
         <text class="action-btn-text action-btn-text--delete">🗑️ 删除记录</text>
       </view>
     </view>
+    <!-- Hidden canvas for receipt rendering -->
+    <canvas canvas-id="receiptCanvas" id="receiptCanvas"
+      style="position:fixed;left:-9999px;width:375px;height:800px;" />
   </view>
 </template>
 
@@ -67,6 +70,7 @@ import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
 import { getLevel } from '../../utils/level'
+import { saveReceiptToAlbum } from '../../utils/receipt-renderer'
 import RadarChart from '../../components/radar-chart.vue'
 
 const recordId = ref('')
@@ -121,8 +125,10 @@ const groupedItems = computed(() => {
   return ordered
 })
 
-function onGenerateReceipt() {
-  uni.showToast({ title: '小票生成开发中', icon: 'none' })
+async function onGenerateReceipt() {
+  uni.showLoading({ title: '生成中...' })
+  await saveReceiptToAlbum(record.value)
+  uni.hideLoading()
 }
 
 function onGeneratePoster() {
