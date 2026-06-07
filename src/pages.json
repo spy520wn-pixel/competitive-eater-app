@@ -1,0 +1,110 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "大胃王"
+      }
+    },
+    {
+      "path": "pages/record/record",
+      "style": {
+        "navigationBarTitleText": "战绩"
+      }
+    },
+    {
+      "path": "pages/record/detail",
+      "style": {
+        "navigationBarTitleText": "战绩详情"
+      }
+    },
+    {
+      "path": "pages/record/shop-records",
+      "style": {
+        "navigationBarTitleText": "店铺战绩"
+      }
+    },
+    {
+      "path": "pages/challenge/select",
+      "style": {
+        "navigationBarTitleText": "选择店铺"
+      }
+    },
+    {
+      "path": "pages/challenge/cooking",
+      "style": {
+        "navigationBarTitleText": "挑战中",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/challenge/result",
+      "style": {
+        "navigationBarTitleText": "挑战结果"
+      }
+    },
+    {
+      "path": "pages/mine/index",
+      "style": {
+        "navigationBarTitleText": "我的"
+      }
+    },
+    {
+      "path": "pages/mine/shops",
+      "style": {
+        "navigationBarTitleText": "我的店铺"
+      }
+    },
+    {
+      "path": "pages/mine/shop-edit",
+      "style": {
+        "navigationBarTitleText": "编辑店铺"
+      }
+    },
+    {
+      "path": "pages/mine/backup",
+      "style": {
+        "navigationBarTitleText": "数据备份"
+      }
+    },
+    {
+      "path": "pages/mine/settings",
+      "style": {
+        "navigationBarTitleText": "设置"
+      }
+    }
+  ],
+  "tabBar": {
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/images/tab-home.png",
+        "selectedIconPath": "static/images/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/record/record",
+        "text": "战绩",
+        "iconPath": "static/images/tab-record.png",
+        "selectedIconPath": "static/images/tab-record-active.png"
+      },
+      {
+        "pagePath": "pages/challenge/select",
+        "text": "挑战",
+        "iconPath": "static/images/tab-challenge.png",
+        "selectedIconPath": "static/images/tab-challenge-active.png"
+      },
+      {
+        "pagePath": "pages/mine/index",
+        "text": "我的",
+        "iconPath": "static/images/tab-mine.png",
+        "selectedIconPath": "static/images/tab-mine-active.png"
+      }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F5F5F5"
+  }
+}
