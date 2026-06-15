@@ -1,0 +1,264 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-10T09:30:00+08:00",
+  "title": "Design System: 大胃王",
+  "extensions": {
+    "colorMeta": {
+      "void-black": {
+        "role": "neutral",
+        "displayName": "深渊靛",
+        "canonical": "#030306",
+        "tonalRamp": ["#030306", "#0A0A14", "#131320", "#1A1A2E", "#22223A", "#2C2C48", "#383858", "#4A4A68"]
+      },
+      "accent-orange": {
+        "role": "primary",
+        "displayName": "炽焰橙",
+        "canonical": "#FF6B35",
+        "tonalRamp": ["#E85520", "#FF6B35", "#FF8F60", "#FFB088", "#FFD0B0", "#FFE0CC", "#FFF0E6", "#FFF8F2"]
+      },
+      "accent-gold": {
+        "role": "secondary",
+        "displayName": "荣耀金",
+        "canonical": "#FFD700",
+        "tonalRamp": ["#D4A017", "#FFD700", "#FFE033", "#FFE866", "#FFF099", "#FFF5CC", "#FFFAE6", "#FFFDF2"]
+      },
+      "cream-bg": {
+        "role": "neutral",
+        "displayName": "奶油暖",
+        "canonical": "#F4F1EC",
+        "tonalRamp": ["#E8E4DE", "#F0EDEA", "#F4F1EC", "#FAF8F5", "#FDFCFA", "#FFFFFF", "#FFFFFF", "#FFFFFF"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "大标题、统计数据的数字。用于战斗力、最高分等「炫耀性」数据。"
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "页面标题、卡片标题。"
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "区块标题、按钮文字。"
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "正文、描述文字。最大宽度 75ch。"
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "标签、角标、小字说明。常用于等级、经验值等辅助信息。"
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "代码、技术信息。"
+      }
+    },
+    "shadows": [
+      {
+        "name": "ambient-low",
+        "value": "0 2rpx 8rpx rgba(0,0,0,0.35), 0 1rpx 2rpx rgba(0,0,0,0.15)",
+        "purpose": "深色主题卡片默认状态，轻微悬浮感。"
+      },
+      {
+        "name": "ambient-medium",
+        "value": "0 4rpx 20rpx rgba(0,0,0,0.4), 0 2rpx 6rpx rgba(0,0,0,0.2)",
+        "purpose": "深色主题卡片 hover 状态，更强的悬浮感。"
+      },
+      {
+        "name": "ambient-high",
+        "value": "0 16rpx 56rpx rgba(0,0,0,0.5), 0 8rpx 20rpx rgba(0,0,0,0.3)",
+        "purpose": "深色主题弹窗、浮层，最高层级。"
+      },
+      {
+        "name": "glow-orange",
+        "value": "0 4rpx 28rpx rgba(255,107,53,0.18), 0 0 60rpx rgba(255,107,53,0.06)",
+        "purpose": "橙色元素的光晕，像灶火。"
+      },
+      {
+        "name": "glow-gold",
+        "value": "0 4rpx 28rpx rgba(255,215,0,0.15), 0 0 60rpx rgba(255,215,0,0.05)",
+        "purpose": "金色元素的光晕，像成就闪耀。"
+      },
+      {
+        "name": "subtle-low",
+        "value": "0 1rpx 4rpx rgba(0,0,0,0.06)",
+        "purpose": "浅色主题卡片默认状态，几乎不可见的阴影。"
+      },
+      {
+        "name": "subtle-medium",
+        "value": "0 4rpx 16rpx rgba(0,0,0,0.08)",
+        "purpose": "浅色主题卡片 hover 状态。"
+      },
+      {
+        "name": "subtle-high",
+        "value": "0 12rpx 48rpx rgba(0,0,0,0.12)",
+        "purpose": "浅色主题弹窗、浮层。"
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "快速弹出动画，如卡片出现、弹窗打开。"
+      },
+      {
+        "name": "ease-out-quint",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "平滑减速动画，如页面切换。"
+      },
+      {
+        "name": "ease-spring",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "弹性动画，如按钮按下回弹。"
+      },
+      {
+        "name": "ease-apple",
+        "value": "cubic-bezier(0.25, 0.1, 0.25, 1)",
+        "purpose": "Apple 风格动画，如 iOS 系统动画。"
+      },
+      {
+        "name": "dur-micro",
+        "value": "120ms",
+        "purpose": "微交互，如颜色变化、透明度变化。"
+      },
+      {
+        "name": "dur-fast",
+        "value": "200ms",
+        "purpose": "快速交互，如按钮按下、hover 状态。"
+      },
+      {
+        "name": "dur-normal",
+        "value": "380ms",
+        "purpose": "标准动画，如卡片出现、页面切换。"
+      },
+      {
+        "name": "dur-slow",
+        "value": "600ms",
+        "purpose": "慢速动画，如复杂入场动画。"
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "主要操作按钮，橙色背景，白色文字，胶囊形。用于提交、确认、开始挑战等关键操作。",
+      "html": "<button class=\"ds-btn-primary\">开始挑战</button>",
+      "css": ".ds-btn-primary { background: #FF6B35; color: #FFFFFF; border: none; border-radius: 999rpx; padding: 0 48rpx; height: 100rpx; font-size: 28rpx; font-weight: 500; letter-spacing: 0.04em; cursor: pointer; transition: background 0.2s, transform 0.2s; } .ds-btn-primary:hover { background: #E85520; transform: scale(0.97); } .ds-btn-primary:active { background: #CC4A18; transform: scale(0.95); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "次要操作按钮，透明背景，橙色文字，橙色边框。用于次要操作。",
+      "html": "<button class=\"ds-btn-secondary\">取消</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: #FF6B35; border: 1rpx solid rgba(255,107,53,0.35); border-radius: 999rpx; padding: 0 48rpx; height: 100rpx; font-size: 28rpx; font-weight: 500; letter-spacing: 0.04em; cursor: pointer; transition: background 0.2s, border-color 0.2s; } .ds-btn-secondary:hover { background: rgba(255,107,53,0.06); border-color: rgba(255,107,53,0.5); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "标准卡片容器，玻璃质感，大圆角。用于内容分组、数据展示。",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-content\">卡片内容</div></div>",
+      "css": ".ds-card { background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%); border: 1rpx solid rgba(255,255,255,0.06); border-radius: 32rpx; padding: 32rpx; backdrop-filter: blur(24rpx); -webkit-backdrop-filter: blur(24rpx); box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.35), 0 1rpx 2rpx rgba(0,0,0,0.15); } .ds-card-content { position: relative; z-index: 1; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "输入框，半透明背景，圆角。用于表单输入。",
+      "html": "<input class=\"ds-input\" placeholder=\"请输入...\" />",
+      "css": ".ds-input { background: rgba(255,255,255,0.04); border: 1rpx solid rgba(255,255,255,0.08); border-radius: 16rpx; padding: 20rpx 26rpx; color: #F0F0F5; font-size: 26rpx; transition: border-color 0.2s, box-shadow 0.2s; } .ds-input:focus { border-color: rgba(255,107,53,0.35); box-shadow: 0 0 0 2rpx rgba(255,107,53,0.1); outline: none; } .ds-input::placeholder { color: #7575A0; }"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "标签/徽章，半透明橙色背景，胶囊形。用于分类标签、状态标签。",
+      "html": "<span class=\"ds-chip\">肉类</span>",
+      "css": ".ds-chip { background: rgba(255,107,53,0.06); color: #FF6B35; border-radius: 999rpx; padding: 8rpx 22rpx; font-size: 20rpx; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; } .ds-chip--active { background: rgba(255,107,53,0.12); color: #FF8F60; }"
+    },
+    {
+      "name": "Level Badge",
+      "kind": "custom",
+      "refersTo": "level-badge",
+      "description": "等级徽章，橙色背景，胶囊形。显示等级数字和经验值进度条。用于个人资料、战绩展示。",
+      "html": "<div class=\"ds-level-badge\"><span class=\"ds-level-badge__level\">Lv.12</span><div class=\"ds-level-badge__exp-bar\"><div class=\"ds-level-badge__exp-fill\" style=\"width: 65%\"></div></div><span class=\"ds-level-badge__exp-text\">650/1000 EXP</span></div>",
+      "css": ".ds-level-badge { background: linear-gradient(135deg, #FF6B35 0%, #E85520 100%); border-radius: 999rpx; padding: 12rpx 24rpx; display: flex; align-items: center; gap: 12rpx; } .ds-level-badge__level { color: #FFFFFF; font-size: 24rpx; font-weight: 700; } .ds-level-badge__exp-bar { width: 120rpx; height: 8rpx; background: rgba(255,255,255,0.2); border-radius: 4rpx; overflow: hidden; } .ds-level-badge__exp-fill { height: 100%; background: #FFD700; border-radius: 4rpx; transition: width 0.3s ease-out; } .ds-level-badge__exp-text { color: rgba(255,255,255,0.8); font-size: 18rpx; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "深夜食堂 × 午后咖啡馆",
+    "overview": "这是一个双面设计系统。深色主题是「深夜食堂」—— 深邃的靛蓝底色上，橙色光晕像灶火般温暖，金色点缀如美食的诱人色泽。浅色主题是「午后咖啡馆」—— 温暖的奶油色背景，深橙色点缀如咖啡的醇厚，整体氛围轻松舒适。这套系统明确拒绝效率工具的冷峻感，也拒绝健康 APP 的严肃语调。它是一个让人「放肆吃」的游戏化社交空间。",
+    "keyCharacteristics": [
+      "游戏化叙事：等级、经验值、战斗力等游戏语言替代数据分析语调",
+      "情感优先：界面传递挑战的兴奋感，不是记录的工具感",
+      "精致玻璃：玻璃质感卡片 + 柔和光晕，层次分明但不浮夸",
+      "橙金双色系：橙色用于交互和强调，金色用于成就和等级",
+      "双主题并行：深色「深夜食堂」+ 浅色「午后咖啡馆」，同一套组件，两种氛围"
+    ],
+    "rules": [
+      {
+        "name": "The Glowing Ember Rule",
+        "body": "橙色是「灶火」，不是「霓虹灯」。它通过 glow 效果发光，而不是通过高饱和度刺眼。",
+        "section": "colors"
+      },
+      {
+        "name": "The Gold Is Earned Rule",
+        "body": "金色只出现在「值得炫耀」的地方：等级徽章、经验值、战斗力、成就。不要把金色用在普通按钮或普通文字上。",
+        "section": "colors"
+      },
+      {
+        "name": "The Cream Is Warm Rule",
+        "body": "浅色主题的背景不是纯白，是带暖调的奶油色（#F4F1EC）。纯白太冷，像医院；奶油色像咖啡馆，有温度。",
+        "section": "colors"
+      },
+      {
+        "name": "The Game Number Rule",
+        "body": "战斗力、最高分、经验值等「游戏数字」使用 Display 级别的字号和字重，配合金色或橙色。这些数字是界面的视觉锚点。",
+        "section": "typography"
+      },
+      {
+        "name": "The Label Whisper Rule",
+        "body": "标签文字使用 Label 级别，字小、字重轻、字间距宽。它们是「耳语」，不是「喊叫」。",
+        "section": "typography"
+      },
+      {
+        "name": "The Glass Layer Rule",
+        "body": "深色主题的卡片背景是半透明的，配合 backdrop-filter。这创造了「透过玻璃看内容」的效果。",
+        "section": "elevation"
+      },
+      {
+        "name": "The Warm Shadow Rule",
+        "body": "浅色主题的阴影是暖调的，不是冷调的纯黑。阴影要轻，像阳光下的自然投影。",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "使用橙色作为主要交互色，出现在所有可点击的元素上",
+      "使用金色点缀「值得炫耀」的数据：等级、经验值、战斗力、成就",
+      "深色主题使用玻璃质感卡片（半透明背景 + backdrop-filter），营造「深夜食堂」的雾气感",
+      "浅色主题使用温暖的奶油色背景（#F4F1EC），不是纯白",
+      "使用 Double-Bezel Card 作为主要卡片样式，创造层次感",
+      "游戏数字（战斗力、最高分）使用 Display 级别字号，足够大、足够醒目",
+      "标签文字使用 Label 级别，字小、字轻、字间距宽，提供信息但不抢焦点",
+      "使用 prefers-reduced-motion 媒体查询，为减少动画的用户关闭动画"
+    ],
+    "donts": [
+      "使用纯黑（#000）或纯白（#fff）作为背景或文字色，始终带一点色调",
+      "把金色用在普通按钮或普通文字上，它的稀缺性就是它的价值",
+      "使用效率工具的冷峻感（Notion、Linear 的那种「高效」语调）",
+      "使用健康 APP 的严肃语调（Keep、薄荷健康的那种「自律」叙事）",
+      "使用大众点评那种信息过载的复杂布局",
+      "使用渐变文字（background-clip: text + gradient），太装饰性",
+      "使用侧边条纹边框（border-left > 1px 作为彩色强调），太老套",
+      "使用弹窗作为第一选择，优先考虑内联、渐进式的交互方式",
+      "使用相同的卡片网格（同样大小的 icon + heading + text 重复），太无聊",
+      "深色主题的阴影太轻（像平面设计），或浅色主题的阴影太重（像 2014 年的 APP）"
+    ]
+  }
+}

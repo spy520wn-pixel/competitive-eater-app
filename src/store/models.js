@@ -3,7 +3,7 @@ function generateId() {
   return (++idCounter).toString(36)
 }
 
-export function createShop({ name, category = '自助餐', city = '', address = '', mealTimeLimit = 90, location = null }) {
+export function createShop({ name, category = '自助餐', city = '', address = '', mealTimeLimit = 90, location = null, cost = '', photos = [], rating = '' }) {
   return {
     id: generateId(),
     name,
@@ -15,6 +15,9 @@ export function createShop({ name, category = '自助餐', city = '', address = 
     hasTiers: false,
     tiers: [],
     menu: [],
+    cost,
+    photos,
+    rating,
     createdAt: new Date().toISOString()
   }
 }
@@ -39,13 +42,14 @@ export function createMenuItem({ shopId, tierId = '', name, category, unit }) {
   }
 }
 
-export function createRecord({ shopId, shopName, tierId = '', tierName = '' }) {
+export function createRecord({ shopId, shopName, tierId = '', tierName = '', diners = 1 }) {
   return {
     id: generateId(),
     shopId,
     shopName,
     tierId,
     tierName,
+    diners,
     startTime: new Date().toISOString(),
     endTime: null,
     duration: 0,

@@ -69,7 +69,26 @@ function imageToBase64(path) {
     }).catch(reject)
     // #endif
 
-    // #ifndef H5
+    // #ifdef APP-PLUS
+    plus.io.resolveLocalFileSystemURL(path, (entry) => {
+      entry.file((file) => {
+        const reader = new plus.io.FileReader()
+        reader.onloadend = (e) => {
+          resolve(e.target.result)
+        }
+        reader.onerror = (e) => {
+          reject(new Error('读取图片失败'))
+        }
+        reader.readAsDataURL(file)
+      }, (err) => {
+        reject(new Error('获取文件失败'))
+      })
+    }, (err) => {
+      reject(new Error('解析文件路径失败'))
+    })
+    // #endif
+
+    // #ifdef MP
     uni.getFileSystemManager().readFile({
       filePath: path,
       encoding: 'base64',
@@ -78,4 +97,223 @@ function imageToBase64(path) {
     })
     // #endif
   })
+}
+
+// 菜单图片识别功能
+const MENU_SYSTEM_PROMPT = `你是一个菜单图片识别助手。你的任务是从图片中识别出菜品信息，并返回结构化的JSON数据。
+
+## 返回格式要求
+
+你必须严格按照以下JSON格式返回，不要返回任何其他内容：
+
+\`\`\`json
+{
+  "success": true,
+  "menu": [
+    {
+      "name": "菜品名称",
+      "category": "分类",
+      "unit": "单位"
+    }
+  ],
+  "tiers": [
+    {
+      "name": "档位名称",
+      "menu": [
+        {
+          "name": "菜品名称",
+          "category": "分类",
+          "unit": "单位"
+        }
+      ]
+    }
+  ]
+}
+\`\`\`
+
+## 字段说明
+
+### menu（基础菜单）
+- 如果店铺没有档位区分，所有菜品放在 menu 数组中
+- 如果有档位区分，基础菜单可以为空数组
+
+### tiers（档位菜单）
+- 如果店铺有不同价位的档位（如：午市套餐、晚市套餐、VIP套餐等），每个档位的菜品放在对应的 tiers 数组中
+- 如果没有档位区分，tiers 为空数组
+
+### 菜品字段说明
+- **name**: 菜品名称（字符串，必填）
+- **category**: 菜品分类，必须是以下之一：
+  - "肉类"（包括猪肉、牛肉、羊肉、鸡肉等）
+  - "海鲜"（包括鱼、虾、蟹、贝类等）
+  - "主食"（包括米饭、面条、馒头、饺子等）
+  - "甜点"（包括蛋糕、冰淇淋、布丁等）
+  - "饮料"（包括酒水、果汁、茶饮等）
+  - "其他"（不属于以上分类的）
+- **unit**: 计量单位（字符串，必填），常见值：
+  - "份"（最常用）
+  - "盘"
+  - "碗"
+  - "杯"
+  - "个"
+  - "串"
+  - "只"
+  - "斤"
+  - "克"
+
+## 识别规则
+
+1. 如果图片模糊或无法识别，返回：{"success": false, "menu": [], "tiers": [], "error": "无法识别图片内容"}
+2. 尽量识别所有可见的菜品，包括小字
+3. 如果菜品名称不完整，根据上下文合理补全
+4. 如果无法确定分类，默认使用"其他"
+5. 如果无法确定单位，默认使用"份"
+6. 如果图片中有明确的档位/套餐区分，使用 tiers 结构
+7. 如果没有档位区分，所有菜品放在 menu 中
+
+## 示例
+
+### 示例1：普通菜单（无档位）
+\`\`\`json
+{
+  "success": true,
+  "menu": [
+    {"name": "红烧肉", "category": "肉类", "unit": "份"},
+    {"name": "清蒸鲈鱼", "category": "海鲜", "unit": "条"},
+    {"name": "蛋炒饭", "category": "主食", "unit": "碗"},
+    {"name": "可乐", "category": "饮料", "unit": "杯"}
+  ],
+  "tiers": []
+}
+\`\`\`
+
+### 示例2：有档位的菜单
+\`\`\`json
+{
+  "success": true,
+  "menu": [],
+  "tiers": [
+    {
+      "name": "午市套餐",
+      "menu": [
+        {"name": "宫保鸡丁", "category": "肉类", "unit": "份"},
+        {"name": "米饭", "category": "主食", "unit": "碗"}
+      ]
+    },
+    {
+      "name": "晚市套餐",
+      "menu": [
+        {"name": "北京烤鸭", "category": "肉类", "unit": "只"},
+        {"name": "凉拌黄瓜", "category": "其他", "unit": "份"}
+      ]
+    }
+  ]
+}
+\`\`\`
+
+请严格按照上述格式返回JSON，不要添加任何额外的解释或说明。`
+
+export async function recognizeMenu(imagePath) {
+  const settings = settingsStore.get()
+  const { aiServiceUrl, aiApiKey, aiModel } = settings
+
+  if (!aiServiceUrl) {
+    throw new Error('请先在设置中配置 AI 服务地址')
+  }
+
+  if (!aiApiKey) {
+    throw new Error('请先在设置中配置 AI API Key')
+  }
+
+  // 将图片转为base64
+  const imageBase64 = await imageToBase64(imagePath)
+
+  // 构建请求URL
+  let url = aiServiceUrl
+  if (!url.endsWith('/')) url += '/'
+  url += 'v1/chat/completions'
+
+  const response = await new Promise((resolve, reject) => {
+    uni.request({
+      url,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${aiApiKey}`
+      },
+      data: {
+        model: aiModel || 'gpt-4o-mini',
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content: MENU_SYSTEM_PROMPT
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: '请识别这张菜单图片中的所有菜品，按照指定的JSON格式返回结果。'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageBase64
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.1
+      },
+      success: (res) => resolve(res),
+      fail: (err) => reject(err)
+    })
+  })
+
+  if (response.statusCode !== 200) {
+    throw new Error(`AI服务请求失败: ${response.statusCode}`)
+  }
+
+  const data = response.data
+  if (!data.choices || !data.choices[0]) {
+    throw new Error('AI服务返回数据格式错误')
+  }
+
+  const content = data.choices[0].message.content
+
+  // 尝试解析JSON
+  try {
+    // 提取JSON部分（可能被包裹在```json...```中）
+    let jsonStr = content
+    const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/)
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1]
+    } else {
+      // 尝试直接解析
+      jsonStr = content.trim()
+    }
+
+    const result = JSON.parse(jsonStr)
+
+    // 验证返回格式
+    if (typeof result.success !== 'boolean') {
+      throw new Error('返回格式错误：缺少success字段')
+    }
+
+    if (!Array.isArray(result.menu)) {
+      result.menu = []
+    }
+
+    if (!Array.isArray(result.tiers)) {
+      result.tiers = []
+    }
+
+    return result
+  } catch (e) {
+    console.error('解析AI返回数据失败:', content, e)
+    throw new Error('解析AI返回数据失败，请重试')
+  }
 }

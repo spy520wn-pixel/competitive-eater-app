@@ -1,27 +1,40 @@
 {
-  "name": "大胃王",
-  "appid": "__UNI__XXXXXXX",
-  "description": "大胃王战绩记录工具",
-  "versionName": "0.1.0",
-  "versionCode": "100",
-  "transformPx": false,
-  "app-plus": {
-    "modules": {},
-    "distribute": {
-      "android": {
-        "permissions": [
-          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
-          "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
-          "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>"
-        ]
-      },
-      "ios": {},
-      "sdkConfigs": {}
+    "name" : "大胃王",
+    "appid" : "__UNI__C6DE689",
+    "description" : "大胃王战绩记录工具",
+    "versionName" : "0.1.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    "app-plus" : {
+        "modules" : {},
+        "distribute" : {
+            "android" : {
+                "permissions" : [
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>"
+                ]
+            },
+            "ios" : {
+                "dSYMs" : false
+            },
+            "sdkConfigs" : {
+                "ad" : {}
+            }
+        }
+    },
+    "h5" : {
+        "devServer" : {
+            "port" : 5173,
+            "proxy" : {
+                "/amap-api" : {
+                    "target" : "https://restapi.amap.com",
+                    "changeOrigin" : true,
+                    "pathRewrite" : {
+                        "^/amap-api/" : "/"
+                    }
+                }
+            }
+        }
     }
-  },
-  "h5": {
-    "devServer": {
-      "port": 5173
-    }
-  }
 }

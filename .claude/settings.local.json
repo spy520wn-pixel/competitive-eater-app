@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf \"E:/HBuilder-HelloUniApp/app/src/main/assets/apps/__UNI__C6DE689/www/\"*)",
+      "Bash(cp -r \"E:/autoclaw_AI_code/competitive-eater-app/dist/build/app/\"* \"E:/HBuilder-HelloUniApp/app/src/main/assets/apps/__UNI__C6DE689/www/\")"
+    ]
+  }
+}

@@ -9,7 +9,7 @@ const CATEGORY_WEIGHTS = {
 
 const CATEGORY_BONUS = 20
 
-export function calculateScore(items) {
+export function calculateScore(items, diners = 1) {
   if (!items || items.length === 0) return 0
 
   const categoryTotals = {}
@@ -28,5 +28,10 @@ export function calculateScore(items) {
   const categoryCount = Object.keys(categoryTotals).length
   score += categoryCount * CATEGORY_BONUS
 
-  return Math.round(score)
+  // 根据就餐人数打折
+  if (diners > 1) {
+    score = Math.round(score / diners)
+  }
+
+  return score
 }

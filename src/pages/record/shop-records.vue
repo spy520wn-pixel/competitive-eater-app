@@ -1,56 +1,70 @@
 <template>
   <view class="page">
-    <!-- Stats banner -->
-    <view class="stats-banner">
-      <view class="stat-block">
-        <text class="stat-value">{{ bestScore }}</text>
-        <text class="stat-label">最高战斗力</text>
-      </view>
-      <view class="stat-divider" />
-      <view class="stat-block">
-        <text class="stat-value">{{ avgScore }}</text>
-        <text class="stat-label">平均战斗力</text>
+    <!-- Stats banner — Double-Bezel -->
+    <view class="stats-shell">
+      <view class="stats-core">
+        <view class="stat-block">
+          <text class="stat-value">{{ bestScore }}</text>
+          <text class="stat-label">最高战斗力</text>
+        </view>
+        <view class="stat-divider" />
+        <view class="stat-block">
+          <text class="stat-value">{{ avgScore }}</text>
+          <text class="stat-label">平均战斗力</text>
+        </view>
       </view>
     </view>
 
     <!-- Record list -->
-    <view v-if="records.length > 0" class="record-list">
+    <view v-if="sortedRecords.length > 0" class="record-list">
       <view
-        v-for="(rec, idx) in records"
+        v-for="(rec, idx) in sortedRecords"
         :key="rec.id"
-        class="record-card"
-        :class="{ 'record-card--best': idx === bestIndex }"
+        class="record-card-shell"
+        role="button"
+        :class="{ 'record-card-shell--best': idx === 0 }"
+        :style="{ animationDelay: idx * 80 + 'ms' }"
         @tap="goDetail(rec.id)"
       >
-        <view class="record-top">
-          <view class="record-left">
-            <text class="record-date">{{ formatDate(rec.createdAt) }}</text>
-            <view class="record-score-row">
-              <text class="record-score-label">战斗力</text>
-              <text class="record-score" :class="{ 'record-score--best': idx === bestIndex }">{{ rec.score }}</text>
-              <text v-if="idx === bestIndex" class="best-star">⭐</text>
+        <view class="record-card-core">
+          <view class="record-top">
+            <view class="record-left">
+              <text class="record-date">{{ formatDate(rec.createdAt) }}</text>
+              <view class="record-score-row">
+                <text class="record-score-label">战斗力</text>
+                <text class="record-score" :class="{ 'record-score--best': idx === 0 }">{{ rec.score }}</text>
+                <view v-if="idx === 0" class="best-badge">
+                  <text class="best-star">⭐</text>
+                </view>
+              </view>
+            </view>
+            <view class="arrow-wrap">
+              <text class="record-arrow">›</text>
             </view>
           </view>
-          <text class="record-arrow">></text>
-        </view>
 
-        <!-- Category summary -->
-        <view class="record-summary">
-          <text class="summary-text">{{ getCategorySummary(rec.items) }}</text>
-        </view>
+          <!-- Category summary -->
+          <view class="record-summary">
+            <text class="summary-text">{{ getCategorySummary(rec.items) }}</text>
+          </view>
 
-        <!-- Duration -->
-        <view class="record-duration">
-          <text class="duration-text">时长 {{ rec.duration }}分钟</text>
+          <!-- Duration -->
+          <view class="record-duration">
+            <text class="duration-text">时长 {{ rec.duration }}分钟</text>
+          </view>
         </view>
       </view>
     </view>
 
     <!-- Empty -->
-    <view v-else class="empty-state">
-      <text class="empty-icon">📋</text>
-      <text class="empty-title">暂无挑战记录</text>
-    </view>
+    <EmptyState
+      v-else
+      icon="📋"
+      title="这家店还没挑战过"
+      description="去挑战一下，看看你能吃多少"
+      action-text="去挑战"
+      @action="goChallenge"
+    />
   </view>
 </template>
 
@@ -58,6 +72,7 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
+import EmptyState from '@/components/empty-state.vue'
 
 const shopId = ref('')
 const shopName = ref('')
@@ -84,7 +99,6 @@ function getCategorySummary(items) {
       parts.push(`${cat}${totals[cat]}份`)
     }
   })
-  // Include any categories not in the predefined order
   Object.keys(totals).forEach(cat => {
     if (!CATEGORY_ORDER.includes(cat)) {
       parts.push(`${cat}${totals[cat]}份`)
@@ -92,6 +106,10 @@ function getCategorySummary(items) {
   })
   return parts.join(' ')
 }
+
+const sortedRecords = computed(() => {
+  return [...records.value].sort((a, b) => b.score - a.score)
+})
 
 const bestScore = computed(() => {
   if (records.value.length === 0) return 0
@@ -104,21 +122,12 @@ const avgScore = computed(() => {
   return Math.round(sum / records.value.length)
 })
 
-const bestIndex = computed(() => {
-  if (records.value.length === 0) return -1
-  let maxScore = 0
-  let maxIdx = 0
-  records.value.forEach((r, i) => {
-    if (r.score > maxScore) {
-      maxScore = r.score
-      maxIdx = i
-    }
-  })
-  return maxIdx
-})
-
 function goDetail(recordId) {
   uni.navigateTo({ url: `/pages/record/detail?id=${recordId}` })
+}
+
+function goChallenge() {
+  uni.switchTab({ url: '/pages/challenge/select' })
 }
 
 onLoad((options) => {
@@ -130,73 +139,106 @@ onLoad((options) => {
     uni.setNavigationBarTitle({ title: shopName.value })
   }
 })
+
+
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .page {
   min-height: 100vh;
-  background: #0F0F1A;
-  padding: 24rpx;
-  padding-bottom: 40rpx;
+  background: var(--c-bg, $void-black);
+  padding: $page-pad-y $page-pad-x;
+  padding-bottom: $section-gap;
 }
 
-/* Stats banner */
-.stats-banner {
+/* ── Stats Bar (Double-Bezel) ── */
+.stats-shell {
+  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
+  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  border-radius: $radius-2xl;
+  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
+  margin-bottom: $section-gap;
+  animation: fadeInUp $dur-slow $ease-out-expo both;
+  overflow: hidden;
+}
+
+.stats-core {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
-  border-radius: 16rpx;
-  padding: 32rpx 0;
-  margin-bottom: 24rpx;
+  padding: $card-pad-compact;
 }
 
 .stat-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8rpx;
+  gap: $intra-tight;
 }
 
 .stat-value {
-  font-size: 44rpx;
+  font-size: 48rpx;
   font-weight: 800;
-  color: #FF6B35;
+  color: var(--c-accent, $accent-orange);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: $tracking-tighter;
 }
 
 .stat-label {
   font-size: 22rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
+  letter-spacing: $tracking-wider;
 }
 
 .stat-divider {
-  width: 2rpx;
+  width: 1rpx;
   height: 56rpx;
-  background: #2D2D44;
+  background: linear-gradient(180deg, transparent, var(--c-surface-6, $glass-white-6), transparent);
 }
 
-/* Record list */
+/* ── Record List ── */
 .record-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: $inter-group;
 }
 
-.record-card {
-  background: #1A1A2E;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  border: 2rpx solid transparent;
-  transition: border-color 0.2s;
+/* ── Record Card (Double-Bezel) ── */
+.record-card-shell {
+  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
+  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  border-radius: $radius-2xl;
+  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
+  animation: fadeInUp $dur-slow $ease-out-expo both;
+  transition: transform $dur-fast $ease-spring, box-shadow $dur-fast $ease-spring;
+  overflow: hidden;
 }
 
-.record-card:active {
-  border-color: #FF6B35;
+.record-card-shell:active {
+  transform: scale(0.98);
 }
 
-.record-card--best {
-  border-color: #FFD700;
-  background: linear-gradient(135deg, #1A1A2E 0%, #1E1A30 100%);
+.record-card-shell--best {
+  border-color: rgba(255, 215, 0, 0.3);
+  background: linear-gradient(165deg, rgba(255, 215, 0, 0.12) 0%, rgba(255, 215, 0, 0.04) 100%);
+  box-shadow: 0 8rpx 40rpx rgba(255, 215, 0, 0.15), var(--c-shadow-inner, $shadow-inner);
+}
+
+.record-card-core {
+  background: var(--c-surface-0, $surface-0);
+  border-radius: calc(#{$radius-2xl} - #{$bezel-offset});
+  padding: $card-pad-inner;
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+  box-shadow: var(--c-shadow-inner, $shadow-inner);
+}
+
+.record-card-shell--best .record-card-core {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.06) 0%, var(--c-surface-0, $surface-0) 100%);
+  border-color: rgba(255, 215, 0, 0.1);
 }
 
 .record-top {
@@ -208,85 +250,118 @@ onLoad((options) => {
 .record-left {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: $intra-tight;
 }
 
 .record-date {
   font-size: 24rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
 }
 
 .record-score-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $intra-tight;
 }
 
 .record-score-label {
   font-size: 26rpx;
-  color: #AAAAAA;
+  color: var(--c-text-secondary, $text-secondary);
 }
 
 .record-score {
-  font-size: 40rpx;
+  font-size: 44rpx;
   font-weight: 800;
-  color: #FF6B35;
+  color: var(--c-accent, $accent-orange);
+  font-variant-numeric: tabular-nums;
 }
 
 .record-score--best {
-  color: #FFD700;
+  color: var(--c-gold, $accent-gold);
+  text-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3);
+}
+
+.best-badge {
+  animation: pulseGlow 2s ease-in-out infinite;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+  border-radius: $radius-pill;
+  padding: 4rpx 12rpx;
+  margin-left: 8rpx;
 }
 
 .best-star {
   font-size: 32rpx;
 }
 
+.arrow-wrap {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: var(--c-surface-3, $glass-white-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .record-arrow {
-  font-size: 32rpx;
-  color: #555570;
+  font-size: 28rpx;
+  color: var(--c-text-muted, $text-muted);
   font-weight: 300;
 }
 
 /* Category summary */
 .record-summary {
-  margin-top: 16rpx;
-  padding-top: 16rpx;
-  border-top: 1rpx solid #2D2D44;
+  margin-top: $intra-group;
+  padding-top: $intra-group;
+  border-top: 1rpx solid var(--c-border-subtle, $hairline-subtle);
 }
 
 .summary-text {
   font-size: 24rpx;
-  color: #AAAAAA;
+  color: var(--c-text-secondary, $text-secondary);
   line-height: 1.6;
 }
 
 /* Duration */
 .record-duration {
-  margin-top: 12rpx;
+  margin-top: $intra-tight;
 }
 
 .duration-text {
   font-size: 22rpx;
-  color: #666680;
+  color: var(--c-text-muted, $text-muted);
 }
 
-/* Empty state */
+/* ── Empty State ── */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 160rpx 60rpx;
+  animation: fadeInUp 0.8s $ease-out-expo 0.2s both;
+}
+
+.empty-plate {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: var(--c-surface-3, $glass-white-3);
+  border: 1rpx solid var(--c-hairline, $hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $intra-group;
+  box-shadow: var(--c-shadow-lg, $shadow-lg), var(--c-shadow-inner, $shadow-inner);
 }
 
 .empty-icon {
-  font-size: 96rpx;
-  margin-bottom: 24rpx;
+  font-size: 56rpx;
 }
 
 .empty-title {
   font-size: 32rpx;
-  font-weight: bold;
-  color: #FFFFFF;
+  font-weight: 700;
+  color: var(--c-text-primary, $text-primary);
 }
 </style>

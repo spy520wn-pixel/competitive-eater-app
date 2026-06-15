@@ -1,0 +1,985 @@
+/* ═══════════════════════════════════════════════════════
+   Light Theme — Soft Structuralism
+   Warm cream, diffused ambient shadows, airy depth
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Page Backgrounds ── */
+[data-theme="light"] .dashboard,
+[data-theme="light"] .page {
+  background: var(--c-bg) !important;
+}
+
+/* ── Header Gradient ── */
+[data-theme="light"] .header {
+  background: linear-gradient(180deg, #F4F1EC 0%, #EDEAE5 100%) !important;
+}
+
+/* ── Ambient Orbs — Soft Glow in Light ── */
+[data-theme="light"] .ambient-orb--1 {
+  background: radial-gradient(circle, rgba(217, 79, 30, 0.04) 0%, transparent 70%) !important;
+}
+[data-theme="light"] .ambient-orb--2 {
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.03) 0%, transparent 70%) !important;
+}
+
+/* ── Card Shells — Double-Bezel Light ── */
+[data-theme="light"] .card-shell,
+[data-theme="light"] .stats-shell,
+[data-theme="light"] .profile-shell,
+[data-theme="light"] .shop-card-shell,
+[data-theme="light"] .record-card-shell,
+[data-theme="light"] .section-shell,
+[data-theme="light"] .info-shell,
+[data-theme="light"] .score-shell,
+[data-theme="light"] .chart-shell,
+[data-theme="light"] .group-shell,
+[data-theme="light"] .menu-section {
+  background: var(--c-card-bg) !important;
+  border-color: var(--c-border) !important;
+  box-shadow: var(--c-card-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Inner core of double-bezel */
+[data-theme="light"] .card-core,
+[data-theme="light"] .stats-core,
+[data-theme="light"] .profile-core,
+[data-theme="light"] .shop-card-core,
+[data-theme="light"] .record-card-core,
+[data-theme="light"] .group-core,
+[data-theme="light"] .score-core {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── Text Hierarchy ── */
+
+/* Primary text — deep charcoal */
+[data-theme="light"] .stat-value,
+[data-theme="light"] .card-title,
+[data-theme="light"] .section-title,
+[data-theme="light"] .header-title,
+[data-theme="light"] .shop-card__name,
+[data-theme="light"] .shop-name,
+[data-theme="light"] .profile-name,
+[data-theme="light"] .empty-title,
+[data-theme="light"] .confirm-title,
+[data-theme="light"] .picker-title,
+[data-theme="light"] .popup-title,
+[data-theme="light"] .timer-text,
+[data-theme="light"] .record-date,
+[data-theme="light"] .detail-item .detail-name,
+[data-theme="light"] .detail-item .item-name,
+[data-theme="light"] .menu-item-name,
+[data-theme="light"] .menu-item__text,
+[data-theme="light"] .tier-block__name,
+[data-theme="light"] .confirm-shop,
+[data-theme="light"] .confirm-desc,
+[data-theme="light"] .callout-name,
+[data-theme="light"] .form-label,
+[data-theme="light"] .info-label,
+[data-theme="light"] .info-value,
+[data-theme="light"] .setting-label,
+[data-theme="light"] .unlocated-name,
+[data-theme="light"] .meta-score,
+[data-theme="light"] .meta-count,
+[data-theme="light"] .summary-text,
+[data-theme="light"] .duration-text,
+[data-theme="light"] .menu-item-unit,
+[data-theme="light"] .detail-qty,
+[data-theme="light"] .item-qty,
+[data-theme="light"] .stat-item__num,
+[data-theme="light"] .stat-item__label,
+[data-theme="light"] .stat-block .stat-value,
+[data-theme="light"] .stat-block .stat-label,
+[data-theme="light"] .best-star,
+[data-theme="light"] .picker-value,
+[data-theme="light"] .picker-close-text,
+[data-theme="light"] .picker-section-title,
+[data-theme="light"] .picker-list-text,
+[data-theme="light"] .picker-grid-text,
+[data-theme="light"] .popup-label,
+[data-theme="light"] .empty-items-text,
+[data-theme="light"] .menu-empty-text,
+[data-theme="light"] .tier-empty-text,
+[data-theme="light"] .explorer-empty-text,
+[data-theme="light"] .empty-tip__text,
+[data-theme="light"] .unlocated-score,
+[data-theme="light"] .picker-search-input {
+  color: var(--c-text-primary) !important;
+}
+
+/* Secondary text — warm grey */
+[data-theme="light"] .stat-label,
+[data-theme="light"] .shop-card__meta,
+[data-theme="light"] .empty-desc,
+[data-theme="light"] .confirm-hint,
+[data-theme="light"] .score-label,
+[data-theme="light"] .score-duration,
+[data-theme="light"] .legend-text,
+[data-theme="light"] .meta-date,
+[data-theme="light"] .duration-text,
+[data-theme="light"] .summary-text,
+[data-theme="light"] .menu-empty-text,
+[data-theme="light"] .tier-empty-text,
+[data-theme="light"] .callout-meta,
+[data-theme="light"] .time-unit,
+[data-theme="light"] .card__desc,
+[data-theme="light"] .card__sub,
+[data-theme="light"] .search-placeholder,
+[data-theme="light"] .input-placeholder,
+[data-theme="light"] .form-placeholder,
+[data-theme="light"] .map-loading-text,
+[data-theme="light"] .explorer-empty-text,
+[data-theme="light"] .dish-unit,
+[data-theme="light"] .meta-dot,
+[data-theme="light"] .menu-item-unit,
+[data-theme="light"] .empty-icon,
+[data-theme="light"] .explorer-empty-icon,
+[data-theme="light"] .search-icon {
+  color: var(--c-text-tertiary) !important;
+}
+
+/* Tertiary/muted text */
+[data-theme="light"] .picker-arrow,
+[data-theme="light"] .picker-section-title,
+[data-theme="light"] .form-picker__arrow,
+[data-theme="light"] .nav-arrow,
+[data-theme="light"] .shop-card__arrow,
+[data-theme="light"] .record-arrow,
+[data-theme="light"] .city-picker__arrow,
+[data-theme="light"] .meta-count {
+  color: var(--c-text-secondary) !important;
+}
+
+/* ── Accent Text (Refined Orange) ── */
+[data-theme="light"] .record-score,
+[data-theme="light"] .level-text,
+[data-theme="light"] .level-name,
+[data-theme="light"] .group-title,
+[data-theme="light"] .warning-text,
+[data-theme="light"] .unlocated-title,
+[data-theme="light"] .confirm-score,
+[data-theme="light"] .qty-value--has,
+[data-theme="light"] .picker-grid-item--active .picker-grid-text,
+[data-theme="light"] .picker-list-item--active .picker-list-text,
+[data-theme="light"] .tab-item--active .tab-text,
+[data-theme="light"] .city-picker__text,
+[data-theme="light"] .confirm-btn-text--go,
+[data-theme="light"] .action-btn-text--delete,
+[data-theme="light"] .menu-item-action--del,
+[data-theme="light"] .setting-label--danger,
+[data-theme="light"] .timer-text--danger,
+[data-theme="light"] .eyebrow-text,
+[data-theme="light"] .warning-text,
+[data-theme="light"] .location-text,
+[data-theme="light"] .menu-item-action,
+[data-theme="light"] .menu-item-action--del,
+[data-theme="light"] .add-tier-text,
+[data-theme="light"] .tier-block__del,
+[data-theme="light"] .badge-text {
+  color: var(--c-accent) !important;
+}
+
+/* Orange stat values */
+[data-theme="light"] .stat-value,
+[data-theme="light"] .stat-item__num,
+[data-theme="light"] .meta-score {
+  color: var(--c-accent) !important;
+}
+
+/* ── Gold Text ── */
+[data-theme="light"] .score-value,
+[data-theme="light"] .detail-qty,
+[data-theme="light"] .item-qty,
+[data-theme="light"] .stat-val,
+[data-theme="light"] .unlocated-score,
+[data-theme="light"] .record-score--best,
+[data-theme="light"] .name,
+[data-theme="light"] .tier {
+  color: var(--c-gold) !important;
+}
+
+[data-theme="light"] .tier {
+  color: rgba(192, 139, 16, 0.5) !important;
+}
+
+/* ── Search Bars & Inputs ── */
+[data-theme="light"] .search-bar,
+[data-theme="light"] .search-input,
+[data-theme="light"] .setting-input-wrap,
+[data-theme="light"] .form-input-wrap,
+[data-theme="light"] .picker-search-wrap,
+[data-theme="light"] .popup-input-wrap {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .search-input,
+[data-theme="light"] .setting-input,
+[data-theme="light"] .form-input,
+[data-theme="light"] .popup-input,
+[data-theme="light"] .picker-search-input {
+  color: var(--c-text-primary) !important;
+  background: transparent !important;
+}
+
+/* ── Eyebrow Tags ── */
+[data-theme="light"] .eyebrow {
+  background: rgba(217, 79, 30, 0.06) !important;
+}
+
+[data-theme="light"] .eyebrow-text {
+  color: var(--c-accent) !important;
+}
+
+/* ── City Picker ── */
+[data-theme="light"] .city-picker {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .city-picker__text {
+  color: var(--c-text-primary) !important;
+}
+
+/* ── Menu Items ── */
+[data-theme="light"] .menu-item {
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .menu-item:active {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* ── Setting Rows ── */
+[data-theme="light"] .setting-row {
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .setting-label {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .setting-row--nav:active {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* ── Dish Items ── */
+[data-theme="light"] .dish-item {
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .dish-item--active {
+  background: rgba(217, 79, 30, 0.03) !important;
+}
+
+[data-theme="light"] .dish-name {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .dish-item--active .dish-name {
+  color: var(--c-text-primary) !important;
+}
+
+/* ── Group Titles ── */
+[data-theme="light"] .group-title {
+  color: var(--c-accent) !important;
+  border-color: var(--c-border-light) !important;
+}
+
+/* ── Detail Items ── */
+[data-theme="light"] .detail-name,
+[data-theme="light"] .item-name {
+  color: var(--c-text-primary) !important;
+}
+
+/* ── Action Buttons ── */
+[data-theme="light"] .action-btn--receipt,
+[data-theme="light"] .action-btn--home,
+[data-theme="light"] .action-btn--delete {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-border) !important;
+}
+
+/* ── Confirm Dialogs ── */
+[data-theme="light"] .confirm-dialog,
+[data-theme="light"] .popup {
+  background: var(--c-surface-0) !important;
+  border-color: var(--c-border) !important;
+  box-shadow: var(--c-card-shadow-elevated) !important;
+}
+
+[data-theme="light"] .confirm-title {
+  color: var(--c-gold) !important;
+}
+
+[data-theme="light"] .confirm-score {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .confirm-tier {
+  color: var(--c-accent) !important;
+}
+
+/* ── Picker Popup ── */
+[data-theme="light"] .picker-popup {
+  background: var(--c-surface-0) !important;
+  box-shadow: 0 -8rpx 40rpx rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .picker-mask {
+  background: var(--c-overlay) !important;
+}
+
+[data-theme="light"] .picker-grid-item,
+[data-theme="light"] .picker-list-item {
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .picker-grid-item--active {
+  background: rgba(217, 79, 30, 0.06) !important;
+  border-color: rgba(217, 79, 30, 0.2) !important;
+}
+
+[data-theme="light"] .picker-grid-item--active .picker-grid-text {
+  color: var(--c-accent) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Tab Bar ── */
+[data-theme="light"] .uni-tabbar {
+  background: #F4F1EC !important;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 -2rpx 16rpx rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ── Navigation Bar ── */
+[data-theme="light"] .uni-page-head {
+  background: #F4F1EC !important;
+  border-bottom: 1rpx solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="light"] .uni-page-head__title {
+  color: var(--c-text-primary) !important;
+}
+
+/* ── Navbar (cooking page) ── */
+[data-theme="light"] .navbar {
+  background: linear-gradient(180deg, #F4F1EC 0%, #EDEAE5 100%) !important;
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .navbar-shop {
+  color: var(--c-text-secondary) !important;
+}
+
+[data-theme="light"] .navbar-tier {
+  color: var(--c-accent) !important;
+}
+
+/* ── Bottom Bar (cooking page) ── */
+[data-theme="light"] .bottom-bar {
+  background: rgba(244, 241, 236, 0.96) !important;
+  border-color: var(--c-border-light) !important;
+  backdrop-filter: blur(20rpx) !important;
+  -webkit-backdrop-filter: blur(20rpx) !important;
+}
+
+[data-theme="light"] .stats-text {
+  color: var(--c-text-tertiary) !important;
+}
+
+[data-theme="light"] .stats-num {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .stats-divider {
+  color: var(--c-text-muted) !important;
+}
+
+/* ── Level Badge ── */
+[data-theme="light"] .badge-glow {
+  background: radial-gradient(ellipse, rgba(192, 139, 16, 0.10) 0%, transparent 70%) !important;
+}
+
+[data-theme="light"] .badge-inner {
+  background: rgba(192, 139, 16, 0.05) !important;
+  border-color: rgba(192, 139, 16, 0.12) !important;
+}
+
+[data-theme="light"] .name {
+  color: var(--c-gold) !important;
+}
+
+[data-theme="light"] .tier {
+  color: rgba(192, 139, 16, 0.5) !important;
+}
+
+[data-theme="light"] .exp-bar {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .exp-bar-fill {
+  background: linear-gradient(90deg, #A07508, #C08B10) !important;
+  box-shadow: 0 0 12rpx rgba(192, 139, 16, 0.2) !important;
+}
+
+[data-theme="light"] .exp-text {
+  color: var(--c-text-muted) !important;
+}
+
+/* ── Empty States ── */
+[data-theme="light"] .empty-plate {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-border) !important;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .empty-cta {
+  box-shadow: 0 8rpx 32rpx rgba(217, 79, 30, 0.2), 0 2rpx 8rpx rgba(217, 79, 30, 0.1) !important;
+}
+
+/* ── Arrow Wraps & Icon Wraps ── */
+[data-theme="light"] .arrow-wrap,
+[data-theme="light"] .shop-card__arrow-wrap,
+[data-theme="light"] .menu-item__arrow-wrap,
+[data-theme="light"] .menu-item__icon-wrap,
+[data-theme="light"] .shop-card__icon,
+[data-theme="light"] .picker-close,
+[data-theme="light"] .back-btn {
+  background: var(--c-input-bg) !important;
+}
+
+/* ── Category Tabs ── */
+[data-theme="light"] .category-tabs {
+  background: #EAE7E2 !important;
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .tab-item--active {
+  background: rgba(217, 79, 30, 0.05) !important;
+}
+
+[data-theme="light"] .tab-text {
+  color: var(--c-text-tertiary) !important;
+}
+
+[data-theme="light"] .tab-item--active .tab-text {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .tab-indicator {
+  box-shadow: 0 0 10rpx rgba(217, 79, 30, 0.3) !important;
+}
+
+/* ── Bar Chart ── */
+[data-theme="light"] .bar-track {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ── Dish Item ── */
+[data-theme="light"] .dish-item--active {
+  background: rgba(217, 79, 30, 0.04) !important;
+}
+
+[data-theme="light"] .qty-display {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+[data-theme="light"] .qty-btn--minus {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ── Level Badge ── */
+[data-theme="light"] .badge-inner {
+  background: rgba(192, 139, 16, 0.06) !important;
+  border-color: rgba(192, 139, 16, 0.12) !important;
+}
+
+/* ── Map Canvas ── */
+[data-theme="light"] .chart-wrap {
+  background: transparent !important;
+}
+
+[data-theme="light"] .chart-dom {
+  filter: none !important;
+}
+
+/* ── Cooking Page: Dish List ── */
+[data-theme="light"] .dish-list {
+  background: var(--c-bg) !important;
+}
+
+/* ── Record Detail: Chart Core ── */
+[data-theme="light"] .chart-core {
+  background: var(--c-surface-0) !important;
+}
+
+/* ── Empty Items Containers ── */
+[data-theme="light"] .empty-items {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ── Result Page: Stat Bar ── */
+[data-theme="light"] .stat-bar-bg {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ── Tier Picker: Glass Overlay ── */
+[data-theme="light"] .picker-glass {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%) !important;
+}
+
+/* ── Backup Page: Info Core ── */
+[data-theme="light"] .info-core {
+  background: transparent !important;
+}
+
+/* ── Tier Picker ── */
+[data-theme="light"] .tier-picker {
+  background: var(--c-surface-0) !important;
+  box-shadow: var(--c-card-shadow-elevated) !important;
+}
+
+[data-theme="light"] .tier-card {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .tier-card--selected {
+  background: rgba(217, 79, 30, 0.04) !important;
+  border-color: rgba(217, 79, 30, 0.25) !important;
+  box-shadow: 0 4rpx 20rpx rgba(217, 79, 30, 0.08) !important;
+}
+
+/* ── Mask Overlays ── */
+[data-theme="light"] .confirm-mask,
+[data-theme="light"] .popup-mask,
+[data-theme="light"] .tier-picker-mask {
+  background: var(--c-overlay) !important;
+}
+
+[data-theme="light"] .popup-glow {
+  display: none !important;
+}
+
+/* ── Warning Bar ── */
+[data-theme="light"] .warning-bar {
+  background: rgba(217, 79, 30, 0.05) !important;
+  border-color: rgba(217, 79, 30, 0.12) !important;
+}
+
+[data-theme="light"] .warning-text {
+  color: var(--c-accent) !important;
+}
+
+/* ── Unlocated Shops ── */
+[data-theme="light"] .unlocated {
+  background: rgba(217, 79, 30, 0.03) !important;
+  border-color: rgba(217, 79, 30, 0.08) !important;
+}
+
+[data-theme="light"] .unlocated-title {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .unlocated-name {
+  color: var(--c-text-primary) !important;
+}
+
+/* ── Profile Card ── */
+[data-theme="light"] .profile-card__avatar {
+  background: linear-gradient(135deg, #D94F1E 0%, #F06830 100%) !important;
+}
+
+[data-theme="light"] .avatar-ring {
+  border-color: rgba(217, 79, 30, 0.15) !important;
+}
+
+[data-theme="light"] .profile-glow {
+  background: radial-gradient(circle, rgba(217, 79, 30, 0.06) 0%, transparent 70%) !important;
+}
+
+/* ── Form Picker ── */
+[data-theme="light"] .form-picker {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .form-picker__text {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .form-picker__arrow {
+  color: var(--c-text-muted) !important;
+}
+
+/* ── Location Button ── */
+[data-theme="light"] .location-btn {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .location-text {
+  color: var(--c-accent) !important;
+}
+
+/* ── Save Button ── */
+[data-theme="light"] .save-btn {
+  box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ── End Button (cooking) ── */
+[data-theme="light"] .end-btn {
+  box-shadow: 0 8rpx 24rpx rgba(204, 45, 32, 0.2), 0 2rpx 8rpx rgba(204, 45, 32, 0.1) !important;
+}
+
+/* ── Timer Icon Wrap ── */
+[data-theme="light"] .timer-icon-wrap {
+  background: rgba(192, 139, 16, 0.06) !important;
+  border-color: rgba(192, 139, 16, 0.12) !important;
+}
+
+[data-theme="light"] .timer-text {
+  color: var(--c-gold) !important;
+  text-shadow: none !important;
+}
+
+[data-theme="light"] .timer-text--danger {
+  color: var(--c-danger) !important;
+  text-shadow: none !important;
+}
+
+/* ── Qty Buttons ── */
+[data-theme="light"] .qty-btn--minus {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .qty-btn--plus {
+  box-shadow: 0 4rpx 20rpx rgba(217, 79, 30, 0.2), 0 1rpx 4rpx rgba(217, 79, 30, 0.1) !important;
+}
+
+/* ── Score Glow ── */
+[data-theme="light"] .score-glow {
+  background: radial-gradient(ellipse, rgba(192, 139, 16, 0.06) 0%, transparent 70%) !important;
+}
+
+/* ── Callout ── */
+[data-theme="light"] .callout {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(217, 79, 30, 0.15) !important;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="light"] .callout-name {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .callout-meta {
+  color: var(--c-accent) !important;
+}
+
+/* ── Legend Dots ── */
+[data-theme="light"] .legend-dot--challenged {
+  box-shadow: 0 0 8rpx rgba(217, 79, 30, 0.25) !important;
+}
+
+[data-theme="light"] .legend-dot--unchallenged {
+  background: rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-theme="light"] .legend-text {
+  color: var(--c-text-muted) !important;
+}
+
+/* ── Best Badge ── */
+[data-theme="light"] .record-card-shell--best {
+  border-color: rgba(192, 139, 16, 0.3) !important;
+  background: linear-gradient(165deg, rgba(192, 139, 16, 0.08) 0%, rgba(192, 139, 16, 0.02) 100%) !important;
+  box-shadow: 0 8rpx 40rpx rgba(192, 139, 16, 0.12) !important;
+}
+
+[data-theme="light"] .record-card-shell--best .record-card-core {
+  background: linear-gradient(135deg, rgba(192, 139, 16, 0.04) 0%, #FFFFFF 100%) !important;
+  border-color: rgba(192, 139, 16, 0.08) !important;
+}
+
+[data-theme="light"] .best-badge {
+  background: linear-gradient(135deg, rgba(192, 139, 16, 0.15) 0%, rgba(192, 139, 16, 0.08) 100%) !important;
+}
+
+[data-theme="light"] .record-score--best {
+  text-shadow: 0 0 20rpx rgba(192, 139, 16, 0.2) !important;
+}
+
+/* ── Theme Preview (settings) ── */
+[data-theme="light"] .theme-option--active {
+  border-color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .theme-option__label {
+  color: var(--c-text-secondary) !important;
+}
+
+[data-theme="light"] .theme-option--active .theme-option__label {
+  color: var(--c-accent) !important;
+}
+
+/* ── White Text on Colored Buttons ── */
+[data-theme="light"] .save-btn__text,
+[data-theme="light"] .end-btn-text,
+[data-theme="light"] .empty-cta-text,
+[data-theme="light"] .empty-btn__text,
+[data-theme="light"] .confirm-btn-text--go,
+[data-theme="light"] .popup-btn-text,
+[data-theme="light"] .add-btn-text,
+[data-theme="light"] .action-btn-text--poster,
+[data-theme="light"] .qty-btn-text {
+  color: #FFFFFF !important;
+}
+
+/* ── Confirm Dialog ── */
+[data-theme="light"] .confirm-title {
+  color: var(--c-gold) !important;
+}
+
+[data-theme="light"] .confirm-shop {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .confirm-hint {
+  color: var(--c-text-tertiary) !important;
+}
+
+[data-theme="light"] .confirm-desc {
+  color: var(--c-text-primary) !important;
+}
+
+/* ── Form Labels ── */
+[data-theme="light"] .form-label {
+  color: var(--c-text-secondary) !important;
+}
+
+/* ── Stat Labels ── */
+[data-theme="light"] .stat-item__label {
+  color: var(--c-text-tertiary) !important;
+}
+
+[data-theme="light"] .stat-label {
+  color: var(--c-text-tertiary) !important;
+}
+
+/* ── Record Score ── */
+[data-theme="light"] .record-score-label {
+  color: var(--c-text-secondary) !important;
+}
+
+/* ── Shop Edit Page ── */
+[data-theme="light"] .form-shell,
+[data-theme="light"] .menu-shell,
+[data-theme="light"] .tier-shell {
+  background: var(--c-card-bg) !important;
+  border-color: var(--c-border) !important;
+  box-shadow: var(--c-card-shadow) !important;
+}
+
+[data-theme="light"] .form-core,
+[data-theme="light"] .menu-core,
+[data-theme="light"] .tier-core {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+[data-theme="light"] .form-item {
+  border-color: var(--c-border-light) !important;
+}
+
+[data-theme="light"] .form-input-wrap {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .form-input {
+  color: var(--c-text-primary) !important;
+  background: transparent !important;
+}
+
+[data-theme="light"] .form-picker {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .form-picker__text {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .form-picker__arrow {
+  color: var(--c-text-muted) !important;
+}
+
+[data-theme="light"] .time-unit {
+  color: var(--c-text-secondary) !important;
+}
+
+[data-theme="light"] .location-btn {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .location-text {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .section-title {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .add-tier-text {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .menu-action-btn {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .menu-action-text {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .menu-item-name {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .menu-item-action {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .menu-item-action--del {
+  color: var(--c-danger) !important;
+}
+
+[data-theme="light"] .tier-block {
+  background: var(--c-input-bg) !important;
+}
+
+[data-theme="light"] .tier-block__name {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .tier-block__del {
+  color: var(--c-danger) !important;
+}
+
+[data-theme="light"] .menu-group {
+  background: var(--c-input-bg) !important;
+}
+
+[data-theme="light"] .menu-item-row {
+  border-color: var(--c-border-light) !important;
+}
+
+/* Shop Edit Popup */
+[data-theme="light"] .popup {
+  background: var(--c-surface-0) !important;
+  border-color: var(--c-border) !important;
+}
+
+[data-theme="light"] .popup-mask {
+  background: var(--c-overlay) !important;
+}
+
+[data-theme="light"] .popup-title {
+  color: var(--c-text-primary) !important;
+}
+
+[data-theme="light"] .popup-label {
+  color: var(--c-text-secondary) !important;
+}
+
+[data-theme="light"] .popup-input-wrap {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-input-border) !important;
+}
+
+[data-theme="light"] .popup-input {
+  color: var(--c-text-primary) !important;
+  background: transparent !important;
+}
+
+[data-theme="light"] .popup-btn--cancel {
+  background: var(--c-input-bg) !important;
+  border-color: var(--c-border) !important;
+}
+
+[data-theme="light"] .popup-btn-text {
+  color: var(--c-text-primary) !important;
+}
+
+/* Add Tier Button */
+[data-theme="light"] .add-tier-btn {
+  background: rgba(217, 79, 30, 0.06) !important;
+  border-color: rgba(217, 79, 30, 0.12) !important;
+}
+
+[data-theme="light"] .add-tier-text {
+  color: var(--c-accent) !important;
+}
+
+/* Menu Action Icons */
+[data-theme="light"] .menu-action-icon {
+  filter: none !important;
+}
+
+/* Shop Card Badge */
+[data-theme="light"] .shop-card__badge {
+  background: rgba(217, 79, 30, 0.06) !important;
+  border-color: rgba(217, 79, 30, 0.10) !important;
+}
+
+[data-theme="light"] .badge-text {
+  color: var(--c-accent) !important;
+}
+
+/* Location Icon */
+[data-theme="light"] .location-icon {
+  filter: none !important;
+}
+
+/* Warning Icon */
+[data-theme="light"] .warning-icon {
+  filter: none !important;
+}
+
+/* Stat block in profile */
+[data-theme="light"] .stat-block .stat-value {
+  color: var(--c-accent) !important;
+}
+
+[data-theme="light"] .stat-block .stat-label {
+  color: var(--c-text-tertiary) !important;
+}
+
+/* Score label in score card */
+[data-theme="light"] .score-label {
+  color: var(--c-text-tertiary) !important;
+}
+
+[data-theme="light"] .score-duration {
+  color: var(--c-text-tertiary) !important;
+}
+
+/* Section header */
+[data-theme="light"] .section-header .section-title {
+  color: var(--c-text-primary) !important;
+}

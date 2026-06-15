@@ -1,5 +1,6 @@
 import { Storage } from './storage'
 import { createRecord, createRecordItem } from './models'
+import { scoreToExp } from '../utils/level'
 
 const recordStorage = new Storage('records')
 
@@ -73,9 +74,10 @@ export const recordStore = {
     const all = recordStorage.getAll()
     const completed = all.filter(r => r.status === '已完成')
     if (completed.length === 0) {
-      return { totalRecords: 0, maxScore: 0, shopCount: 0, categoryTotals: {} }
+      return { totalRecords: 0, maxScore: 0, totalExp: 0, shopCount: 0, categoryTotals: {} }
     }
     const maxScore = Math.max(...completed.map(r => r.score))
+    const totalExp = completed.reduce((sum, r) => sum + scoreToExp(r.score), 0)
     const shopIds = new Set(completed.map(r => r.shopId))
     const categoryTotals = {}
     completed.forEach(r => {
@@ -87,6 +89,7 @@ export const recordStore = {
     return {
       totalRecords: completed.length,
       maxScore,
+      totalExp,
       shopCount: shopIds.size,
       categoryTotals
     }

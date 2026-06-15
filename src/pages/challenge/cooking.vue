@@ -1,16 +1,18 @@
 <template>
   <view class="page">
-    <!-- 自定义导航栏 -->
+    <!-- Custom navbar -->
     <view class="navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="navbar-content">
         <view class="navbar-left">
-          <text class="timer-icon">⏱</text>
+          <view class="timer-icon-wrap">
+            <text class="timer-icon">⏱</text>
+          </view>
           <text class="timer-text" :class="{ 'timer-text--danger': isTimeDanger, 'timer-text--pulse': isTimeDanger }">
             {{ timerDisplay }}
           </text>
         </view>
         <view class="navbar-right">
-          <view class="end-btn" @tap="onFinish">
+          <view class="end-btn" role="button" aria-label="结束挑战" @tap="onFinish">
             <text class="end-btn-text">结束挑战</text>
           </view>
         </view>
@@ -21,16 +23,20 @@
       </view>
     </view>
 
-    <!-- 主内容区 -->
+    <!-- Main content -->
     <view class="main" :style="{ paddingTop: navHeight + 'px' }">
-      <!-- 左侧分类 Tab -->
       <CategoryTabs
         :categories="categories"
         v-model="activeCategory"
       />
 
-      <!-- 右侧菜品列表 -->
-      <scroll-view scroll-y class="dish-list">
+      <scroll-view
+        scroll-y
+        class="dish-list"
+        :scroll-anchoring="true"
+        :enable-back-to-top="true"
+        :fast-deceleration="true"
+      >
         <view v-if="currentDishes.length > 0">
           <DishItem
             v-for="dish in currentDishes"
@@ -42,37 +48,44 @@
           />
         </view>
         <view v-else class="empty-dishes">
+          <text class="empty-dishes-icon">🍽️</text>
           <text class="empty-dishes-text">该分类暂无菜品</text>
+          <text class="empty-dishes-hint">切换其他分类看看</text>
         </view>
       </scroll-view>
     </view>
 
-    <!-- 底部统计栏 -->
+    <!-- Bottom stats bar -->
     <view class="bottom-bar">
       <view class="stats">
         <text class="stats-text">已选 <text class="stats-num">{{ totalItems }}</text> 道菜</text>
         <text class="stats-divider">·</text>
         <text class="stats-text">覆盖 <text class="stats-num">{{ coveredCategories }}</text> 类</text>
+        <text class="stats-divider" v-if="record.diners > 1">·</text>
+        <text class="stats-text" v-if="record.diners > 1"><text class="stats-num">{{ record.diners }}</text> 人均分</text>
       </view>
       <view class="score-preview" v-if="totalItems > 0">
         <text class="score-label">预计</text>
         <text class="score-value">{{ previewScore }}</text>
-        <text class="score-label">分</text>
+        <text class="score-label">分/人</text>
       </view>
     </view>
 
-    <!-- 结束确认弹窗 -->
+    <!-- Finish confirm dialog -->
     <view v-if="showFinishConfirm" class="confirm-mask" @tap="showFinishConfirm = false">
-      <view class="confirm-dialog" @tap.stop>
-        <text class="confirm-title">确定结束？</text>
-        <text class="confirm-desc">已点 {{ totalItems }} 道菜，覆盖 {{ coveredCategories }} 个分类</text>
-        <text class="confirm-score">预计得分：{{ previewScore }}</text>
-        <view class="confirm-actions">
-          <view class="confirm-btn confirm-btn--cancel" @tap="showFinishConfirm = false">
-            <text class="confirm-btn-text">继续吃！</text>
-          </view>
-          <view class="confirm-btn confirm-btn--finish" @tap="confirmFinish">
-            <text class="confirm-btn-text confirm-btn-text--finish">结算</text>
+      <view class="confirm-dialog" @tap.stop role="dialog" aria-modal="true">
+        <view class="confirm-glow" />
+        <view class="confirm-content">
+          <text class="confirm-title">确定结束？</text>
+          <text class="confirm-desc">已点 {{ totalItems }} 道菜，覆盖 {{ coveredCategories }} 个分类</text>
+          <text class="confirm-score">预计得分：{{ previewScore }}</text>
+          <view class="confirm-actions">
+            <view class="confirm-btn confirm-btn--cancel" @tap="showFinishConfirm = false">
+              <text class="confirm-btn-text">继续吃！</text>
+            </view>
+            <view class="confirm-btn confirm-btn--finish" @tap="confirmFinish">
+              <text class="confirm-btn-text confirm-btn-text--finish">结算</text>
+            </view>
           </view>
         </view>
       </view>
@@ -85,6 +98,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { shopStore } from '../../store/shop-store'
 import { recordStore } from '../../store/record-store'
+import { settingsStore } from '../../store/settings-store'
 import { calculateScore } from '../../utils/score'
 import CategoryTabs from '../../components/category-tabs.vue'
 import DishItem from '../../components/dish-item.vue'
@@ -93,11 +107,16 @@ const statusBarHeight = ref(20)
 const navHeight = ref(88)
 
 const recordId = ref('')
-const record = ref({ items: [], status: '进行中' })
+const record = ref({ items: [], status: '进行中', diners: 1 })
 const shop = ref(null)
 const shopName = ref('')
 const tierName = ref('')
 const menu = ref([])
+const menuMap = computed(() => {
+  const map = {}
+  menu.value.forEach(d => { map[d.id] = d })
+  return map
+})
 const categories = ref([])
 const activeCategory = ref('')
 const quantities = ref({})
@@ -105,8 +124,9 @@ const showFinishConfirm = ref(false)
 
 let timerInterval = null
 const remainingSeconds = ref(0)
+let lastVibrateMinute = -1
+let lastVibrateTenSec = -1
 
-// 计算属性
 const timerDisplay = computed(() => {
   const total = remainingSeconds.value
   if (total <= 0) return '00:00:00'
@@ -117,7 +137,9 @@ const timerDisplay = computed(() => {
 })
 
 const isTimeDanger = computed(() => {
-  return remainingSeconds.value > 0 && remainingSeconds.value < 300
+  const settings = settingsStore.get()
+  const warningMinutes = settings.countdownWarningMinutes || 5
+  return remainingSeconds.value > 0 && remainingSeconds.value < warningMinutes * 60
 })
 
 const currentDishes = computed(() => {
@@ -131,29 +153,24 @@ const totalItems = computed(() => {
 
 const coveredCategories = computed(() => {
   const cats = new Set()
+  const map = menuMap.value
   for (const [id, qty] of Object.entries(quantities.value)) {
-    if (qty > 0) {
-      const dish = menu.value.find(d => d.id === id)
-      if (dish) cats.add(dish.category)
-    }
+    if (qty > 0 && map[id]) cats.add(map[id].category)
   }
   return cats.size
 })
 
 const previewScore = computed(() => {
   const items = []
+  const map = menuMap.value
   for (const [id, qty] of Object.entries(quantities.value)) {
-    if (qty > 0) {
-      const dish = menu.value.find(d => d.id === id)
-      if (dish) {
-        items.push({ category: dish.category, quantity: qty })
-      }
+    if (qty > 0 && map[id]) {
+      items.push({ category: map[id].category, quantity: qty })
     }
   }
-  return calculateScore(items)
+  return calculateScore(items, record.value.diners || 1)
 })
 
-// 方法
 function getDishQuantity(dishId) {
   return quantities.value[dishId] || 0
 }
@@ -164,7 +181,6 @@ function updateQuantity(dish, newQty) {
   const oldQty = quantities.value[dish.id] || 0
   quantities.value = { ...quantities.value, [dish.id]: newQty }
 
-  // 同步到 record store
   if (oldQty === 0 && newQty > 0) {
     recordStore.addItem(recordId.value, {
       menuItemId: dish.id,
@@ -190,7 +206,6 @@ function confirmFinish() {
 function finishChallenge() {
   if (record.value.status !== '进行中') return
 
-  // 构建 items 用于计分
   const items = []
   for (const [id, qty] of Object.entries(quantities.value)) {
     if (qty > 0) {
@@ -201,10 +216,9 @@ function finishChallenge() {
     }
   }
 
-  const score = calculateScore(items)
+  const score = calculateScore(items, record.value.diners || 1)
   recordStore.finish(recordId.value, score)
 
-  // 停止计时器
   if (timerInterval) {
     clearInterval(timerInterval)
     timerInterval = null
@@ -215,23 +229,51 @@ function finishChallenge() {
   })
 }
 
+function vibrate() {
+  uni.vibrateShort({ type: 'heavy' })
+}
+
 function startTimer() {
   if (record.value.status !== '进行中') return
 
+  const settings = settingsStore.get()
+  const warningEnabled = settings.countdownWarning !== false
+  const warningMinutes = settings.countdownWarningMinutes || 5
+  const warningSeconds = warningMinutes * 60
+
   const startTime = new Date(record.value.startTime).getTime()
-  const timeLimit = (shop.value?.mealTimeLimit || 90) * 60 // 秒
+  const timeLimit = (shop.value?.mealTimeLimit || 90) * 60
 
   timerInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - startTime) / 1000)
     remainingSeconds.value = Math.max(0, timeLimit - elapsed)
 
-    if (remainingSeconds.value <= 0) {
-      // 时间到，自动结束
+    const remaining = remainingSeconds.value
+
+    if (remaining <= 0) {
+      if (warningEnabled) uni.vibrateLong()
       finishChallenge()
+      return
+    }
+
+    if (!warningEnabled) return
+
+    const currentMinute = Math.floor(remaining / 60)
+    const currentTenSec = Math.floor(remaining / 10)
+
+    // 最后N分钟，每分钟振动
+    if (remaining <= warningSeconds && currentMinute !== lastVibrateMinute) {
+      lastVibrateMinute = currentMinute
+      vibrate()
+    }
+
+    // 最后1分钟，每10秒振动
+    if (remaining <= 60 && currentTenSec !== lastVibrateTenSec) {
+      lastVibrateTenSec = currentTenSec
+      vibrate()
     }
   }, 1000)
 
-  // 立即执行一次
   const elapsed = Math.floor((Date.now() - startTime) / 1000)
   remainingSeconds.value = Math.max(0, timeLimit - elapsed)
 }
@@ -248,21 +290,18 @@ function loadRecord() {
   shopName.value = rec.shopName
   tierName.value = rec.tierName
 
-  // 加载店铺和菜单
   const s = shopStore.getById(rec.shopId)
   if (!s) return
 
   shop.value = s
   menu.value = shopStore.getMenu(rec.shopId, rec.tierId || null)
 
-  // 提取分类
   const catSet = new Set(menu.value.map(d => d.category))
   categories.value = Array.from(catSet)
   if (categories.value.length > 0) {
     activeCategory.value = categories.value[0]
   }
 
-  // 从已有记录恢复 quantities
   const q = {}
   rec.items.forEach(item => {
     q[item.menuItemId] = item.quantity
@@ -270,14 +309,15 @@ function loadRecord() {
   quantities.value = q
 }
 
-// 生命周期
 onLoad((options) => {
   recordId.value = options.recordId || ''
 
-  // 获取状态栏高度
-  const sysInfo = uni.getSystemInfoSync()
-  statusBarHeight.value = sysInfo.statusBarHeight || 20
-  navHeight.value = statusBarHeight.value + 88
+  uni.getSystemInfo({
+    success(sysInfo) {
+      statusBarHeight.value = sysInfo.statusBarHeight || 20
+      navHeight.value = statusBarHeight.value + 88
+    }
+  })
 
   loadRecord()
   startTimer()
@@ -291,61 +331,70 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .page {
   min-height: 100vh;
-  background: #0F0F1A;
+  background: var(--c-bg, $void-black);
   display: flex;
   flex-direction: column;
 }
 
-/* 自定义导航栏 */
+/* ── Custom Navbar ── */
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  background: linear-gradient(180deg, #1A1A2E 0%, #0F0F1A 100%);
-  border-bottom: 1rpx solid #2D2D44;
+  background: linear-gradient(180deg, var(--c-surface-0, $surface-0) 0%, var(--c-bg, $void-black) 100%);
+  border-bottom: 1rpx solid var(--c-border-light, $glass-white-4);
 }
 
 .navbar-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16rpx 24rpx;
+  padding: $intra-group $page-pad-x;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 12rpx;
+  gap: $intra-group;
+}
+
+.timer-icon-wrap {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: var(--c-gold-glow, $glow-gold);
+  border: 1rpx solid var(--c-gold-glow-strong, $glow-gold-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .timer-icon {
-  font-size: 36rpx;
+  font-size: 28rpx;
 }
 
 .timer-text {
-  font-size: 44rpx;
+  font-size: 48rpx;
   font-weight: 800;
-  color: #FFD700;
+  color: var(--c-gold, $accent-gold);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 2rpx;
+  letter-spacing: $tracking-wide;
+  text-shadow: 0 0 20rpx var(--c-gold-glow-strong, $glow-gold-strong);
+  transition: color $dur-normal $ease-in-out-smooth;
 }
 
 .timer-text--danger {
-  color: #FF3B30;
+  color: var(--c-danger, $accent-danger);
+  text-shadow: 0 0 20rpx $shadow-glow-danger;
 }
 
 .timer-text--pulse {
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  animation: pulse 1s $ease-spring infinite;
 }
 
 .navbar-right {
@@ -354,186 +403,254 @@ onUnmounted(() => {
 }
 
 .end-btn {
-  background: #FF3B30;
-  border-radius: 20rpx;
-  padding: 12rpx 28rpx;
+  background: linear-gradient(135deg, var(--c-danger, $accent-danger), $accent-danger-light);
+  border-radius: $radius-pill;
+  padding: 14rpx 32rpx;
+  box-shadow: $shadow-glow-danger;
+  transition: transform $dur-normal $ease-spring;
+}
+
+.end-btn:active {
+  transform: scale(0.95);
 }
 
 .end-btn-text {
   font-size: 26rpx;
-  color: #FFFFFF;
+  color: var(--c-text-on-accent, #FFFFFF);
   font-weight: 600;
+  letter-spacing: $tracking-wide;
 }
 
 .navbar-sub {
-  padding: 0 24rpx 16rpx;
+  padding: 0 $page-pad-x $intra-group;
   display: flex;
   align-items: center;
 }
 
 .navbar-shop {
   font-size: 26rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
+  letter-spacing: $tracking-wide;
 }
 
 .navbar-tier {
   font-size: 26rpx;
-  color: #FF6B35;
+  color: var(--c-accent, $accent-orange);
+  letter-spacing: $tracking-wide;
 }
 
-/* 主内容区 */
+/* ── Main Content ── */
 .main {
   flex: 1;
   display: flex;
   min-height: 0;
 }
 
-/* 菜品列表 */
 .dish-list {
   flex: 1;
   height: calc(100vh - 300rpx);
-  background: #0F0F1A;
+  background: var(--c-bg, $void-black);
 }
 
 .empty-dishes {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: 200rpx;
+  padding-top: 160rpx;
+}
+
+.empty-dishes-icon {
+  font-size: 64rpx;
+  margin-bottom: 24rpx;
 }
 
 .empty-dishes-text {
-  font-size: 28rpx;
-  color: #666680;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--c-text-primary, $text-primary);
+  margin-bottom: 12rpx;
 }
 
-/* 底部统计栏 */
+.empty-dishes-hint {
+  font-size: 24rpx;
+  color: var(--c-text-muted, $text-muted);
+}
+
+/* ── Bottom Stats Bar ── */
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #1A1A2E;
-  border-top: 1rpx solid #2D2D44;
-  padding: 20rpx 24rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: var(--c-overlay, $glass-black-60);
+  border-top: 1rpx solid var(--c-border-light, $glass-white-4);
+  padding: $intra-group $page-pad-x;
+  padding-bottom: calc($intra-group + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 100;
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
 }
 
 .stats {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: $intra-tight;
 }
 
 .stats-text {
   font-size: 26rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
+  letter-spacing: $tracking-wide;
 }
 
 .stats-num {
-  color: #FF6B35;
+  color: var(--c-accent, $accent-orange);
   font-weight: 700;
+  letter-spacing: $tracking-wide;
 }
 
 .stats-divider {
-  color: #2D2D44;
+  color: var(--c-text-ghost, $text-ghost);
   font-size: 26rpx;
 }
 
 .score-preview {
   display: flex;
   align-items: baseline;
-  gap: 4rpx;
+  gap: $intra-tight;
 }
 
 .score-label {
   font-size: 24rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
+  letter-spacing: $tracking-wide;
 }
 
 .score-value {
-  font-size: 36rpx;
+  font-size: 40rpx;
   font-weight: 800;
-  color: #FFD700;
+  color: var(--c-gold, $accent-gold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: $tracking-wide;
+  text-shadow: 0 0 16rpx var(--c-gold-glow-strong, $glow-gold-strong);
 }
 
-/* 确认弹窗 */
+/* ── Confirm Dialog ── */
 .confirm-mask {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--c-overlay, $glass-black-60);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
   display: flex;
   align-items: center;
+  animation: fadeIn $dur-fast $ease-in-out-smooth;
   justify-content: center;
   z-index: 200;
+  animation: fadeIn $dur-normal $ease-out-expo;
 }
 
 .confirm-dialog {
-  width: 600rpx;
-  background: #1A1A2E;
-  border-radius: 24rpx;
-  padding: 48rpx 36rpx;
+  width: 90vw;
+  max-width: 620rpx;
+  background: $surface-1;
+  border-radius: $radius-2xl;
+  overflow: hidden;
+  border: 1rpx solid var(--c-hairline, $hairline);
+  position: relative;
+  animation: scaleIn $dur-normal $ease-out-expo;
+}
+
+
+.confirm-glow {
+  position: absolute;
+  top: -50rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--c-gold-glow, $glow-gold) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.confirm-content {
+  padding: $section-gap 36rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .confirm-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #FFD700;
-  margin-bottom: 16rpx;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--c-gold, $accent-gold);
+  letter-spacing: $tracking-wide;
+  margin-bottom: $intra-group;
 }
 
 .confirm-desc {
   font-size: 28rpx;
-  color: #FFFFFF;
-  margin-bottom: 8rpx;
+  color: var(--c-text-primary, $text-primary);
+  letter-spacing: $tracking-wide;
+  margin-bottom: $intra-tight;
 }
 
 .confirm-score {
-  font-size: 26rpx;
-  color: #FF6B35;
-  margin-bottom: 40rpx;
+  font-size: 28rpx;
+  color: var(--c-accent, $accent-orange);
+  font-weight: 600;
+  letter-spacing: $tracking-wide;
+  margin-bottom: $section-gap;
 }
 
 .confirm-actions {
   display: flex;
-  gap: 24rpx;
+  gap: $inter-group;
   width: 100%;
 }
 
 .confirm-btn {
   flex: 1;
-  height: 80rpx;
-  border-radius: 16rpx;
+  height: 88rpx;
+  border-radius: $radius-lg;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform $dur-normal $ease-spring;
+}
+
+.confirm-btn:active {
+  transform: scale(0.96);
 }
 
 .confirm-btn--cancel {
-  background: #2D2D44;
+  background: var(--c-surface-4, $glass-white-4);
+  border: 1rpx solid var(--c-hairline, $hairline);
 }
 
 .confirm-btn--finish {
-  background: #FF3B30;
+  background: linear-gradient(135deg, var(--c-accent, $accent-orange), var(--c-accent-light, $accent-orange-light));
+  box-shadow: $shadow-glow-orange;
 }
 
 .confirm-btn-text {
   font-size: 30rpx;
-  color: #8888AA;
+  color: var(--c-text-secondary, $text-secondary);
   font-weight: 600;
+  letter-spacing: $tracking-wide;
 }
 
 .confirm-btn-text--finish {
-  color: #FFFFFF;
+  color: var(--c-text-on-accent, #FFFFFF);
 }
 </style>

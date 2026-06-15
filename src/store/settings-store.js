@@ -4,9 +4,12 @@ const defaultSettings = {
   defaultCity: '',
   mapRange: '城市',
   countdownWarning: true,
+  countdownWarningMinutes: 10,
   longPressInput: true,
   aiServiceUrl: '',
-  aiApiKey: ''
+  aiApiKey: '',
+  aiModel: 'gpt-4o-mini',
+  theme: 'dark'
 }
 
 export const settingsStore = {

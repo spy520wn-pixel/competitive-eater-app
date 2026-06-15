@@ -1,9 +1,15 @@
 <template>
   <view class="bar-chart">
-    <view v-for="item in sortedData" :key="item.name" class="bar-row">
+    <view
+      v-for="(item, index) in sortedData"
+      :key="item.name"
+      class="bar-row"
+      :style="{ animationDelay: index * 100 + 'ms' }"
+    >
       <text class="bar-label">{{ item.name }}</text>
       <view class="bar-track">
-        <view class="bar-fill" :style="{ width: item.percent + '%' }" />
+        <view class="bar-fill" :style="{ transform: 'scaleX(' + item.percent / 100 + ')' }" />
+        <view class="bar-glow" :style="{ transform: 'scaleX(' + item.percent / 100 + ')' }" />
       </view>
       <text class="bar-value">{{ item.value }}</text>
     </view>
@@ -20,20 +26,77 @@ const props = defineProps({
 const sortedData = computed(() => {
   const entries = Object.entries(props.data).map(([name, value]) => ({ name, value }))
   entries.sort((a, b) => b.value - a.value)
-  const max = Math.max(...entries.map(e => e.value), 1)
-  return entries.map(e => ({ ...e, percent: (e.value / max) * 100 }))
+  const top6 = entries.slice(0, 6)
+  const max = Math.max(...top6.map(e => e.value), 1)
+  return top6.map(e => ({ ...e, percent: (e.value / max) * 100 }))
 })
 </script>
 
-<style scoped>
-.bar-chart { padding: 16rpx; }
-.bar-row { display: flex; align-items: center; margin-bottom: 20rpx; }
-.bar-label { width: 80rpx; font-size: 24rpx; color: #AAAAAA; }
-.bar-track { flex: 1; height: 28rpx; background: #1A1A2E; border-radius: 14rpx; margin: 0 16rpx; overflow: hidden; }
-.bar-fill {
-  height: 100%; border-radius: 14rpx;
-  background: linear-gradient(90deg, #FF6B35, #FFD700);
-  transition: width 0.6s ease;
+<style lang="scss" scoped>
+.bar-chart {
+  padding: 8rpx 0;
 }
-.bar-value { width: 60rpx; text-align: right; font-size: 24rpx; color: #FFD700; font-weight: bold; }
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  animation: fadeInUpSoft $dur-slow $ease-out-expo both;
+}
+
+.bar-label {
+  width: 64rpx;
+  font-size: 22rpx;
+  color: var(--c-text-secondary, $text-secondary);
+  flex-shrink: 0;
+  letter-spacing: $tracking-normal;
+}
+
+.bar-track {
+  flex: 1;
+  height: 24rpx;
+  background: var(--c-surface-3, $glass-white-3);
+  border-radius: 12rpx;
+  margin: 0 16rpx;
+  overflow: hidden;
+  position: relative;
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+}
+
+.bar-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 12rpx;
+  background: linear-gradient(90deg, var(--c-accent, $accent-orange), var(--c-gold, $accent-gold));
+  transform-origin: left;
+  transition: transform 1s $ease-spring;
+  will-change: transform;
+  position: relative;
+  z-index: 2;
+}
+
+.bar-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+  background: linear-gradient(90deg, var(--c-accent-glow, rgba(255, 107, 53, 0.25)), var(--c-gold-glow, rgba(255, 215, 0, 0.25)));
+  filter: blur(10rpx);
+  transform-origin: left;
+  transition: transform 1s $ease-spring;
+  z-index: 1;
+}
+
+.bar-value {
+  width: 52rpx;
+  text-align: right;
+  font-size: 22rpx;
+  color: var(--c-gold, $accent-gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  letter-spacing: $tracking-tight;
+}
 </style>

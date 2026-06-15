@@ -58,7 +58,7 @@
     {
       "path": "pages/mine/shop-edit",
       "style": {
-        "navigationBarTitleText": "编辑店铺"
+        "navigationBarTitleText": "店铺信息"
       }
     },
     {
@@ -75,36 +75,39 @@
     }
   ],
   "tabBar": {
+    "color": "#8888A8",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#0B0B14",
+    "borderStyle": "white",
+    "fontSize": "14px",
+    "custom": true,
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "static/images/tab-home.png",
-        "selectedIconPath": "static/images/tab-home-active.png"
+        "text": "首页"
       },
       {
         "pagePath": "pages/record/record",
-        "text": "战绩",
-        "iconPath": "static/images/tab-record.png",
-        "selectedIconPath": "static/images/tab-record-active.png"
+        "text": "战绩"
       },
       {
         "pagePath": "pages/challenge/select",
-        "text": "挑战",
-        "iconPath": "static/images/tab-challenge.png",
-        "selectedIconPath": "static/images/tab-challenge-active.png"
+        "text": "挑战"
       },
       {
         "pagePath": "pages/mine/index",
-        "text": "我的",
-        "iconPath": "static/images/tab-mine.png",
-        "selectedIconPath": "static/images/tab-mine-active.png"
+        "text": "我的"
       }
     ]
   },
   "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarBackgroundColor": "#FFFFFF",
-    "backgroundColor": "#F5F5F5"
+    "navigationBarTextStyle": "white",
+    "navigationBarBackgroundColor": "#0A0A12",
+    "backgroundColor": "#030306",
+    "navigationBarTitleText": "大胃王",
+    "app-plus": {
+      "animationType": "slide-in-right",
+      "animationDuration": 300
+    }
   }
 }

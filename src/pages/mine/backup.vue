@@ -1,28 +1,34 @@
 <template>
   <view class="page">
-    <!-- Last Backup Info -->
-    <view class="info-bar">
-      <text class="info-label">上次备份</text>
-      <text class="info-value">{{ lastBackupTime || '从未备份' }}</text>
+    <!-- Last Backup Info — Double-Bezel -->
+    <view class="info-shell">
+      <view class="info-core">
+        <text class="info-label">上次备份</text>
+        <text class="info-value">{{ lastBackupTime || '从未备份' }}</text>
+      </view>
     </view>
 
-    <!-- Export Section -->
-    <view class="card">
-      <view class="btn btn--primary" @tap="handleExport">
-        <text class="btn__icon">📤</text>
-        <text class="btn__text">导出数据到文件</text>
+    <!-- Export Section — Double-Bezel -->
+    <view class="card-shell">
+      <view class="card-core">
+        <view class="btn btn--primary" @tap="handleExport">
+          <text class="btn__icon">📤</text>
+          <text class="btn__text">导出数据到文件</text>
+        </view>
+        <text class="card__desc">导出所有店铺、战绩、设置数据</text>
+        <text class="card__sub">保存为 JSON 文件到设备</text>
       </view>
-      <text class="card__desc">导出所有店铺、菜单、战绩数据</text>
-      <text class="card__sub">保存为 JSON 文件到设备</text>
     </view>
 
-    <!-- Import Section -->
-    <view class="card">
-      <view class="btn btn--accent" @tap="handleImport">
-        <text class="btn__icon">📥</text>
-        <text class="btn__text">从文件导入数据</text>
+    <!-- Import Section — Double-Bezel -->
+    <view class="card-shell">
+      <view class="card-core">
+        <view class="btn btn--accent" @tap="handleImport">
+          <text class="btn__icon">📥</text>
+          <text class="btn__text">从文件导入数据</text>
+        </view>
+        <text class="card__desc">选择之前导出的 JSON 文件恢复数据</text>
       </view>
-      <text class="card__desc">选择之前导出的 JSON 文件恢复数据</text>
     </view>
 
     <!-- Warning -->
@@ -38,6 +44,7 @@ import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'
 import { recordStore } from '@/store/record-store.js'
+import { settingsStore } from '@/store/settings-store.js'
 
 const LAST_BACKUP_KEY = 'eater_last_backup_time'
 const lastBackupTime = ref('')
@@ -61,7 +68,15 @@ function saveLastBackupTime() {
 function handleExport() {
   const shops = shopStore.getAll()
   const records = recordStore.getAll()
-  const data = JSON.stringify({ shops, records, exportedAt: new Date().toISOString() }, null, 2)
+  const settings = settingsStore.get()
+  const hasSeenWelcome = uni.getStorageSync('hasSeenWelcome') || false
+  const data = JSON.stringify({
+    shops,
+    records,
+    settings,
+    hasSeenWelcome,
+    exportedAt: new Date().toISOString()
+  }, null, 2)
 
   // #ifdef MP-WEIXIN
   const fs = uni.getFileSystemManager()
@@ -90,7 +105,6 @@ function handleExport() {
   // #endif
 
   // #ifndef MP-WEIXIN
-  // H5 / App fallback: copy to clipboard
   uni.setClipboardData({
     data,
     success() {
@@ -137,7 +151,6 @@ function doImport() {
   // #endif
 
   // #ifndef MP-WEIXIN
-  // H5 fallback
   uni.chooseFile({
     count: 1,
     type: 'file',
@@ -173,6 +186,12 @@ function parseAndRestore(jsonString) {
     }
     uni.setStorageSync('eater_shops', data.shops)
     uni.setStorageSync('eater_records', data.records)
+    if (data.settings) {
+      uni.setStorageSync('eater_settings', data.settings)
+    }
+    if (data.hasSeenWelcome !== undefined) {
+      uni.setStorageSync('hasSeenWelcome', data.hasSeenWelcome)
+    }
     saveLastBackupTime()
     uni.showToast({ title: '导入成功', icon: 'success' })
   } catch {
@@ -185,101 +204,118 @@ onShow(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .page {
   min-height: 100vh;
-  background: #0F0F1A;
-  padding: 24rpx;
+  background: var(--c-bg, $void-black);
+  padding: $page-pad-y $page-pad-x;
 }
 
-.info-bar {
+/* ── Double-Bezel ── */
+.info-shell,
+.card-shell {
+  background: var(--c-surface-3, $glass-white-3);
+  border: 1rpx solid var(--c-surface-6, $glass-white-6);
+  border-radius: $radius-2xl;
+  padding: $bezel-offset;
+  margin-bottom: $inter-group;
+  animation: fadeInUp $dur-slow $ease-out-expo both;
+}
+
+.info-core,
+.card-core {
+  background: var(--c-surface-0, $surface-0);
+  border-radius: calc(#{$radius-2xl} - #{$bezel-offset});
+  padding: $card-pad-inner;
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+  box-shadow: var(--c-shadow-inner, $shadow-inner);
+}
+
+.info-core {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1A1A2E;
-  border-radius: 16rpx;
-  padding: 28rpx 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.2);
 }
 
 .info-label {
   font-size: 28rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
 }
 
 .info-value {
   font-size: 28rpx;
-  color: #FFFFFF;
+  color: var(--c-text-primary, $text-primary);
   font-weight: 600;
 }
 
-.card {
-  background: #1A1A2E;
-  border-radius: 16rpx;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.2);
-}
-
+/* ── Buttons ── */
 .btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12rpx;
-  padding: 28rpx 0;
-  margin-bottom: 16rpx;
+  border-radius: $radius-xl;
+  padding: $card-pad-inner 0;
+  margin-bottom: $intra-group;
+  transition: transform $dur-normal $ease-spring, box-shadow $dur-normal $ease-spring;
+}
+
+.btn:active {
+  transform: scale(0.96);
 }
 
 .btn--primary {
-  background: linear-gradient(135deg, #FF6B35 0%, #FF8F60 100%);
+  background: linear-gradient(135deg, var(--c-accent, $accent-orange) 0%, var(--c-accent-light, $accent-orange-light) 100%);
+  box-shadow: $shadow-glow-orange-strong;
 }
 
 .btn--accent {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  background: linear-gradient(135deg, var(--c-gold, $accent-gold) 0%, #{$accent-gold-warm} 100%);
+  box-shadow: $shadow-glow-gold-strong;
 }
 
 .btn__icon {
   font-size: 32rpx;
-  margin-right: 12rpx;
+  margin-right: $intra-tight;
 }
 
 .btn__text {
   font-size: 30rpx;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--c-text-on-accent, #FFFFFF);
 }
 
 .card__desc {
   display: block;
   font-size: 26rpx;
-  color: #CCCCDD;
+  color: var(--c-text-secondary, $text-secondary);
   margin-bottom: 4rpx;
 }
 
 .card__sub {
   display: block;
   font-size: 22rpx;
-  color: #666688;
+  color: var(--c-text-muted, $text-muted);
 }
 
+/* ── Warning ── */
 .warning-bar {
   display: flex;
   align-items: center;
-  background: rgba(255, 107, 53, 0.1);
-  border: 1rpx solid rgba(255, 107, 53, 0.3);
-  border-radius: 12rpx;
-  padding: 24rpx 28rpx;
-  margin-top: 12rpx;
+  background: var(--c-accent-soft, $glow-orange-soft);
+  border: 1rpx solid rgba(255, 107, 53, 0.12);
+  border-radius: $radius-xl;
+  padding: $intra-group $page-pad-x;
+  margin-top: $intra-tight;
 }
 
 .warning-icon {
   font-size: 28rpx;
-  margin-right: 12rpx;
+  margin-right: $intra-group;
 }
 
 .warning-text {
   font-size: 24rpx;
-  color: #FF6B35;
+  color: var(--c-accent, $accent-orange);
 }
+
 </style>

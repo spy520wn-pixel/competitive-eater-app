@@ -1,5 +1,5 @@
 <template>
-  <view class="dish-item">
+  <view class="dish-item" :class="{ 'dish-item--active': quantity > 0 }">
     <view class="dish-info">
       <text class="dish-name">{{ item.name }}</text>
       <text class="dish-unit">{{ item.unit }}</text>
@@ -7,15 +7,16 @@
     <view class="quantity-control">
       <view
         class="qty-btn qty-btn--minus"
+        aria-label="减少数量"
         :class="{ 'qty-btn--disabled': quantity <= 0 }"
         @tap="decrease"
       >
-        <text class="qty-btn-text">-</text>
+        <text class="qty-btn-text">−</text>
       </view>
       <view class="qty-display" @longpress="inputQuantity">
-        <text class="qty-value" :class="{ 'qty-value--has': quantity > 0 }">{{ quantity }}</text>
+        <text class="qty-value" :class="{ 'qty-value--has': quantity > 0, 'qty-value--bump': bumpKey }" :key="bumpKey">{{ quantity }}</text>
       </view>
-      <view class="qty-btn qty-btn--plus" @tap="increase">
+      <view class="qty-btn qty-btn--plus" aria-label="增加数量" @tap="increase">
         <text class="qty-btn-text">+</text>
       </view>
     </view>
@@ -23,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
 const props = defineProps({
   item: { type: Object, required: true },
@@ -32,15 +33,24 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:quantity'])
+const bumpKey = ref(0)
 
 function increase() {
   if (props.disabled) return
   emit('update:quantity', props.quantity + 1)
+  bumpKey.value++
+  // #ifdef APP-PLUS
+  uni.vibrateShort({ type: 'light' })
+  // #endif
 }
 
 function decrease() {
   if (props.disabled || props.quantity <= 0) return
   emit('update:quantity', Math.max(0, props.quantity - 1))
+  bumpKey.value++
+  // #ifdef APP-PLUS
+  uni.vibrateShort({ type: 'light' })
+  // #endif
 }
 
 function inputQuantity() {
@@ -62,13 +72,18 @@ function inputQuantity() {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .dish-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24rpx 28rpx;
-  border-bottom: 1rpx solid #2D2D44;
+  padding: 30rpx;
+  border-bottom: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+  transition: background $dur-normal $ease-spring;
+}
+
+.dish-item--active {
+  background: var(--c-accent-soft, $glow-orange-soft);
 }
 
 .dish-info {
@@ -80,67 +95,102 @@ function inputQuantity() {
 
 .dish-name {
   font-size: 30rpx;
-  color: #FFFFFF;
+  color: var(--c-text-primary, $text-primary);
   font-weight: 500;
-  margin-bottom: 6rpx;
+  margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color $dur-normal $ease-spring;
+  letter-spacing: $tracking-normal;
+}
+
+.dish-item--active .dish-name {
+  color: var(--c-text-on-accent, #FFFFFF);
 }
 
 .dish-unit {
-  font-size: 24rpx;
-  color: #8888AA;
+  font-size: 22rpx;
+  color: var(--c-text-tertiary, $text-tertiary);
+  letter-spacing: $tracking-wide;
 }
 
 .quantity-control {
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 10rpx;
 }
 
 .qty-btn {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 14rpx;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: $radius-lg;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2D2D44;
+  transition: transform $dur-fast $ease-spring, box-shadow $dur-normal $ease-spring;
+}
+
+.qty-btn:active {
+  transform: scale(0.88);
+}
+
+.qty-btn--minus {
+  background: var(--c-surface-5, $glass-white-5);
+  border: 1rpx solid var(--c-hairline, $hairline);
 }
 
 .qty-btn--plus {
-  background: #FF6B35;
+  background: linear-gradient(135deg, var(--c-accent, $accent-orange), var(--c-accent-light, $accent-orange-light));
+  box-shadow: $shadow-glow-orange;
+}
+
+.qty-btn--plus:active {
+  box-shadow: $shadow-glow-orange-strong;
 }
 
 .qty-btn--disabled {
-  opacity: 0.4;
+  opacity: 0.25;
+  pointer-events: none;
 }
 
 .qty-btn-text {
-  font-size: 34rpx;
-  color: #FFFFFF;
-  font-weight: 700;
+  font-size: 38rpx;
+  color: var(--c-text-on-accent, #FFFFFF);
+  font-weight: 600;
   line-height: 1;
 }
 
 .qty-display {
-  width: 80rpx;
-  height: 56rpx;
+  width: 84rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0F0F1A;
-  border-radius: 12rpx;
+  background: var(--c-surface-3, $glass-white-3);
+  border-radius: $radius-md;
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
 }
 
 .qty-value {
   font-size: 30rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: color $dur-normal $ease-spring;
 }
 
 .qty-value--has {
-  color: #FFD700;
+  color: var(--c-gold, $accent-gold);
+}
+
+.qty-value--bump {
+  animation: qtyBump 0.3s $ease-out-expo;
+}
+
+@keyframes qtyBump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
 }
 </style>

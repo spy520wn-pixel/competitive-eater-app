@@ -37,7 +37,11 @@ export const shopStore = {
   },
 
   getByCity(city) {
-    return shopStorage.getAll().filter(s => s.city === city)
+    const normalized = city.replace(/市$/, '')
+    return shopStorage.getAll().filter(s => {
+      const shopCity = (s.city || '').replace(/市$/, '')
+      return shopCity === normalized
+    })
   },
 
   // 档位管理
@@ -125,8 +129,39 @@ export const shopStore = {
   },
 
   batchAddMenuItems(shopId, items, tierId = null) {
-    items.forEach(itemData => {
-      this.addMenuItem(shopId, itemData, tierId)
+    shopStorage.batchUpdate(list => {
+      const shop = list.find(s => s.id === shopId)
+      if (!shop) return
+      items.forEach(itemData => {
+        const item = createMenuItem({ ...itemData, shopId, tierId: tierId || '' })
+        if (tierId) {
+          shop.tiers = shop.tiers.map(t => {
+            if (t.id === tierId) return { ...t, menu: [...t.menu, item] }
+            return t
+          })
+        } else {
+          shop.menu = [...shop.menu, item]
+        }
+      })
     })
+  },
+
+  replaceShopContent(shopId, tiers, menu) {
+    shopStorage.batchUpdate(list => {
+      const shop = list.find(s => s.id === shopId)
+      if (!shop) return
+      shop.tiers = tiers
+      shop.menu = menu
+      shop.hasTiers = tiers.length > 0
+    })
+  },
+
+  createWithContent(shopData, tiers, menu) {
+    const shop = createShop(shopData)
+    shop.tiers = tiers
+    shop.menu = menu
+    shop.hasTiers = tiers.length > 0
+    shopStorage.save(shop)
+    return shop
   }
 }

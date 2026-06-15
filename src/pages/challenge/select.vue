@@ -1,49 +1,58 @@
 <template>
   <view class="page">
-    <!-- 搜索栏 -->
-    <view class="search-bar">
-      <text class="search-icon">🔍</text>
-      <input
-        class="search-input"
-        placeholder="搜索店铺..."
-        placeholder-style="color: #666680"
-        :value="keyword"
-        @input="onSearch"
-      />
-    </view>
+    <!-- Search bar — Glass -->
+    <SearchBar
+      v-model="keyword"
+      placeholder="搜索店铺..."
+      aria-label="搜索店铺"
+    />
 
-    <!-- 店铺列表 -->
-    <scroll-view scroll-y class="shop-list" v-if="filteredShops.length > 0">
+    <!-- Shop list -->
+    <scroll-view
+      scroll-y
+      class="shop-list"
+      v-if="filteredShops.length > 0"
+      :scroll-anchoring="true"
+      :enable-back-to-top="true"
+    >
       <view
-        v-for="shop in filteredShops"
+        v-for="(shop, index) in filteredShops"
         :key="shop.id"
-        class="shop-card"
+        class="shop-card-shell"
+        role="button"
+        :aria-label="shop.name"
+        :style="{ animationDelay: index * 60 + 'ms' }"
         @tap="onSelectShop(shop)"
       >
-        <view class="shop-card__icon">
-          <text class="icon-text">{{ getCategoryIcon(shop.category) }}</text>
+        <view class="shop-card-core">
+          <view class="shop-card__icon">
+            <text class="icon-text">{{ getCategoryIcon(shop.category) }}</text>
+          </view>
+          <view class="shop-card__info">
+            <text class="shop-card__name">{{ shop.name }}</text>
+            <text class="shop-card__meta">
+              {{ shop.category }} · 时限 {{ shop.mealTimeLimit }}分钟
+            </text>
+          </view>
+          <view class="arrow-wrap">
+            <text class="shop-card__arrow">›</text>
+          </view>
         </view>
-        <view class="shop-card__info">
-          <text class="shop-card__name">{{ shop.name }}</text>
-          <text class="shop-card__meta">
-            {{ shop.category }} · 时限 {{ shop.mealTimeLimit }}分钟
-          </text>
-        </view>
-        <text class="shop-card__arrow">›</text>
       </view>
     </scroll-view>
 
-    <!-- 空状态 -->
-    <view v-else class="empty-state">
-      <text class="empty-icon">🏪</text>
-      <text class="empty-title">暂无店铺</text>
-      <text class="empty-desc">请先到「我的」页面添加店铺和菜单</text>
-      <view class="empty-btn" @tap="goToMine">
-        <text class="empty-btn-text">去添加店铺</text>
-      </view>
-    </view>
+    <!-- Empty state -->
+    <EmptyState
+      v-else
+      icon="🏪"
+      title="还没有店铺"
+      description="先添加一家自助餐店铺，才能开始挑战"
+      action-text="去添加店铺"
+      hint="支持高德地图搜索或手动添加"
+      @action="goToMine"
+    />
 
-    <!-- 档位选择弹窗 -->
+    <!-- Tier picker -->
     <TierPicker
       v-model:visible="showTierPicker"
       :tiers="currentTiers"
@@ -51,19 +60,35 @@
       @select="onTierSelected"
     />
 
-    <!-- 确认弹窗 -->
+    <!-- Confirm dialog -->
     <view v-if="showConfirm" class="confirm-mask" @tap="showConfirm = false">
-      <view class="confirm-dialog" @tap.stop>
-        <text class="confirm-title">开始挑战？</text>
-        <text class="confirm-shop">{{ confirmShopName }}</text>
-        <text class="confirm-tier" v-if="confirmTierName">{{ confirmTierName }}</text>
-        <text class="confirm-hint">准备好了吗，大胃王？</text>
-        <view class="confirm-actions">
-          <view class="confirm-btn confirm-btn--cancel" @tap="showConfirm = false">
-            <text class="confirm-btn-text">取消</text>
+      <view class="confirm-dialog" @tap.stop role="dialog" aria-modal="true">
+        <view class="confirm-glow" />
+        <view class="confirm-content">
+          <text class="confirm-title">开始挑战？</text>
+          <text class="confirm-shop">{{ confirmShopName }}</text>
+          <text class="confirm-tier" v-if="confirmTierName">{{ confirmTierName }}</text>
+          <view class="diners-picker">
+            <text class="diners-label">就餐人数</text>
+            <view class="diners-control">
+              <view class="diners-btn" :class="{ 'diners-btn--disabled': diners <= 1 }" @tap="onDinersChange(-1)">
+                <text class="diners-btn-text">-</text>
+              </view>
+              <text class="diners-value">{{ diners }}</text>
+              <view class="diners-btn" @tap="onDinersChange(1)">
+                <text class="diners-btn-text">+</text>
+              </view>
+            </view>
           </view>
-          <view class="confirm-btn confirm-btn--go" @tap="startChallenge">
-            <text class="confirm-btn-text confirm-btn-text--go">开战！</text>
+          <text class="confirm-hint" v-if="diners > 1">积分将均分给 {{ diners }} 人</text>
+          <text class="confirm-hint" v-else>准备好了吗，大胃王？</text>
+          <view class="confirm-actions">
+            <view class="confirm-btn confirm-btn--cancel" @tap="showConfirm = false">
+              <text class="confirm-btn-text">取消</text>
+            </view>
+            <view class="confirm-btn confirm-btn--go" @tap="startChallenge">
+              <text class="confirm-btn-text confirm-btn-text--go">开战！</text>
+            </view>
           </view>
         </view>
       </view>
@@ -72,11 +97,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '../../store/shop-store'
 import { recordStore } from '../../store/record-store'
 import TierPicker from '../../components/tier-picker.vue'
+import EmptyState from '@/components/empty-state.vue'
+import SearchBar from '@/components/search-bar.vue'
+import { settingsStore } from '@/store/settings-store.js'
+import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const keyword = ref('')
 const shops = ref([])
@@ -87,6 +116,7 @@ const pendingShop = ref(null)
 const showConfirm = ref(false)
 const confirmShopName = ref('')
 const confirmTierName = ref('')
+const diners = ref(1)
 
 const CATEGORY_ICONS = {
   '自助餐': '🍖',
@@ -117,10 +147,6 @@ function loadShops() {
   shops.value = shopStore.getAll()
 }
 
-function onSearch(e) {
-  keyword.value = e.detail.value
-}
-
 function onSelectShop(shop) {
   if (shop.hasTiers && shop.tiers.length > 0) {
     pendingShop.value = shop
@@ -142,6 +168,17 @@ function onTierSelected(tier) {
   showConfirm.value = true
 }
 
+function onDinersChange(delta) {
+  const newVal = diners.value + delta
+  if (newVal >= 1 && newVal <= 10) {
+    diners.value = newVal
+    // 触觉反馈
+    // #ifdef APP-PLUS
+    uni.vibrateShort({ type: 'light' })
+    // #endif
+  }
+}
+
 function startChallenge() {
   showConfirm.value = false
   const shop = pendingShop.value
@@ -154,9 +191,11 @@ function startChallenge() {
     shopId: shop.id,
     shopName: shop.name,
     tierId,
-    tierName
+    tierName,
+    diners: diners.value
   })
 
+  diners.value = 1
   uni.navigateTo({
     url: `/pages/challenge/cooking?recordId=${record.id}`
   })
@@ -166,218 +205,388 @@ function goToMine() {
   uni.switchTab({ url: '/pages/mine/index' })
 }
 
+onMounted(() => {
+  applyPageTheme(settingsStore.get().theme)
+  uni.$on('theme-apply', applyPageTheme)
+})
+
+onUnmounted(() => {
+  uni.$off('theme-apply', applyPageTheme)
+})
+
 onShow(() => {
   loadShops()
+  syncThemeFromStorage()
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .page {
   min-height: 100vh;
-  background: #0F0F1A;
-  padding: 24rpx;
-  padding-bottom: 120rpx;
+  background: var(--c-bg, $void-black);
+  padding: $page-pad-y $page-pad-x;
+  padding-bottom: $page-pad-bottom;
+  position: relative;
+  overflow: hidden;
 }
 
-/* 搜索栏 */
+/* ── Search Bar ── */
 .search-bar {
   display: flex;
   align-items: center;
-  background: #1A1A2E;
-  border-radius: 16rpx;
-  padding: 20rpx 24rpx;
-  margin-bottom: 24rpx;
+  background: var(--c-surface-3, $glass-white-3);
+  border: 1rpx solid var(--c-surface-5, $glass-white-5);
+  border-radius: $radius-lg;
+  padding: 22rpx 28rpx;
+  margin-bottom: $section-gap;
+  position: relative;
+  z-index: 1;
+  letter-spacing: $tracking-wide;
+  animation: fadeInUp $dur-slow $ease-out-expo both;
 }
 
 .search-icon {
-  font-size: 32rpx;
-  margin-right: 16rpx;
+  font-size: 28rpx;
+  margin-right: $intra-group;
+  opacity: 0.5;
 }
 
 .search-input {
   flex: 1;
   font-size: 28rpx;
-  color: #FFFFFF;
+  color: var(--c-text-primary, $text-primary);
   background: transparent;
+  border: none;
+  padding: 0;
+  height: 100%;
 }
 
-/* 店铺列表 */
+.search-placeholder {
+  color: var(--c-text-muted, $text-muted);
+}
+
+/* ── Shop List ── */
 .shop-list {
-  height: calc(100vh - 200rpx);
+  height: calc(100vh - 240rpx);
+  position: relative;
+  z-index: 1;
 }
 
-.shop-card {
+/* ── Shop Card ── */
+.shop-card-shell {
+  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
+  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  border-radius: $radius-xl;
+  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
+  margin-bottom: $intra-group;
+  animation: fadeInUp $dur-normal $ease-out-expo both;
+  transition: transform $dur-fast $ease-spring, box-shadow $dur-fast ease;
+  overflow: hidden;
+}
+
+.shop-card-shell:active {
+  transform: scale(0.98);
+  box-shadow: $shadow-sm;
+}
+
+.shop-card-core {
   display: flex;
   align-items: center;
-  background: #1A1A2E;
-  border-radius: 16rpx;
-  padding: 28rpx 24rpx;
-  margin-bottom: 20rpx;
-  transition: transform 0.15s;
-}
-
-.shop-card:active {
-  transform: scale(0.98);
+  background: var(--c-surface-0, $surface-0);
+  border-radius: $radius-md;
+  padding: $card-pad-inner $card-pad-compact;
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+  box-shadow: var(--c-shadow-inner, $shadow-inner);
 }
 
 .shop-card__icon {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 16rpx;
-  background: #2D2D44;
+  border-radius: $radius-lg;
+  background: var(--c-surface-4, $glass-white-4);
+  border: 1rpx solid var(--c-surface-4, $glass-white-4);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 20rpx;
+  margin-right: $intra-group;
+  flex-shrink: 0;
 }
 
 .icon-text {
-  font-size: 40rpx;
+  font-size: 36rpx;
 }
 
 .shop-card__info {
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: $intra-tight;
 }
 
 .shop-card__name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #FFFFFF;
-  margin-bottom: 8rpx;
+  color: var(--c-text-primary, $text-primary);
+  letter-spacing: $tracking-normal;
 }
 
 .shop-card__meta {
   font-size: 24rpx;
-  color: #8888AA;
+  color: var(--c-text-tertiary, $text-tertiary);
+  letter-spacing: $tracking-wide;
+}
+
+.arrow-wrap {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: $radius-pill;
+  background: var(--c-surface-3, $glass-white-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .shop-card__arrow {
-  font-size: 40rpx;
-  color: #666680;
-  margin-left: 16rpx;
+  font-size: 28rpx;
+  color: var(--c-text-muted, $text-muted);
+  font-weight: 300;
 }
 
-/* 空状态 */
+/* ── Empty State ── */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding-top: 200rpx;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp $dur-entrance $ease-out-expo 0.2s both;
+}
+
+.empty-plate {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: $radius-pill;
+  background: var(--c-surface-3, $glass-white-3);
+  border: 1rpx solid var(--c-hairline, $hairline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: $intra-group;
 }
 
 .empty-icon {
-  font-size: 80rpx;
-  margin-bottom: 24rpx;
+  font-size: 56rpx;
 }
 
 .empty-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #FFFFFF;
-  margin-bottom: 12rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--c-text-primary, $text-primary);
+  letter-spacing: $tracking-normal;
+  margin-bottom: $intra-tight;
 }
 
 .empty-desc {
   font-size: 26rpx;
-  color: #8888AA;
-  margin-bottom: 40rpx;
+  color: var(--c-text-tertiary, $text-tertiary);
+  margin-bottom: $section-gap;
 }
 
 .empty-btn {
-  background: #FF6B35;
-  border-radius: 24rpx;
-  padding: 20rpx 60rpx;
+  background: linear-gradient(135deg, var(--c-accent, $accent-orange), var(--c-accent-light, $accent-orange-light));
+  border-radius: $radius-pill;
+  padding: 24rpx 64rpx;
+  box-shadow: $shadow-glow-orange-strong;
+  transition: transform $dur-normal $ease-spring;
+}
+
+.empty-btn:active {
+  transform: scale(0.96);
 }
 
 .empty-btn-text {
   font-size: 28rpx;
-  color: #FFFFFF;
+  color: var(--c-text-on-accent, #FFFFFF);
   font-weight: 600;
+  letter-spacing: $tracking-wide;
 }
 
-/* 确认弹窗 */
+/* ── Confirm Dialog ── */
 .confirm-mask {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--c-overlay, $glass-black-60);
+  backdrop-filter: blur(12rpx);
+  -webkit-backdrop-filter: blur(12rpx);
   display: flex;
   align-items: center;
+  animation: fadeIn $dur-fast $ease-in-out-smooth;
   justify-content: center;
-  z-index: 1000;
+  z-index: 999;
+  animation: fadeIn $dur-fast $ease-out-expo;
 }
 
 .confirm-dialog {
-  width: 600rpx;
-  background: #1A1A2E;
-  border-radius: 24rpx;
-  padding: 48rpx 36rpx;
+  width: 90vw;
+  max-width: 620rpx;
+  background: var(--c-surface-1, $surface-1);
+  border-radius: $radius-2xl;
+  overflow: hidden;
+  border: 1rpx solid var(--c-hairline, $hairline);
+  position: relative;
+  animation: scaleIn $dur-normal $ease-out-expo;
+}
+
+.confirm-glow {
+  position: absolute;
+  top: -50rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300rpx;
+  height: 150rpx;
+  border-radius: $radius-pill;
+  background: radial-gradient(ellipse, var(--c-gold-soft, $glow-gold-soft) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.confirm-content {
+  padding: $section-gap 36rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .confirm-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #FFD700;
-  margin-bottom: 16rpx;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--c-gold, $accent-gold);
+  letter-spacing: $tracking-wide;
+  margin-bottom: $intra-group;
 }
 
 .confirm-shop {
-  font-size: 32rpx;
-  color: #FFFFFF;
+  font-size: 34rpx;
+  color: var(--c-text-primary, $text-primary);
   font-weight: 600;
-  margin-bottom: 8rpx;
+  margin-bottom: $intra-tight;
 }
 
 .confirm-tier {
   font-size: 26rpx;
-  color: #FF6B35;
-  margin-bottom: 8rpx;
+  color: var(--c-accent, $accent-orange);
+  margin-bottom: $intra-group;
+}
+
+.diners-picker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 20rpx 0;
+  margin-bottom: $intra-group;
+}
+
+.diners-label {
+  font-size: 28rpx;
+  color: var(--c-text-secondary, $text-secondary);
+}
+
+.diners-control {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.diners-btn {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  background: var(--c-surface-8, $glass-white-8);
+  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform $dur-fast $ease-spring, background $dur-fast $ease-spring;
+}
+
+.diners-btn:active {
+  transform: scale(0.9);
+  background: var(--c-surface-12, $glass-white-12);
+}
+
+.diners-btn--disabled {
+  opacity: 0.3;
+}
+
+.diners-btn-text {
+  font-size: 36rpx;
+  color: var(--c-text-primary, $text-primary);
+  font-weight: 600;
+}
+
+.diners-value {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--c-gold, $accent-gold);
+  min-width: 48rpx;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .confirm-hint {
   font-size: 26rpx;
-  color: #8888AA;
-  margin-bottom: 40rpx;
+  color: var(--c-text-tertiary, $text-tertiary);
+  margin-bottom: $section-gap;
 }
 
 .confirm-actions {
   display: flex;
-  gap: 24rpx;
+  gap: $inter-group;
   width: 100%;
 }
 
 .confirm-btn {
   flex: 1;
-  height: 80rpx;
-  border-radius: 16rpx;
+  height: 88rpx;
+  border-radius: $radius-lg;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform $dur-normal $ease-spring;
+}
+
+.confirm-btn:active {
+  transform: scale(0.96);
 }
 
 .confirm-btn--cancel {
-  background: #2D2D44;
+  background: var(--c-surface-4, $glass-white-4);
+  border: 1rpx solid var(--c-hairline, $hairline);
 }
 
 .confirm-btn--go {
-  background: #FF6B35;
+  background: linear-gradient(135deg, var(--c-accent, $accent-orange), var(--c-accent-light, $accent-orange-light));
+  box-shadow: $shadow-glow-orange;
 }
 
 .confirm-btn-text {
   font-size: 30rpx;
-  color: #8888AA;
+  color: var(--c-text-secondary, $text-secondary);
   font-weight: 600;
+  letter-spacing: $tracking-wide;
 }
 
 .confirm-btn-text--go {
-  color: #FFFFFF;
+  color: var(--c-text-on-accent, #FFFFFF);
 }
 </style>
