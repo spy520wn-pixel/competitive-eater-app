@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Search bar — Glass -->
     <SearchBar
       v-model="keyword"
@@ -104,7 +104,7 @@ import { recordStore } from '../../store/record-store'
 import TierPicker from '../../components/tier-picker.vue'
 import EmptyState from '@/components/empty-state.vue'
 import SearchBar from '@/components/search-bar.vue'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const keyword = ref('')

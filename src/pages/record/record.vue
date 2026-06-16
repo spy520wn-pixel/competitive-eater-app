@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Stats Summary -->
     <view class="stats-bar" v-if="shopGroups.length > 0">
       <text class="stats-text">
@@ -69,7 +69,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
 import { getRelativeTime, formatDate } from '@/utils/time.js'
 import EmptyState from '@/components/empty-state.vue'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const PAGE_SIZE = 20

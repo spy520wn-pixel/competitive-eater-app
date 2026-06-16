@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Profile Card — Double-Bezel -->
     <view class="profile-shell">
       <view class="profile-core">
@@ -95,7 +95,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getLevel } from '@/utils/level.js'
 import { recordStore } from '@/store/record-store.js'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const level = ref({ tier: 1, name: '青铜', icon: '🥉' })

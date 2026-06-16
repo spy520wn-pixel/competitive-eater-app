@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Custom navbar -->
     <view class="navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="navbar-content">
@@ -98,7 +98,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { shopStore } from '../../store/shop-store'
 import { recordStore } from '../../store/record-store'
-import { settingsStore } from '../../store/settings-store'
+import { settingsStore, currentTheme } from '../../store/settings-store'
 import { calculateScore } from '../../utils/score'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 import CategoryTabs from '../../components/category-tabs.vue'

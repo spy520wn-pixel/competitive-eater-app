@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Ambient glow -->
     <view class="ambient-orb ambient-orb--gold" />
     <view class="ambient-orb ambient-orb--orange" />
@@ -145,7 +145,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
 import { getLevel, scoreToExp } from '../../utils/level'
 import { saveReceiptToAlbum, calcReceiptHeight } from '../../utils/receipt-renderer'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const recordId = ref('')

@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="settings.theme">
     <!-- 通用 -->
     <view class="section">
       <view class="section-header">
@@ -199,7 +199,8 @@ const settings = reactive({
   longPressInput: true,
   aiServiceUrl: '',
   aiApiKey: '',
-  aiModel: 'gpt-4o-mini'
+  aiModel: 'gpt-4o-mini',
+  theme: 'dark'
 })
 
 const cityIndex = computed(() => {
@@ -264,13 +265,13 @@ function onThemeChange(theme) {
   settings.theme = theme
   save('theme', theme)
 
-  // 1. 顶部导航栏（原生 API，同步）
+  // 1. 顶部导航栏 + 底部 tabbar（原生 API，同步）
   applyNavBarColor(theme)
 
   // 2. 页面主题注入（evalJS，异步，覆盖所有 webview）
   applyPageTheme(theme)
 
-  // 3. 事件通知（tabbar 等组件监听）
+  // 3. 事件通知
   uni.$emit('theme-apply', theme)
   uni.$emit('tabbar-theme-change', theme)
 }

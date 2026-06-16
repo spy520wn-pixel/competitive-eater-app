@@ -170,12 +170,18 @@ function isAppPlus() {
 
 /**
  * 构建注入 WebView 的 JS 代码
- * CSS 变量已在 App.vue 全局定义，只需设置 data-theme 属性触发对应规则
+ * 双重保障：注入 <style> 元素 + 设置 data-theme 属性
  */
-function buildWebviewThemeJs(themeValue) {
+function buildWebviewThemeJs(themeValue, vars) {
+  var cssProps = buildCssProps(vars)
+  var cssContent = ':root,\n[data-theme="' + themeValue + '"] {\n' + cssProps + '}'
+
   var js =
     '(function() {' +
     '  try {' +
+    '    var s = document.getElementById("__theme_vars__");' +
+    '    if (!s) { s = document.createElement("style"); s.id = "__theme_vars__"; document.head.appendChild(s); }' +
+    '    s.textContent = ' + JSON.stringify(cssContent) + ';' +
     '    document.documentElement.setAttribute("data-theme", "' + themeValue + '");' +
     '    if (document.body) document.body.setAttribute("data-theme", "' + themeValue + '");' +
     '    var pg = document.querySelector("page") || document.querySelector("uni-page");' +
@@ -222,8 +228,8 @@ function findPageWebview() {
  * APP-PLUS：通过 evalJS 设置 data-theme 属性
  * 直接发送，不使用防抖或缓存（简单可靠）
  */
-function applyViaWebview(themeValue) {
-  var jsCode = buildWebviewThemeJs(themeValue)
+function applyViaWebview(themeValue, vars) {
+  var jsCode = buildWebviewThemeJs(themeValue, vars)
 
   try {
     var targets = []
@@ -280,7 +286,7 @@ export function applyPageTheme(theme) {
   var vars = themeValue === 'light' ? LIGHT_THEME_VARS : DARK_THEME_VARS
 
   if (typeof document === 'undefined') {
-    applyViaWebview(themeValue)
+    applyViaWebview(themeValue, vars)
   } else {
     applyViaDom(themeValue, vars)
   }
@@ -300,8 +306,7 @@ export function syncThemeFromStorage() {
 }
 
 /**
- * 设置顶部导航栏颜色（原生 API）
- * 与 evalJS 无关，直接调用 uni 原生接口
+ * 设置顶部导航栏和底部 tabbar 颜色（原生 API）
  */
 export function applyNavBarColor(theme) {
   var frontColor = theme === 'light' ? '#000000' : '#ffffff'
@@ -309,6 +314,15 @@ export function applyNavBarColor(theme) {
   try {
     var p = uni.setNavigationBarColor({ frontColor: frontColor, backgroundColor: backgroundColor })
     if (p && p.catch) p.catch(function() {})
+  } catch (e) {}
+  // 底部原生 tabbar 颜色
+  try {
+    uni.setTabBarStyle({
+      color: theme === 'light' ? '#8A8AA0' : '#8888A8',
+      selectedColor: theme === 'light' ? '#D94F1E' : '#FF6B35',
+      backgroundColor: theme === 'light' ? '#FAF8F5' : '#0B0B14',
+      borderStyle: theme === 'light' ? 'black' : 'white'
+    })
   } catch (e) {}
   // APP-PLUS: Android titleNView 按钮颜色兼容
   if (typeof plus !== 'undefined') {
@@ -331,7 +345,8 @@ export function broadcastThemeChange(theme) {
 
     var currentWv = plus.webview.currentWebview()
     var allWvs = plus.webview.all()
-    var jsCode = buildWebviewThemeJs(theme)
+    var vars = theme === 'light' ? LIGHT_THEME_VARS : DARK_THEME_VARS
+    var jsCode = buildWebviewThemeJs(theme, vars)
 
     for (var i = 0; i < allWvs.length; i++) {
       if (allWvs[i].id !== currentWv.id) {

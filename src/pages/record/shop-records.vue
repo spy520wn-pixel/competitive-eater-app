@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Stats banner — Double-Bezel -->
     <view class="stats-shell">
       <view class="stats-core">
@@ -72,7 +72,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
-import { settingsStore } from '../../store/settings-store'
+import { settingsStore, currentTheme } from '../../store/settings-store'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 import EmptyState from '@/components/empty-state.vue'
 

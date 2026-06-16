@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Photo Carousel -->
     <view v-if="form.photos.length > 0" class="carousel-shell">
       <swiper
@@ -335,7 +335,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'
 import { createShop, createTier, createMenuItem } from '@/store/models.js'
 import { recognizeMenu } from '@/utils/ai-service.js'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const isEdit = ref(false)

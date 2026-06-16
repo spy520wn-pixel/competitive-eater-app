@@ -1,5 +1,5 @@
 <template>
-  <view class="dashboard">
+  <view class="dashboard" :data-theme="currentTheme">
     <!-- Ambient glow orbs -->
     <view class="ambient-orb ambient-orb--1" />
     <view class="ambient-orb ambient-orb--2" />
@@ -160,7 +160,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
 import { shopStore } from '../../store/shop-store'
-import { settingsStore } from '../../store/settings-store'
+import { settingsStore, currentTheme } from '../../store/settings-store'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 import LevelBadge from '../../components/level-badge.vue'
 import RadarChart from '../../components/radar-chart.vue'
@@ -175,7 +175,6 @@ const selectedCity = ref('北京')
 const showCityPicker = ref(false)
 const cityKeyword = ref('')
 const showWelcome = ref(false)
-const currentTheme = ref('dark')
 
 function onCityChange(city) {
   selectedCity.value = city

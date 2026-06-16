@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Search Bar -->
     <SearchBar
       v-model="keyword"
@@ -91,7 +91,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { onShow, onReachBottom } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import ImportShopsPanel from '@/components/import-shops-panel.vue'
 import EmptyState from '@/components/empty-state.vue'
 import SearchBar from '@/components/search-bar.vue'

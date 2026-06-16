@@ -1,5 +1,5 @@
 <template>
-  <view class="page">
+  <view class="page" :data-theme="currentTheme">
     <!-- Header info -->
     <view class="detail-header">
       <text class="header-sub">
@@ -88,7 +88,7 @@ import { recordStore } from '../../store/record-store'
 import { getLevel, scoreToExp } from '../../utils/level'
 import { saveReceiptToAlbum, calcReceiptHeight } from '../../utils/receipt-renderer'
 import RadarChart from '../../components/radar-chart.vue'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const recordId = ref('')

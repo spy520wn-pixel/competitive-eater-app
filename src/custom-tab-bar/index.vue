@@ -1,5 +1,5 @@
 <template>
-  <view class="tabbar" :class="{ 'tabbar--light': isLight }">
+  <view class="tabbar" :class="{ 'tabbar--light': isLight }" :data-theme="theme" :style="isLight ? { background: '#FAF8F5', borderTopColor: 'rgba(0,0,0,0.06)' } : {}">
     <view
       v-for="(item, index) in tabs"
       :key="item.pagePath"
@@ -8,7 +8,7 @@
       @tap="switchTab(index)"
     >
       <text class="tabbar-icon">{{ item.icon }}</text>
-      <text class="tabbar-text">{{ item.text }}</text>
+      <text class="tabbar-text" :style="isLight ? { color: '#545468' } : {}">{{ item.text }}</text>
     </view>
   </view>
 </template>
@@ -54,10 +54,12 @@ function onThemeChange(newTheme) {
 onMounted(() => {
   updateTheme()
   uni.$on('tabbar-theme-change', onThemeChange)
+  uni.$on('theme-apply', onThemeChange)
 })
 
 onUnmounted(() => {
   uni.$off('tabbar-theme-change', onThemeChange)
+  uni.$off('theme-apply', onThemeChange)
 })
 
 onShow(() => {
