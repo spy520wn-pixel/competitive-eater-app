@@ -40,11 +40,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'
 import { recordStore } from '@/store/record-store.js'
 import { settingsStore } from '@/store/settings-store.js'
+import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const LAST_BACKUP_KEY = 'eater_last_backup_time'
 const lastBackupTime = ref('')
@@ -199,8 +200,18 @@ function parseAndRestore(jsonString) {
   }
 }
 
+onMounted(() => {
+  applyPageTheme(settingsStore.get().theme)
+  uni.$on('theme-apply', applyPageTheme)
+})
+
+onUnmounted(() => {
+  uni.$off('theme-apply', applyPageTheme)
+})
+
 onShow(() => {
   loadLastBackupTime()
+  syncThemeFromStorage()
 })
 </script>
 

@@ -176,7 +176,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { settingsStore } from '@/store/settings-store.js'
-import { applyPageTheme, broadcastThemeChange } from '@/utils/apply-page-theme.js'
+import { applyPageTheme, syncThemeFromStorage, applyNavBarColor } from '@/utils/apply-page-theme.js'
 
 const cities = [
   '全国', '北京', '上海', '天津', '重庆', '广州', '深圳', '东莞', '佛山', '珠海',
@@ -264,13 +264,13 @@ function onThemeChange(theme) {
   settings.theme = theme
   save('theme', theme)
 
-  // 当前页面立即应用
+  // 1. 顶部导航栏（原生 API，同步）
+  applyNavBarColor(theme)
+
+  // 2. 页面主题注入（evalJS，异步，覆盖所有 webview）
   applyPageTheme(theme)
 
-  // 跨 webview 广播（APP 端其他已打开的页面实时更新）
-  broadcastThemeChange(theme)
-
-  // 同 webview 内事件（兼容）
+  // 3. 事件通知（tabbar 等组件监听）
   uni.$emit('theme-apply', theme)
   uni.$emit('tabbar-theme-change', theme)
 }

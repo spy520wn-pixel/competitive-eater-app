@@ -69,9 +69,11 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
+import { settingsStore } from '../../store/settings-store'
+import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 import EmptyState from '@/components/empty-state.vue'
 
 const shopId = ref('')
@@ -138,6 +140,17 @@ onLoad((options) => {
     shopName.value = allRecords[0].shopName
     uni.setNavigationBarTitle({ title: shopName.value })
   }
+
+  applyPageTheme(settingsStore.get().theme)
+  uni.$on('theme-apply', applyPageTheme)
+})
+
+onUnmounted(() => {
+  uni.$off('theme-apply', applyPageTheme)
+})
+
+onShow(() => {
+  syncThemeFromStorage()
 })
 
 

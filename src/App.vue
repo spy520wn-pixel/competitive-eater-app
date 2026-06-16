@@ -1,11 +1,170 @@
 <script setup>
 import { onLaunch } from '@dcloudio/uni-app'
 import { settingsStore } from '@/store/settings-store.js'
-import { listenForCrossWebviewThemeChange } from '@/utils/apply-page-theme.js'
+import { applyPageTheme, listenForCrossWebviewThemeChange, broadcastThemeChange } from '@/utils/apply-page-theme.js'
 
-// 浅色主题 CSS 变量（使用单一选择器避免重复）
-const LIGHT_THEME_CSS = `
-:root, page {
+// 缓存当前主题，避免重复应用
+let currentAppliedTheme = null
+
+function applyTheme(theme) {
+  const themeChanged = theme !== currentAppliedTheme
+  currentAppliedTheme = theme
+
+  // 统一使用 applyPageTheme 注入内联样式
+  applyPageTheme(theme)
+
+  if (themeChanged) {
+    uni.$emit('tabbar-theme-change', theme)
+  }
+
+  // 每次都通知（页面跳转后需要重新应用）
+  uni.$emit('theme-apply', theme)
+
+  // 导航栏颜色
+  applyNavBarColor(theme)
+}
+
+// 导出供页面调用
+uni.$applyTheme = applyTheme
+
+function applyNavBarColor(theme) {
+  const frontColor = theme === 'light' ? '#000000' : '#ffffff'
+  const backgroundColor = theme === 'light' ? '#F4F1EC' : '#0A0A12'
+  try {
+    const p = uni.setNavigationBarColor({ frontColor, backgroundColor })
+    if (p && p.catch) p.catch(() => {})
+  } catch (e) {}
+  // #ifdef APP-PLUS
+  // Android 原生 titleNView 按钮颜色兼容
+  try {
+    const wv = plus.webview.currentWebview()
+    if (wv) {
+      wv.setTitleNViewButtonStyle({ color: frontColor })
+    }
+  } catch (e) {}
+  // #endif
+}
+
+// 拦截页面跳转，确保新页面也能正确应用主题
+// 注意：在 APP-PLUS 中，拦截器在当前页面 webview 执行，
+// 新页面需要通过自己的 onMounted/onShow 来应用主题
+const interceptors = ['navigateTo', 'switchTab', 'redirectTo', 'navigateBack']
+interceptors.forEach(method => {
+  uni.addInterceptor(method,
+    {
+      success() {
+        const settings = settingsStore.get()
+        const theme = settings.theme || 'dark'
+
+        // 当前页面重新应用（navigateBack 时当前页面可能需要刷新）
+        applyTheme(theme)
+
+        // 延迟通知新页面（等新页面 webview 加载完成后自行读取 storage）
+        setTimeout(() => {
+          uni.$emit('theme-apply', theme)
+          uni.$emit('tabbar-theme-change', theme)
+          applyNavBarColor(theme)
+        }, 300)
+        setTimeout(() => applyNavBarColor(theme), 600)
+      }
+    }
+  )
+})
+
+onLaunch(() => {
+  console.log('大胃王APP 启动')
+
+  const settings = settingsStore.get()
+  const theme = settings.theme || 'dark'
+
+  // 立即应用主题
+  applyTheme(theme)
+  // 延迟重试确保导航栏颜色和 CSS 变量生效
+  setTimeout(() => {
+    applyTheme(theme)
+    applyNavBarColor(theme)
+  }, 100)
+  setTimeout(() => applyNavBarColor(theme), 500)
+
+  // APP 端：监听来自其他 webview 的主题切换广播
+  listenForCrossWebviewThemeChange()
+})
+</script>
+
+<style lang="scss">
+@import './theme-light.css';
+
+/* ═══ CSS Custom Properties — Theme Variables ═══ */
+/* 直接在 App.vue 全局样式中定义，绕过 uni.scss 被 scoped 破坏的问题 */
+:root,
+[data-theme="dark"] {
+  --c-bg: #030306;
+  --c-bg-elevated: #0A0A14;
+  --c-surface-0: #131320;
+  --c-surface-1: #1A1A2E;
+  --c-surface-2: #22223A;
+  --c-surface-3: rgba(255, 255, 255, 0.03);
+  --c-surface-4: rgba(255, 255, 255, 0.04);
+  --c-surface-5: rgba(255, 255, 255, 0.05);
+  --c-surface-6: rgba(255, 255, 255, 0.06);
+  --c-surface-8: rgba(255, 255, 255, 0.08);
+  --c-surface-10: rgba(255, 255, 255, 0.10);
+  --c-surface-12: rgba(255, 255, 255, 0.12);
+  --c-surface-15: rgba(255, 255, 255, 0.15);
+  --c-text-primary: #F0F0F5;
+  --c-text-secondary: #9E9EB8;
+  --c-text-tertiary: #8080A0;
+  --c-text-muted: #7575A0;
+  --c-text-ghost: #4A4A68;
+  --c-accent: #FF6B35;
+  --c-accent-light: #FF8F60;
+  --c-accent-deep: #E85520;
+  --c-accent-soft: rgba(255, 107, 53, 0.06);
+  --c-accent-glow: rgba(255, 107, 53, 0.12);
+  --c-accent-glow-strong: rgba(255, 107, 53, 0.25);
+  --c-text-on-accent: #FFFFFF;
+  --c-gold: #FFD700;
+  --c-gold-deep: #D4A017;
+  --c-gold-soft: rgba(255, 215, 0, 0.05);
+  --c-gold-glow: rgba(255, 215, 0, 0.10);
+  --c-gold-glow-strong: rgba(255, 215, 0, 0.20);
+  --c-danger: #FF3B30;
+  --c-danger-soft: rgba(255, 59, 48, 0.08);
+  --c-success: #34D399;
+  --c-success-soft: rgba(52, 211, 153, 0.08);
+  --c-warning: #F59E0B;
+  --c-warning-soft: rgba(245, 158, 11, 0.08);
+  --c-info: #3B82F6;
+  --c-info-soft: rgba(59, 130, 246, 0.08);
+  --c-emerald: #34D399;
+  --c-violet: #8B5CF6;
+  --c-border: rgba(255, 255, 255, 0.10);
+  --c-border-light: rgba(255, 255, 255, 0.05);
+  --c-border-subtle: rgba(255, 255, 255, 0.03);
+  --c-border-active: rgba(255, 107, 53, 0.35);
+  --c-card-bg: linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+  --c-card-bg-elevated: linear-gradient(165deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --c-card-shadow: 0 12rpx 48rpx rgba(0, 0, 0, 0.6), 0 4rpx 16rpx rgba(0, 0, 0, 0.35);
+  --c-card-shadow-elevated: 0 20rpx 64rpx rgba(0, 0, 0, 0.65), 0 8rpx 24rpx rgba(0, 0, 0, 0.4);
+  --c-glass: rgba(255, 255, 255, 0.04);
+  --c-glass-strong: rgba(255, 255, 255, 0.08);
+  --c-hairline: rgba(255, 255, 255, 0.06);
+  --c-glow-accent: rgba(255, 107, 53, 0.15);
+  --c-glow-gold: rgba(255, 215, 0, 0.10);
+  --c-input-bg: rgba(255, 255, 255, 0.04);
+  --c-input-border: rgba(255, 255, 255, 0.08);
+  --c-overlay: rgba(0, 0, 0, 0.65);
+  --c-inner-highlight: inset 0 1rpx 1rpx rgba(255, 255, 255, 0.08);
+  --c-noise-opacity: 0.02;
+  --c-shadow-inner: inset 0 1rpx 2rpx rgba(255, 255, 255, 0.06);
+  --c-shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.35), 0 1rpx 2rpx rgba(0, 0, 0, 0.15);
+  --c-shadow-md: 0 4rpx 20rpx rgba(0, 0, 0, 0.4), 0 2rpx 6rpx rgba(0, 0, 0, 0.2);
+  --c-shadow-lg: 0 8rpx 36rpx rgba(0, 0, 0, 0.45), 0 4rpx 10rpx rgba(0, 0, 0, 0.25);
+  --c-shadow-xl: 0 16rpx 56rpx rgba(0, 0, 0, 0.5), 0 8rpx 20rpx rgba(0, 0, 0, 0.3);
+  --c-shadow-2xl: 0 24rpx 80rpx rgba(0, 0, 0, 0.55), 0 12rpx 28rpx rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="light"] {
   --c-bg: #F4F1EC;
   --c-bg-elevated: #FAF8F5;
   --c-surface-0: #FFFFFF;
@@ -30,13 +189,20 @@ const LIGHT_THEME_CSS = `
   --c-accent-soft: rgba(217, 79, 30, 0.06);
   --c-accent-glow: rgba(217, 79, 30, 0.08);
   --c-accent-glow-strong: rgba(217, 79, 30, 0.15);
-  --c-gold: #C08B10;
-  --c-gold-deep: #A07508;
-  --c-gold-soft: rgba(192, 139, 16, 0.06);
-  --c-gold-glow: rgba(192, 139, 16, 0.08);
-  --c-gold-glow-strong: rgba(192, 139, 16, 0.15);
+  --c-text-on-accent: #FFFFFF;
+  --c-gold: #9A7008;
+  --c-gold-deep: #7A5806;
+  --c-gold-soft: rgba(154, 112, 8, 0.06);
+  --c-gold-glow: rgba(154, 112, 8, 0.08);
+  --c-gold-glow-strong: rgba(154, 112, 8, 0.15);
   --c-danger: #CC2D20;
   --c-danger-soft: rgba(204, 45, 32, 0.08);
+  --c-success: #16A36A;
+  --c-success-soft: rgba(22, 163, 106, 0.08);
+  --c-warning: #D97706;
+  --c-warning-soft: rgba(217, 119, 6, 0.08);
+  --c-info: #2563EB;
+  --c-info-soft: rgba(37, 99, 235, 0.08);
   --c-emerald: #16A36A;
   --c-violet: #7C3AED;
   --c-border: rgba(0, 0, 0, 0.06);
@@ -64,183 +230,6 @@ const LIGHT_THEME_CSS = `
   --c-shadow-xl: 0 12rpx 48rpx rgba(0, 0, 0, 0.12);
   --c-shadow-2xl: 0 24rpx 64rpx rgba(0, 0, 0, 0.16);
 }
-`
-
-let themeStyleEl = null
-
-// 浅色主题 CSS 变量键值对（用于直接设置到 DOM 元素）
-const LIGHT_THEME_VARS = {
-  '--c-bg': '#F4F1EC',
-  '--c-bg-elevated': '#FAF8F5',
-  '--c-surface-0': '#FFFFFF',
-  '--c-surface-1': '#FAF8F5',
-  '--c-surface-2': '#F0EDEA',
-  '--c-surface-3': 'rgba(0, 0, 0, 0.03)',
-  '--c-surface-4': 'rgba(0, 0, 0, 0.04)',
-  '--c-surface-5': 'rgba(0, 0, 0, 0.05)',
-  '--c-surface-6': 'rgba(0, 0, 0, 0.06)',
-  '--c-surface-8': 'rgba(0, 0, 0, 0.08)',
-  '--c-surface-10': 'rgba(0, 0, 0, 0.10)',
-  '--c-surface-12': 'rgba(0, 0, 0, 0.12)',
-  '--c-surface-15': 'rgba(0, 0, 0, 0.15)',
-  '--c-text-primary': '#181820',
-  '--c-text-secondary': '#3C3C54',
-  '--c-text-tertiary': '#545468',
-  '--c-text-muted': '#606078',
-  '--c-text-ghost': '#8A8AA0',
-  '--c-accent': '#D94F1E',
-  '--c-accent-light': '#F06830',
-  '--c-accent-deep': '#C04018',
-  '--c-accent-soft': 'rgba(217, 79, 30, 0.06)',
-  '--c-accent-glow': 'rgba(217, 79, 30, 0.08)',
-  '--c-accent-glow-strong': 'rgba(217, 79, 30, 0.15)',
-  '--c-gold': '#C08B10',
-  '--c-gold-deep': '#A07508',
-  '--c-gold-soft': 'rgba(192, 139, 16, 0.06)',
-  '--c-gold-glow': 'rgba(192, 139, 16, 0.08)',
-  '--c-gold-glow-strong': 'rgba(192, 139, 16, 0.15)',
-  '--c-danger': '#CC2D20',
-  '--c-danger-soft': 'rgba(204, 45, 32, 0.08)',
-  '--c-emerald': '#16A36A',
-  '--c-violet': '#7C3AED',
-  '--c-border': 'rgba(0, 0, 0, 0.06)',
-  '--c-border-light': 'rgba(0, 0, 0, 0.03)',
-  '--c-border-subtle': 'rgba(0, 0, 0, 0.02)',
-  '--c-border-active': 'rgba(217, 79, 30, 0.25)',
-  '--c-card-bg': 'linear-gradient(165deg, #FFFFFF 0%, #FDFCFA 100%)',
-  '--c-card-bg-elevated': 'linear-gradient(165deg, #FFFFFF 0%, #FFFFFF 100%)',
-  '--c-card-shadow': '0 2rpx 8rpx rgba(0, 0, 0, 0.04), 0 8rpx 32rpx rgba(0, 0, 0, 0.06)',
-  '--c-card-shadow-elevated': '0 4rpx 12rpx rgba(0, 0, 0, 0.05), 0 16rpx 48rpx rgba(0, 0, 0, 0.08)',
-  '--c-glass': 'rgba(0, 0, 0, 0.02)',
-  '--c-glass-strong': 'rgba(0, 0, 0, 0.04)',
-  '--c-hairline': 'rgba(0, 0, 0, 0.05)',
-  '--c-glow-accent': 'rgba(217, 79, 30, 0.08)',
-  '--c-glow-gold': 'rgba(192, 139, 16, 0.06)',
-  '--c-input-bg': 'rgba(0, 0, 0, 0.025)',
-  '--c-input-border': 'rgba(0, 0, 0, 0.06)',
-  '--c-overlay': 'rgba(0, 0, 0, 0.25)',
-  '--c-inner-highlight': 'inset 0 1rpx 2rpx rgba(255, 255, 255, 0.8)',
-  '--c-noise-opacity': '0.025',
-  '--c-shadow-inner': 'inset 0 1rpx 2rpx rgba(0, 0, 0, 0.04)',
-  '--c-shadow-sm': '0 1rpx 4rpx rgba(0, 0, 0, 0.06)',
-  '--c-shadow-md': '0 4rpx 16rpx rgba(0, 0, 0, 0.08)',
-  '--c-shadow-lg': '0 8rpx 32rpx rgba(0, 0, 0, 0.10)',
-  '--c-shadow-xl': '0 12rpx 48rpx rgba(0, 0, 0, 0.12)',
-  '--c-shadow-2xl': '0 24rpx 64rpx rgba(0, 0, 0, 0.16)'
-}
-
-function applyTheme(theme) {
-  const themeChanged = theme !== currentAppliedTheme
-  currentAppliedTheme = theme
-
-  // APP-PLUS：通过事件通知各页面在自己的 webview 上下文中应用主题
-  // H5：直接在当前上下文设置（所有页面共享同一 DOM）
-  // #ifdef H5
-  applyThemeToDOM(theme)
-  // #endif
-
-  if (themeChanged) {
-    uni.$emit('tabbar-theme-change', theme)
-  }
-
-  // 每次都通知（页面跳转后需要重新应用）
-  uni.$emit('theme-apply', theme)
-
-  // 导航栏颜色
-  try {
-    const navPromise = theme === 'light'
-      ? uni.setNavigationBarColor({ frontColor: '#000000', backgroundColor: '#F4F1EC' })
-      : uni.setNavigationBarColor({ frontColor: '#ffffff', backgroundColor: '#0A0A12' })
-    if (navPromise && navPromise.catch) navPromise.catch(() => {})
-  } catch (e) {}
-}
-
-// 将主题应用到当前 DOM（必须在页面自己的 webview 上下文中调用）
-function applyThemeToDOM(theme) {
-  try {
-    document.documentElement.setAttribute('data-theme', theme)
-  } catch (e) {}
-
-  // #ifdef APP-PLUS
-  try {
-    const root = document.documentElement
-    if (theme === 'light') {
-      for (const [key, value] of Object.entries(LIGHT_THEME_VARS)) {
-        root.style.setProperty(key, value)
-      }
-    } else {
-      for (const key of Object.keys(LIGHT_THEME_VARS)) {
-        root.style.removeProperty(key)
-      }
-    }
-  } catch (e) {}
-  // #endif
-}
-
-// 缓存当前主题，避免重复应用
-let currentAppliedTheme = null
-
-// 导出供页面调用
-uni.$applyTheme = applyTheme
-uni.$applyThemeToDOM = applyThemeToDOM
-
-function applyNavBarColor(theme) {
-  const frontColor = theme === 'light' ? '#000000' : '#ffffff'
-  const backgroundColor = theme === 'light' ? '#F4F1EC' : '#0A0A12'
-  try {
-    const p = uni.setNavigationBarColor({ frontColor, backgroundColor })
-    if (p && p.catch) p.catch(() => {})
-  } catch (e) {}
-  // #ifdef APP-PLUS
-  // Android 原生 titleNView 按钮颜色兼容
-  try {
-    const wv = plus.webview.currentWebview()
-    if (wv) {
-      wv.setTitleNViewButtonStyle({ color: frontColor })
-    }
-  } catch (e) {}
-  // #endif
-}
-
-// 拦截页面跳转，每次页面显示时都应用主题
-const interceptors = ['navigateTo', 'switchTab', 'redirectTo', 'navigateBack']
-interceptors.forEach(method => {
-  uni.addInterceptor(method,
-    {
-      success() {
-        const settings = settingsStore.get()
-        const theme = settings.theme || 'dark'
-        applyTheme(theme)
-        // 延迟后重新通知（等新页面 webview 加载完成）
-        setTimeout(() => {
-          uni.$emit('theme-apply', theme)
-          applyNavBarColor(theme)
-        }, 200)
-        setTimeout(() => applyNavBarColor(theme), 400)
-      }
-    }
-  )
-})
-
-onLaunch(() => {
-  console.log('大胃王APP 启动')
-
-  const settings = settingsStore.get()
-  const theme = settings.theme || 'dark'
-
-  // 立即应用主题
-  applyTheme(theme)
-  // 延迟重试确保导航栏颜色生效
-  setTimeout(() => applyNavBarColor(theme), 100)
-  setTimeout(() => applyNavBarColor(theme), 500)
-
-  // APP 端：监听来自其他 webview 的主题切换广播
-  listenForCrossWebviewThemeChange()
-})
-</script>
-
-<style lang="scss">
-@import './theme-light.css';
 
 /* ═══ Font Loading (only weights actually used by design system) ═══ */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap');

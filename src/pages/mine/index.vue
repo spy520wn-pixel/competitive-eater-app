@@ -91,10 +91,12 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getLevel } from '@/utils/level.js'
 import { recordStore } from '@/store/record-store.js'
+import { settingsStore } from '@/store/settings-store.js'
+import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const level = ref({ tier: 1, name: '青铜', icon: '🥉' })
 const showAboutDialog = ref(false)
@@ -119,8 +121,18 @@ function loadStats() {
   level.value = getLevel(s.totalExp)
 }
 
+onMounted(() => {
+  applyPageTheme(settingsStore.get().theme)
+  uni.$on('theme-apply', applyPageTheme)
+})
+
+onUnmounted(() => {
+  uni.$off('theme-apply', applyPageTheme)
+})
+
 onShow(() => {
   loadStats()
+  syncThemeFromStorage()
 })
 
 function goTo(url) {
