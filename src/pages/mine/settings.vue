@@ -1,5 +1,6 @@
 <template>
   <view class="page" :data-theme="settings.theme">
+    <nav-bar title="设置" :show-back="true" />
     <!-- 通用 -->
     <view class="section">
       <view class="section-header">
@@ -177,6 +178,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { settingsStore } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage, applyNavBarColor } from '@/utils/apply-page-theme.js'
+import NavBar from '@/components/nav-bar.vue'
 
 const cities = [
   '全国', '北京', '上海', '天津', '重庆', '广州', '深圳', '东莞', '佛山', '珠海',

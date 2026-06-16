@@ -508,13 +508,17 @@ const themeVersion = ref(0)
 function onThemeChange(theme) {
   currentTheme.value = theme
   themeVersion.value++
+}
+
+function readThemeFromStorage() {
   try {
-    document.documentElement.setAttribute('data-theme', theme)
+    var s = uni.getStorageSync('eater_settings') || {}
+    currentTheme.value = s.theme || 'dark'
   } catch (e) {}
 }
 
 onMounted(() => {
-  currentTheme.value = document.documentElement.getAttribute('data-theme') || 'dark'
+  readThemeFromStorage()
   uni.$on('tabbar-theme-change', onThemeChange)
   uni.$on('theme-apply', onThemeChange)
 })

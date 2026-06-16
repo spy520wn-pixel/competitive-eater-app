@@ -1,5 +1,6 @@
 <template>
   <view class="dashboard" :data-theme="currentTheme">
+    <nav-bar title="大胃王" :show-back="false" />
     <!-- Ambient glow orbs -->
     <view class="ambient-orb ambient-orb--1" />
     <view class="ambient-orb ambient-orb--2" />
@@ -156,6 +157,7 @@
 </template>
 
 <script setup>
+import NavBar from '@/components/nav-bar.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'

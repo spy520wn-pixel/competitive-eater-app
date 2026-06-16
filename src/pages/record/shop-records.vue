@@ -1,5 +1,6 @@
 <template>
   <view class="page" :data-theme="currentTheme">
+    <nav-bar title="店铺战绩" :show-back="true" />
     <!-- Stats banner — Double-Bezel -->
     <view class="stats-shell">
       <view class="stats-core">
@@ -69,6 +70,7 @@
 </template>
 
 <script setup>
+import NavBar from '@/components/nav-bar.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'

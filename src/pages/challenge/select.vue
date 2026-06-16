@@ -1,5 +1,6 @@
 <template>
   <view class="page" :data-theme="currentTheme">
+    <nav-bar title="选择店铺" :show-back="true" />
     <!-- Search bar — Glass -->
     <SearchBar
       v-model="keyword"
@@ -97,6 +98,7 @@
 </template>
 
 <script setup>
+import NavBar from '@/components/nav-bar.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '../../store/shop-store'

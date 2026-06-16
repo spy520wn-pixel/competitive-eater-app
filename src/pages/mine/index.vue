@@ -1,5 +1,6 @@
 <template>
   <view class="page" :data-theme="currentTheme">
+    <nav-bar title="我的" :show-back="true" />
     <!-- Profile Card — Double-Bezel -->
     <view class="profile-shell">
       <view class="profile-core">
@@ -91,6 +92,7 @@
 </template>
 
 <script setup>
+import NavBar from '@/components/nav-bar.vue'
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getLevel } from '@/utils/level.js'

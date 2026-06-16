@@ -1,5 +1,6 @@
 <template>
   <view class="page" :data-theme="currentTheme">
+    <nav-bar title="数据备份" :show-back="true" />
     <!-- Last Backup Info — Double-Bezel -->
     <view class="info-shell">
       <view class="info-core">
@@ -40,6 +41,7 @@
 </template>
 
 <script setup>
+import NavBar from '@/components/nav-bar.vue'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'

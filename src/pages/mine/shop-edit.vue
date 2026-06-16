@@ -1,5 +1,6 @@
 <template>
   <view class="page" :data-theme="currentTheme">
+    <nav-bar title="店铺信息" :show-back="true" />
     <!-- Photo Carousel -->
     <view v-if="form.photos.length > 0" class="carousel-shell">
       <swiper
@@ -330,6 +331,7 @@
 </template>
 
 <script setup>
+import NavBar from '@/components/nav-bar.vue'
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'

@@ -1,5 +1,6 @@
 <template>
   <view class="page" :data-theme="currentTheme">
+    <nav-bar title="挑战结果" :show-back="true" />
     <!-- Ambient glow -->
     <view class="ambient-orb ambient-orb--gold" />
     <view class="ambient-orb ambient-orb--orange" />
@@ -140,6 +141,7 @@
 </template>
 
 <script setup>
+import NavBar from '@/components/nav-bar.vue'
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'

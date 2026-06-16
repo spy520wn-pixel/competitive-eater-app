@@ -117,7 +117,7 @@ function draw(values = null) {
         })
         ctx.closePath()
         if (isLight) {
-          ctx.setStrokeStyle(`rgba(0, 0, 0, ${0.04 + level * 0.02})`)
+          ctx.setStrokeStyle(`rgba(0, 0, 0, ${0.06 + level * 0.03})`)
         } else {
           ctx.setStrokeStyle(`rgba(255, 255, 255, ${0.02 + level * 0.01})`)
         }
@@ -131,7 +131,7 @@ function draw(values = null) {
         ctx.beginPath()
         ctx.moveTo(center, center)
         ctx.lineTo(center + radius * Math.cos(angle), center + radius * Math.sin(angle))
-        ctx.setStrokeStyle(isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.04)')
+        ctx.setStrokeStyle(isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.04)')
         ctx.setLineWidth(1)
         ctx.stroke()
       })
@@ -147,10 +147,10 @@ function draw(values = null) {
         else ctx.lineTo(x, y)
       })
       ctx.closePath()
-      ctx.setFillStyle(isLight ? 'rgba(217, 79, 30, 0.15)' : 'rgba(255, 107, 53, 0.2)')
+      ctx.setFillStyle(isLight ? 'rgba(217, 79, 30, 0.18)' : 'rgba(255, 107, 53, 0.2)')
       ctx.fill()
-      ctx.setStrokeStyle(isLight ? 'rgba(217, 79, 30, 0.8)' : 'rgba(255, 107, 53, 0.8)')
-      ctx.setLineWidth(2)
+      ctx.setStrokeStyle(isLight ? '#C04018' : 'rgba(255, 107, 53, 0.8)')
+      ctx.setLineWidth(2.5)
       ctx.stroke()
 
       // Data points
@@ -163,19 +163,19 @@ function draw(values = null) {
 
         ctx.beginPath()
         ctx.arc(x, y, dotR * 2, 0, Math.PI * 2)
-        ctx.setFillStyle(isLight ? 'rgba(217, 79, 30, 0.12)' : 'rgba(255, 107, 53, 0.15)')
+        ctx.setFillStyle(isLight ? 'rgba(217, 79, 30, 0.15)' : 'rgba(255, 107, 53, 0.15)')
         ctx.fill()
 
         ctx.beginPath()
         ctx.arc(x, y, dotR, 0, Math.PI * 2)
-        ctx.setFillStyle(isLight ? '#D94F1E' : '#FF6B35')
+        ctx.setFillStyle(isLight ? '#B83810' : '#FF6B35')
         ctx.fill()
       })
 
       // Labels
       const fontSize = Math.max(10, Math.min(13, s / 30))
       ctx.setFontSize(fontSize)
-      ctx.setFillStyle(isLight ? '#545468' : '#8888AA')
+      ctx.setFillStyle(isLight ? '#3C3C54' : '#8888AA')
       ctx.setTextAlign('center')
       categories.forEach((cat, i) => {
         const angle = (Math.PI * 2 * i) / categories.length - Math.PI / 2

@@ -55,17 +55,7 @@ interceptors.forEach(method => {
       success() {
         const settings = settingsStore.get()
         const theme = settings.theme || 'dark'
-
-        // 当前页面重新应用（navigateBack 时当前页面可能需要刷新）
         applyTheme(theme)
-
-        // 延迟通知新页面（等新页面 webview 加载完成后自行读取 storage）
-        setTimeout(() => {
-          uni.$emit('theme-apply', theme)
-          uni.$emit('tabbar-theme-change', theme)
-          applyNavBarColor(theme)
-        }, 300)
-        setTimeout(() => applyNavBarColor(theme), 600)
       }
     }
   )
