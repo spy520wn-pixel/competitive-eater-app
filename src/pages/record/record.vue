@@ -8,6 +8,22 @@
       </text>
     </view>
 
+    <!-- Sort bar -->
+    <view v-if="shopGroups.length > 0" class="sort-bar">
+      <view class="sort-options">
+        <text
+          v-for="opt in sortOptions"
+          :key="opt.key"
+          class="sort-tag"
+          :class="{ 'sort-tag--active': sortBy === opt.key }"
+          @tap="toggleSort(opt.key)"
+        >{{ opt.label }}</text>
+      </view>
+      <view class="sort-order" @tap="toggleOrder">
+        <text class="sort-order-icon">{{ sortOrder === 'desc' ? '↓' : '↑' }}</text>
+      </view>
+    </view>
+
     <!-- Shop groups -->
     <scroll-view
       v-if="shopGroups.length > 0"
@@ -81,6 +97,24 @@ import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.j
 const PAGE_SIZE = 20
 const records = ref([])
 const displayCount = ref(PAGE_SIZE)
+const sortBy = ref('latestDate')
+const sortOrder = ref('desc')
+
+const sortOptions = [
+  { key: 'latestDate', label: '最近挑战' },
+  { key: 'bestScore', label: '最高战力' },
+  { key: 'count', label: '挑战次数' }
+]
+
+function toggleSort(key) {
+  if (sortBy.value === key) return
+  sortBy.value = key
+  displayCount.value = PAGE_SIZE
+}
+
+function toggleOrder() {
+  sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
+}
 
 const CATEGORY_ICONS = {
   '自助餐': '🍖',
@@ -118,7 +152,16 @@ const shopGroups = computed(() => {
       ...g,
       icon: CATEGORY_ICONS[g.shopName] || CATEGORY_ICONS['default']
     }))
-    .sort((a, b) => b.bestScore - a.bestScore)
+    .sort((a, b) => {
+      const order = sortOrder.value === 'desc' ? 1 : -1
+      if (sortBy.value === 'latestDate') {
+        return order * (new Date(b.latestDate) - new Date(a.latestDate))
+      }
+      if (sortBy.value === 'count') {
+        return order * (b.count - a.count)
+      }
+      return order * (b.bestScore - a.bestScore)
+    })
 })
 
 const totalRecords = computed(() => {
@@ -197,6 +240,45 @@ onShow(() => {
   font-size: var(--text-label-size, $type-label-size);
   color: var(--c-text-tertiary, $text-tertiary);
   letter-spacing: var(--text-label-ls, $type-label-ls);
+}
+
+/* ── Sort Bar ── */
+.sort-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28rpx;
+  margin-bottom: $intra-group;
+}
+
+.sort-options {
+  display: flex;
+  gap: 12rpx;
+}
+
+.sort-tag {
+  font-size: $label-size;
+  color: var(--c-text-muted, $text-muted);
+  padding: 8rpx 20rpx;
+  border-radius: $radius-pill;
+  background: var(--c-surface-2, $glass-white-2);
+  border: 1rpx solid transparent;
+  transition: all $dur-micro $ease-out-expo;
+}
+
+.sort-tag--active {
+  color: $accent-orange;
+  border-color: $accent-orange;
+  background: rgba(255, 107, 53, 0.1);
+}
+
+.sort-order {
+  padding: 8rpx 16rpx;
+}
+
+.sort-order-icon {
+  font-size: 32rpx;
+  color: var(--c-text-secondary, $text-secondary);
 }
 
 /* ── Shop List ── */
