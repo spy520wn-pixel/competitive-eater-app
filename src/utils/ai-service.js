@@ -399,15 +399,22 @@ export async function generateImage({ record, style, photoPaths = [] }) {
     size: '1024x1024'
   }
 
+  // 尝试将照片转为 base64 作为参考图（图生图模式）
   if (photoPaths.length > 0) {
-    const base64Photos = []
-    for (const path of photoPaths.slice(0, 3)) {
-      const base64 = await imageToBase64(path)
-      base64Photos.push(base64)
-    }
-    requestData.extra_body = {
-      image: base64Photos,
-      response_format: 'url'
+    try {
+      const base64Photos = []
+      for (const path of photoPaths.slice(0, 3)) {
+        const base64 = await imageToBase64(path)
+        if (base64) base64Photos.push(base64)
+      }
+      if (base64Photos.length > 0) {
+        requestData.extra_body = {
+          image: base64Photos,
+          response_format: 'url'
+        }
+      }
+    } catch (e) {
+      console.warn('照片转 base64 失败，降级为纯文生图:', e.message)
     }
   }
 
@@ -448,10 +455,8 @@ export async function createVideoTask({ record, photoPath }) {
     frame_rate: 24
   }
 
-  if (photoPath) {
-    const base64 = await imageToBase64(photoPath)
-    requestData.image = base64
-  }
+  // 注意：视频 API 的 image 字段要求是公网 URL，不支持 base64
+  // 当前不传 image，使用纯文生视频模式
 
   const response = await withRetry(() => uni.request({
     url: settings.videoServiceUrl,
