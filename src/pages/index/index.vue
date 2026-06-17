@@ -98,7 +98,7 @@
   <view v-if="showCityPicker" class="picker-mask" @tap="showCityPicker = false">
     <view class="picker-popup" @tap.stop>
       <view class="picker-header">
-        <text class="picker-title">选择城市</text>
+        <text class="picker-title">{{ isFirstTimeCity ? '欢迎！请选择你的城市' : '选择城市' }}</text>
         <view class="picker-close" @tap="showCityPicker = false">
           <text class="picker-close-text">✕</text>
         </view>
@@ -176,6 +176,7 @@ const shops = ref([])
 const records = ref([])
 const selectedCity = ref('北京')
 const showCityPicker = ref(false)
+const isFirstTimeCity = ref(false)
 const cityKeyword = ref('')
 const showWelcome = ref(false)
 
@@ -191,6 +192,11 @@ function onSelectCity(city) {
   selectedCity.value = city
   showCityPicker.value = false
   cityKeyword.value = ''
+
+  if (isFirstTimeCity.value) {
+    settingsStore.update({ defaultCity: city })
+    isFirstTimeCity.value = false
+  }
 }
 
 const hotCities = ['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '重庆', '西安', '南京', '长沙']
@@ -224,6 +230,10 @@ function loadData() {
   const settings = settingsStore.get()
   if (settings.defaultCity) {
     selectedCity.value = settings.defaultCity
+  } else {
+    // 首次使用，引导选择城市
+    isFirstTimeCity.value = true
+    showCityPicker.value = true
   }
 }
 
