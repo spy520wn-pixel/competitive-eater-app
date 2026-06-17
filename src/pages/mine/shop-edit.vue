@@ -5,24 +5,33 @@
     <view v-if="form.photos.length > 0" class="carousel-shell">
       <swiper
         class="carousel-swiper"
-        :indicator-dots="false"
-        :autoplay="true"
+        :indicator-dots="form.photos.length > 1"
+        indicator-color="rgba(255,255,255,0.3)"
+        indicator-active-color="#FF6B35"
+        :autoplay="form.photos.length > 1"
         :interval="4000"
-        :duration="500"
-        :circular="true"
-        @change="onPhotoChange"
+        circular
       >
         <swiper-item v-for="(photo, idx) in form.photos" :key="idx">
-          <image class="carousel-image" :src="photo" mode="aspectFill" />
+          <view class="photo-wrap">
+            <image class="carousel-image" :src="photo" mode="aspectFill" />
+            <view class="photo-delete" @tap="deletePhoto(idx)">
+              <text class="photo-delete-icon">✕</text>
+            </view>
+          </view>
+        </swiper-item>
+        <swiper-item v-if="form.photos.length < 9">
+          <view class="photo-add" @tap="showPhotoOptions">
+            <text class="photo-add-icon">+</text>
+            <text class="photo-add-text">添加照片</text>
+          </view>
         </swiper-item>
       </swiper>
-      <view class="carousel-dots">
-        <view
-          v-for="(_, idx) in form.photos"
-          :key="idx"
-          class="carousel-dot"
-          :class="{ 'carousel-dot--active': currentPhotoIndex === idx }"
-        />
+    </view>
+    <view v-else class="carousel-shell carousel-shell--empty" @tap="showPhotoOptions">
+      <view class="photo-add photo-add--standalone">
+        <text class="photo-add-icon">+</text>
+        <text class="photo-add-text">添加店铺照片</text>
       </view>
     </view>
 
@@ -370,8 +379,6 @@ const form = reactive({
   _mealTimeLimitStr: undefined
 })
 
-const currentPhotoIndex = ref(0)
-
 const categoryIndex = computed(() => categories.indexOf(form.category))
 const cityIndex = computed(() => cities.indexOf(form.city))
 
@@ -444,8 +451,42 @@ function onMealTimeBlur() {
   form._mealTimeLimitStr = undefined
 }
 
-function onPhotoChange(e) {
-  currentPhotoIndex.value = e.detail.current
+function showPhotoOptions() {
+  uni.showActionSheet({
+    itemList: ['从相册选择', '拍照'],
+    success: (res) => {
+      if (res.tapIndex === 0) choosePhoto('album')
+      else if (res.tapIndex === 1) choosePhoto('camera')
+    }
+  })
+}
+
+function choosePhoto(sourceType) {
+  const remaining = 9 - form.photos.length
+  if (remaining <= 0) {
+    uni.showToast({ title: '最多9张照片', icon: 'none' })
+    return
+  }
+  uni.chooseImage({
+    count: remaining,
+    sizeType: ['compressed'],
+    sourceType: [sourceType],
+    success: (res) => {
+      form.photos.push(...res.tempFilePaths)
+    }
+  })
+}
+
+function deletePhoto(idx) {
+  uni.showModal({
+    title: '删除照片',
+    content: '确定删除这张照片吗？',
+    success: (res) => {
+      if (res.confirm) {
+        form.photos.splice(idx, 1)
+      }
+    }
+  })
 }
 
 function onDishCategoryChange(e) {
@@ -816,7 +857,7 @@ function onSave() {
     mealTimeLimit: form.mealTimeLimit,
     location: form.location,
     cost: form.cost ? Number(form.cost) : (existingShop?.cost || ''),
-    photos: existingShop?.photos || [],
+    photos: [...form.photos],
     rating: form.rating ? Number(form.rating) : (existingShop?.rating || '')
   }
 
@@ -1363,6 +1404,64 @@ function onSave() {
   color: var(--c-text-on-accent, #FFFFFF);
   font-weight: 600;
   letter-spacing: $tracking-wide;
+}
+
+/* ── Photo Management ── */
+.photo-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.photo-delete {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.photo-delete-icon {
+  color: #fff;
+  font-size: 24rpx;
+}
+
+.photo-add {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-surface-2, $glass-white-2);
+  border: 2rpx dashed var(--c-surface-5, $glass-white-5);
+  border-radius: $radius-lg;
+}
+
+.photo-add--standalone {
+  min-height: 240rpx;
+}
+
+.photo-add-icon {
+  font-size: 56rpx;
+  color: var(--c-text-muted, $text-muted);
+  line-height: 1;
+}
+
+.photo-add-text {
+  font-size: $label-size;
+  color: var(--c-text-muted, $text-muted);
+  margin-top: 8rpx;
+}
+
+.carousel-shell--empty {
+  margin-bottom: $section-gap;
 }
 
 </style>
