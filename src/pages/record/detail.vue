@@ -66,6 +66,26 @@
       </view>
     </view>
 
+    <!-- Challenge Photos -->
+    <view v-if="record.photos && record.photos.length > 0" class="section">
+      <view class="section-header">
+        <view class="eyebrow">
+          <text class="eyebrow-text">照片</text>
+        </view>
+        <text class="section-title">挑战瞬间</text>
+      </view>
+      <view class="photos-grid">
+        <image
+          v-for="(p, i) in record.photos"
+          :key="i"
+          class="photo-thumb"
+          :src="p"
+          mode="aspectFill"
+          @tap="previewPhoto(i)"
+        />
+      </view>
+    </view>
+
     <!-- Action buttons -->
     <view class="actions">
       <view class="action-btn action-btn--receipt" role="button" aria-label="生成小票" @tap="onGenerateReceipt">
@@ -150,6 +170,13 @@ const groupedItems = computed(() => {
   })
   return ordered
 })
+
+function previewPhoto(index) {
+  uni.previewImage({
+    urls: record.value.photos,
+    current: index
+  })
+}
 
 async function onGenerateReceipt() {
   uni.showLoading({ title: '生成中...' })
@@ -438,6 +465,20 @@ onShow(() => {
   font-size: 28rpx;
   font-weight: 600;
   color: var(--c-text-primary, $text-primary);
+}
+
+/* ── Challenge Photos ── */
+.photos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  animation: fadeInUp $dur-slow $ease-out-expo both;
+}
+
+.photo-thumb {
+  width: calc(33.33% - 8rpx);
+  height: 200rpx;
+  border-radius: $radius-lg;
 }
 
 /* ── Action Buttons ── */

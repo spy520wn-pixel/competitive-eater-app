@@ -104,6 +104,26 @@
       </view>
     </view>
 
+    <!-- Challenge Photos -->
+    <view v-if="record.photos && record.photos.length > 0" class="section">
+      <view class="section-header">
+        <view class="eyebrow">
+          <text class="eyebrow-text">照片</text>
+        </view>
+        <text class="section-title">挑战瞬间</text>
+      </view>
+      <view class="photos-grid">
+        <image
+          v-for="(p, i) in record.photos"
+          :key="i"
+          class="photo-thumb"
+          :src="p"
+          mode="aspectFill"
+          @tap="previewPhoto(i)"
+        />
+      </view>
+    </view>
+
     <!-- Action buttons -->
     <view class="actions">
       <view class="action-btn action-btn--share" role="button" aria-label="分享战绩" @tap="onShare">
@@ -269,6 +289,13 @@ function onShare() {
   // #ifdef H5
   uni.showToast({ title: '请使用浏览器分享功能', icon: 'none' })
   // #endif
+}
+
+function previewPhoto(index) {
+  uni.previewImage({
+    urls: record.value.photos,
+    current: index
+  })
 }
 
 function animateScore(target) {
@@ -958,6 +985,20 @@ onShow(() => {
   font-weight: var(--text-label-weight, $type-label-weight);
   line-height: var(--text-label-lh, $type-label-lh);
   color: var(--c-text-muted, $text-muted);
+}
+
+/* ── Challenge Photos ── */
+.photos-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  animation: fadeInUp $dur-slow $ease-out-expo both;
+}
+
+.photo-thumb {
+  width: calc(33.33% - 8rpx);
+  height: 200rpx;
+  border-radius: $radius-lg;
 }
 
 /* ── Action Buttons ── */
