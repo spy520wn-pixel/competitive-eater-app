@@ -165,6 +165,37 @@ onLaunch(() => {
   --c-shadow-lg: 0 8rpx 36rpx rgba(0, 0, 0, 0.45), 0 4rpx 10rpx rgba(0, 0, 0, 0.25);
   --c-shadow-xl: 0 16rpx 56rpx rgba(0, 0, 0, 0.5), 0 8rpx 20rpx rgba(0, 0, 0, 0.3);
   --c-shadow-2xl: 0 24rpx 80rpx rgba(0, 0, 0, 0.55), 0 12rpx 28rpx rgba(0, 0, 0, 0.35);
+
+  /* Typography tokens */
+  --text-display-size: #{$type-display-size};
+  --text-display-weight: #{$type-display-weight};
+  --text-display-lh: #{$type-display-lh};
+  --text-display-ls: #{$type-display-ls};
+
+  --text-headline-size: #{$type-headline-size};
+  --text-headline-weight: #{$type-headline-weight};
+  --text-headline-lh: #{$type-headline-lh};
+  --text-headline-ls: #{$type-headline-ls};
+
+  --text-title-size: #{$type-title-size};
+  --text-title-weight: #{$type-title-weight};
+  --text-title-lh: #{$type-title-lh};
+  --text-title-ls: #{$type-title-ls};
+
+  --text-body-size: #{$type-body-size};
+  --text-body-weight: #{$type-body-weight};
+  --text-body-lh: #{$type-body-lh};
+  --text-body-ls: #{$type-body-ls};
+
+  --text-label-size: #{$type-label-size};
+  --text-label-weight: #{$type-label-weight};
+  --text-label-lh: #{$type-label-lh};
+  --text-label-ls: #{$type-label-ls};
+
+  --text-caption-size: #{$type-caption-size};
+  --text-caption-weight: #{$type-caption-weight};
+  --text-caption-lh: #{$type-caption-lh};
+  --text-caption-ls: #{$type-caption-ls};
 }
 
 [data-theme="light"] {
