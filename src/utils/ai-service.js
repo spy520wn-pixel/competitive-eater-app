@@ -301,7 +301,7 @@ export async function recognizeMenu(imagePath) {
             ]
           }
         ],
-        max_tokens: 8000,
+        max_tokens: 65536,
         temperature: 0.1
       },
       success: (res) => resolve(res),

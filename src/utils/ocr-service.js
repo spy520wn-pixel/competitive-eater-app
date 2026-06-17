@@ -40,7 +40,7 @@ export async function recognize(imagePath) {
     },
     data: {
       model: settings.ocrModel || 'agnes-2.0-flash',
-      max_tokens: 8000,
+      max_tokens: 65536,
       messages: [{
         role: 'user',
         content: [
