@@ -1,11 +1,15 @@
 import { settingsStore } from '../store/settings-store'
 import { withRetry } from './retry'
 
-const STYLE_PROMPTS = {
+export const IMAGE_STYLES = {
   '搞笑夸张': '搞笑夸张风格，食物放大变大，添加表情包元素，色彩鲜艳，有趣幽默',
   '动漫二次元': '动漫二次元风格，日系画风，可爱Q版人物，鲜艳配色',
   '霸气宣言': '霸气宣言风格，大字报排版，奖杯奖牌元素，金色红色为主，气势磅礴',
-  '简约战绩': '简约现代风格，干净的卡片式布局，数据可视化展示，专业感'
+  '简约战绩': '简约现代风格，干净的卡片式布局，数据可视化展示，专业感',
+  '赛博朋克': '赛博朋克风格，霓虹灯光，暗色调，科技感，未来都市',
+  '复古港风': '复古港风，80年代港片色调，暖黄滤镜，胶片质感',
+  '日式清新': '日式清新风格，淡雅色调，干净构图，ins风格，小清新',
+  '油画艺术': '油画艺术风格，厚涂笔触，浓郁色彩，艺术感，古典画风'
 }
 
 export async function generatePoster(record, style, photoPaths = []) {
@@ -14,7 +18,7 @@ export async function generatePoster(record, style, photoPaths = []) {
     throw new Error('请先在设置中配置生图大模型服务地址和 API Key')
   }
 
-  const styleDesc = STYLE_PROMPTS[style] || STYLE_PROMPTS['简约战绩']
+  const styleDesc = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
 
   const catSummary = {}
   record.items.forEach(item => {
@@ -51,9 +55,9 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
   return response.data.data[0].url
 }
 
-export const AVAILABLE_STYLES = Object.keys(STYLE_PROMPTS)
+export const AVAILABLE_STYLES = Object.keys(IMAGE_STYLES)
 
-function imageToBase64(path) {
+export function imageToBase64(path) {
   return new Promise((resolve, reject) => {
     // #ifdef H5
     fetch(path).then(r => r.blob()).then(blob => {
@@ -363,5 +367,123 @@ export async function recognizeMenu(imagePath) {
   } catch (e) {
     console.error('解析AI返回数据失败:', content, e)
     throw new Error('解析AI返回数据失败，请重试')
+  }
+}
+
+export async function generateImage({ record, style, photoPaths = [] }) {
+  const settings = settingsStore.get()
+  if (!settings.aiServiceUrl || !settings.aiApiKey) {
+    throw new Error('请先在设置中配置生图大模型服务地址和 API Key')
+  }
+
+  const stylePrompt = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
+
+  const catSummary = {}
+  record.items.forEach(item => {
+    if (!catSummary[item.category]) catSummary[item.category] = 0
+    catSummary[item.category] += item.quantity
+  })
+  const catText = Object.entries(catSummary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+
+  const prompt = `${stylePrompt}。
+大胃王战绩海报：
+- 店铺：${record.shopName}
+- 战斗力：${record.score}分
+- 菜品：${catText}
+- 时长：${record.duration}分钟
+要求：突出战绩数据，视觉冲击力强，适合发朋友圈炫耀。`
+
+  const requestData = {
+    model: settings.aiModel || 'agnes-image-2.0-flash',
+    prompt,
+    size: '1024x1024'
+  }
+
+  if (photoPaths.length > 0) {
+    const base64Photos = []
+    for (const path of photoPaths.slice(0, 3)) {
+      const base64 = await imageToBase64(path)
+      base64Photos.push(base64)
+    }
+    requestData.extra_body = {
+      image: base64Photos,
+      response_format: 'url'
+    }
+  }
+
+  const response = await withRetry(() => uni.request({
+    url: settings.aiServiceUrl,
+    method: 'POST',
+    header: {
+      'Authorization': `Bearer ${settings.aiApiKey}`,
+      'Content-Type': 'application/json'
+    },
+    data: requestData
+  }), { label: '生图大模型' })
+
+  return response.data.data[0].url
+}
+
+export async function createVideoTask({ record, photoPath }) {
+  const settings = settingsStore.get()
+  if (!settings.videoServiceUrl || !settings.videoApiKey) {
+    throw new Error('请先在设置中配置视频大模型服务地址和 API Key')
+  }
+
+  const catSummary = {}
+  record.items.forEach(item => {
+    if (!catSummary[item.category]) catSummary[item.category] = 0
+    catSummary[item.category] += item.quantity
+  })
+  const catText = Object.entries(catSummary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+
+  const prompt = `大胃王挑战精彩瞬间，${record.shopName}，战斗力${record.score}分，吃了${catText}，动感镜头，电影级画质。`
+
+  const requestData = {
+    model: settings.videoModel || 'agnes-video-v2.0',
+    prompt,
+    height: 768,
+    width: 1152,
+    num_frames: 121,
+    frame_rate: 24
+  }
+
+  if (photoPath) {
+    const base64 = await imageToBase64(photoPath)
+    requestData.image = base64
+  }
+
+  const response = await withRetry(() => uni.request({
+    url: settings.videoServiceUrl,
+    method: 'POST',
+    header: {
+      'Authorization': `Bearer ${settings.videoApiKey}`,
+      'Content-Type': 'application/json'
+    },
+    data: requestData
+  }), { label: '视频大模型' })
+
+  return {
+    taskId: response.data.task_id,
+    videoId: response.data.video_id
+  }
+}
+
+export async function queryVideoResult(videoId) {
+  const settings = settingsStore.get()
+
+  const response = await uni.request({
+    url: `https://apihub.agnes-ai.com/agnesapi?video_id=${videoId}`,
+    method: 'GET',
+    header: {
+      'Authorization': `Bearer ${settings.videoApiKey}`
+    }
+  })
+
+  return {
+    status: response.data.status,
+    videoUrl: response.data.remixed_from_video_id || '',
+    progress: response.data.progress || 0,
+    error: response.data.error
   }
 }
