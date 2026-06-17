@@ -78,6 +78,14 @@ export const recordStore = {
     })
   },
 
+  addPhoto(recordId, photoPath) {
+    const record = recordStorage.getById(recordId)
+    if (!record) return
+    if (!record.photos) record.photos = []
+    record.photos.push(photoPath)
+    recordStorage.update(recordId, { photos: record.photos })
+  },
+
   remove(recordId) {
     recordStorage.remove(recordId)
   },

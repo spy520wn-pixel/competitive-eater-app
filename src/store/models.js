@@ -55,6 +55,7 @@ export function createRecord({ shopId, shopName, tierId = '', tierName = '', din
     duration: 0,
     status: '进行中',
     items: [],
+    photos: [],
     score: 0,
     createdAt: new Date().toISOString()
   }
@@ -67,5 +68,21 @@ export function createRecordItem({ menuItemId, name, category, quantity, unit })
     category,
     quantity,
     unit
+  }
+}
+
+export function createCreation({ type, recordId, shopName, style, prompt, inputPhotos }) {
+  return {
+    id: generateId(),
+    type,
+    recordId: recordId || '',
+    shopName: shopName || '',
+    style: style || '',
+    prompt: prompt || '',
+    status: 'generating',
+    resultUrl: '',
+    inputPhotos: inputPhotos || [],
+    videoId: '',
+    createdAt: new Date().toISOString()
   }
 }
