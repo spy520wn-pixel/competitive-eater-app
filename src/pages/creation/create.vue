@@ -55,7 +55,7 @@
     <!-- Step 2: Select Photos -->
     <view v-if="step === 1" class="step-content">
       <text class="step-title">选择照片</text>
-      <text class="step-desc">至少选择 1 张照片用于 AI 创作</text>
+      <text class="step-desc">至少选择 1 张，最多 3 张照片用于 AI 创作</text>
       <view class="photo-grid">
         <view
           v-for="(photo, i) in availablePhotos"
@@ -69,7 +69,11 @@
             <text class="photo-check-text">✓</text>
           </view>
         </view>
-        <view class="photo-item photo-item--add" @tap="addNewPhoto">
+        <view
+          class="photo-item photo-item--add"
+          :class="{ 'photo-item--disabled': selectedPhotos.length >= 3 }"
+          @tap="selectedPhotos.length < 3 && addNewPhoto()"
+        >
           <text class="photo-add-icon">+</text>
           <text class="photo-add-label">拍照/相册</text>
         </view>
@@ -115,6 +119,7 @@
           :class="{ 'style-card--selected': selectedStyle === name }"
           @tap="selectedStyle = name"
         >
+          <view class="style-card__color" :style="{ background: getStyleColor(name) }" />
           <text class="style-card__name">{{ name }}</text>
           <text class="style-card__desc">{{ desc.split('，').slice(0, 2).join('，') }}</text>
         </view>
@@ -126,6 +131,9 @@
       <view class="generating-card">
         <view class="generating-spinner" />
         <text class="generating-text">{{ generatingText }}</text>
+        <view class="generating-cancel" @tap="cancelGeneration">
+          <text class="generating-cancel-text">取消</text>
+        </view>
       </view>
     </view>
 
@@ -172,6 +180,17 @@ const generating = ref(false)
 const generatingText = ref('')
 const imageStyles = IMAGE_STYLES
 
+const STYLE_COLORS = {
+  '搞笑夸张': 'linear-gradient(135deg, #FF6B35, #FFD700)',
+  '动漫二次元': 'linear-gradient(135deg, #FF69B4, #87CEEB)',
+  '霸气宣言': 'linear-gradient(135deg, #FF0000, #FFD700)',
+  '简约战绩': 'linear-gradient(135deg, #2C3E50, #4CA1AF)',
+  '赛博朋克': 'linear-gradient(135deg, #FF00FF, #00FFFF)',
+  '复古港风': 'linear-gradient(135deg, #D4A574, #8B6914)',
+  '日式清新': 'linear-gradient(135deg, #98D8C8, #F7DC6F)',
+  '油画艺术': 'linear-gradient(135deg, #8B4513, #CD853F)'
+}
+
 const completedRecords = computed(() =>
   recordStore.getAll().filter(r => r.status === '已完成')
 )
@@ -200,6 +219,15 @@ function formatDate(iso) {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
+function getStyleColor(name) {
+  return STYLE_COLORS[name] || 'linear-gradient(135deg, #666, #999)'
+}
+
+function cancelGeneration() {
+  generating.value = false
+  uni.showToast({ title: '已取消', icon: 'none' })
+}
+
 function togglePhoto(photo) {
   const idx = selectedPhotos.value.indexOf(photo)
   if (idx >= 0) {
@@ -210,8 +238,10 @@ function togglePhoto(photo) {
 }
 
 function addNewPhoto() {
+  const remaining = 3 - selectedPhotos.value.length
+  if (remaining <= 0) return
   uni.chooseImage({
-    count: 9,
+    count: remaining,
     sizeType: ['compressed'],
     sourceType: ['camera', 'album'],
     success: (res) => {
@@ -283,7 +313,18 @@ async function submit() {
       uni.navigateBack()
     }, 800)
   } catch (e) {
-    // withRetry already shows error toast
+    uni.showModal({
+      title: '创作失败',
+      content: 'AI 创作请求失败，是否重试？',
+      confirmText: '重试',
+      confirmColor: '#FF6B35',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          submit()
+        }
+      }
+    })
   } finally {
     generating.value = false
   }
@@ -375,11 +416,11 @@ onShow(() => {
 }
 
 .step-line {
-  width: 48rpx;
+  flex: 1;
   height: 2rpx;
   background: var(--c-border, $hairline);
   margin: 0 8rpx;
-  flex-shrink: 0;
+  min-width: 16rpx;
 }
 
 .step-line--filled {
@@ -468,7 +509,7 @@ onShow(() => {
 
 .record-card__score {
   font-size: 44rpx;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--c-gold, $accent-gold);
   font-variant-numeric: tabular-nums;
 }
@@ -544,6 +585,11 @@ onShow(() => {
   align-items: center;
   justify-content: center;
   gap: 8rpx;
+}
+
+.photo-item--disabled {
+  opacity: 0.35;
+  pointer-events: none;
 }
 
 .photo-add-icon {
@@ -638,6 +684,12 @@ onShow(() => {
   box-shadow: 0 0 20rpx var(--c-accent-glow, $glow-orange);
 }
 
+.style-card__color {
+  height: 8rpx;
+  border-radius: $radius-xs $radius-xs 0 0;
+  margin: -28rpx -24rpx 16rpx;
+}
+
 .style-card__name {
   font-size: 28rpx;
   font-weight: 600;
@@ -694,6 +746,19 @@ onShow(() => {
   font-size: 28rpx;
   color: var(--c-text-secondary, $text-secondary);
   letter-spacing: $tracking-wide;
+}
+
+.generating-cancel {
+  margin-top: 16rpx;
+  padding: 12rpx 40rpx;
+  border-radius: $radius-pill;
+  background: var(--c-surface-4, $glass-white-4);
+  border: 1rpx solid var(--c-border, $hairline);
+}
+
+.generating-cancel-text {
+  font-size: $type-label-size;
+  color: var(--c-text-secondary, $text-secondary);
 }
 
 @keyframes spin {
