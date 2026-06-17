@@ -9,11 +9,20 @@
       @input="onInput"
       :aria-label="ariaLabel"
     />
+    <text
+      v-if="modelValue"
+      class="search-clear"
+      @tap="onClear"
+      role="button"
+      aria-label="清除搜索"
+    >✕</text>
     <slot name="extra" />
   </view>
 </template>
 
 <script setup>
+import { onUnmounted } from 'vue'
+
 const props = defineProps({
   modelValue: { type: String, default: '' },
   placeholder: { type: String, default: '搜索...' },
@@ -32,6 +41,16 @@ function onInput(e) {
     emit('update:modelValue', value)
   }, props.debounce)
 }
+
+function onClear() {
+  if (timer) clearTimeout(timer)
+  timer = null
+  emit('update:modelValue', '')
+}
+
+onUnmounted(() => {
+  if (timer) clearTimeout(timer)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -67,5 +86,18 @@ function onInput(e) {
 
 .search-placeholder {
   color: var(--c-text-muted, $text-muted);
+}
+
+.search-clear {
+  font-size: 28rpx;
+  color: var(--c-text-muted, $text-muted);
+  padding: 8rpx 12rpx;
+  margin-left: 8rpx;
+  opacity: 0.6;
+  transition: opacity $dur-micro $ease-out-expo;
+
+  &:active {
+    opacity: 1;
+  }
 }
 </style>
