@@ -1455,7 +1455,7 @@ function onSave() {
 }
 
 .photo-add-text {
-  font-size: $label-size;
+  font-size: $type-label-size;
   color: var(--c-text-muted, $text-muted);
   margin-top: 8rpx;
 }

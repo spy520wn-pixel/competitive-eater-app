@@ -257,7 +257,7 @@ onShow(() => {
 }
 
 .sort-tag {
-  font-size: $label-size;
+  font-size: $type-label-size;
   color: var(--c-text-muted, $text-muted);
   padding: 8rpx 20rpx;
   border-radius: $radius-pill;

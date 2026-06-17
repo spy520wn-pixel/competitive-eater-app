@@ -896,8 +896,8 @@ onShow(() => {
 }
 
 .detail-group-title {
-  font-size: $label-size;
-  font-weight: $font-medium;
+  font-size: $type-label-size;
+  font-weight: $type-label-weight;
   letter-spacing: $tracking-wide;
   margin-bottom: 12rpx;
   display: block;
