@@ -8,9 +8,20 @@ const defaultSettings = {
   countdownWarning: true,
   countdownWarningMinutes: 10,
   longPressInput: true,
-  aiServiceUrl: '',
-  aiApiKey: '',
-  aiModel: 'gpt-4o-mini',
+  // 识图大模型
+  ocrServiceUrl: 'https://apihub.agnes-ai.com/v1/chat/completions',
+  ocrApiKey: 'sk-dm2wMzpI3zhFLhb2bDW2wEtF4lu95fVYQWj4jHQi1vhUqXbK',
+  ocrModel: 'agnes-2.0-flash',
+  // 生图大模型
+  aiServiceUrl: 'https://apihub.agnes-ai.com/v1/images/generations',
+  aiApiKey: 'sk-dm2wMzpI3zhFLhb2bDW2wEtF4lu95fVYQWj4jHQi1vhUqXbK',
+  aiModel: 'agnes-image-2.0-flash',
+  // 视频大模型
+  videoServiceUrl: 'https://apihub.agnes-ai.com/v1/videos',
+  videoApiKey: 'sk-dm2wMzpI3zhFLhb2bDW2wEtF4lu95fVYQWj4jHQi1vhUqXbK',
+  videoModel: 'agnes-video-v2.0',
+  // 高德地图
+  amapKey: 'cc91515d50ab91e20bc1ac6c8ca69600',
   theme: 'dark'
 }
 

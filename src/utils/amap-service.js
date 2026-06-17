@@ -3,8 +3,15 @@
  * 用于搜索城市内的自助餐店铺
  */
 
-const AMAP_KEY = 'cc91515d50ab91e20bc1ac6c8ca69600'
+import { settingsStore } from '../store/settings-store'
+
+const DEFAULT_AMAP_KEY = 'cc91515d50ab91e20bc1ac6c8ca69600'
 const AMAP_BASE_URL = 'https://restapi.amap.com/v3'
+
+function getAmapKey() {
+  const settings = settingsStore.get()
+  return settings.amapKey || DEFAULT_AMAP_KEY
+}
 
 /**
  * 搜索城市内的自助餐店铺
@@ -15,7 +22,7 @@ const AMAP_BASE_URL = 'https://restapi.amap.com/v3'
  */
 export async function searchBuffetShops(city, page = 1, pageSize = 25) {
   const params = {
-    key: AMAP_KEY,
+    key: getAmapKey(),
     keywords: '自助餐',
     city: city,
     citylimit: 'true',

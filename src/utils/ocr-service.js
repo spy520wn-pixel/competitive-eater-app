@@ -25,21 +25,21 @@ function guessUnit(name) {
 
 export async function recognize(imagePath) {
   const settings = settingsStore.get()
-  if (!settings.aiServiceUrl || !settings.aiApiKey) {
-    throw new Error('请先在设置中配置 AI 服务地址和 API Key')
+  if (!settings.ocrServiceUrl || !settings.ocrApiKey) {
+    throw new Error('请先在设置中配置识图大模型服务地址和 API Key')
   }
 
   const base64 = await imageToBase64(imagePath)
 
   const response = await uni.request({
-    url: `${settings.aiServiceUrl}/v1/chat/completions`,
+    url: settings.ocrServiceUrl,
     method: 'POST',
     header: {
-      'Authorization': `Bearer ${settings.aiApiKey}`,
+      'Authorization': `Bearer ${settings.ocrApiKey}`,
       'Content-Type': 'application/json'
     },
     data: {
-      model: 'qwen-vl-plus',
+      model: settings.ocrModel || 'agnes-2.0-flash',
       messages: [{
         role: 'user',
         content: [

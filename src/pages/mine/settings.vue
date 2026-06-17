@@ -89,12 +89,12 @@
       </view>
     </view>
 
-    <!-- AI 生图 (高级设置) -->
+    <!-- AI 模型配置 (高级设置) -->
     <view class="section">
       <view class="section-header section-header--collapsible" @tap="showAI = !showAI">
         <view class="header-left">
           <view class="eyebrow">
-            <text class="eyebrow-text">AI 生图</text>
+            <text class="eyebrow-text">AI 模型</text>
           </view>
           <text class="section-subtitle">高级设置</text>
         </view>
@@ -102,46 +102,94 @@
       </view>
       <view v-show="showAI" class="section-shell">
         <view class="section-core">
-          <view class="setting-row setting-row--input">
-            <text class="setting-label">AI 服务地址</text>
-            <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.aiServiceUrl }">
-              <input
-                class="setting-input"
-                :value="settings.aiServiceUrl"
-                placeholder="https://..."
-                placeholder-class="input-placeholder"
-                @input="onInput('aiServiceUrl', $event)"
-                @blur="onInputBlur('aiServiceUrl', $event)"
-                aria-label="AI 服务地址"
-              />
+          <!-- 识图大模型 -->
+          <view class="ai-group">
+            <text class="ai-group-title">识图大模型</text>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">服务地址</text>
+              <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.ocrServiceUrl }">
+                <input class="setting-input" :value="settings.ocrServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" @input="onInput('ocrServiceUrl', $event)" @blur="onInputBlur('ocrServiceUrl', $event)" />
+              </view>
+              <text v-if="errors.ocrServiceUrl" class="setting-error">{{ errors.ocrServiceUrl }}</text>
             </view>
-            <text v-if="errors.aiServiceUrl" class="setting-error">{{ errors.aiServiceUrl }}</text>
-          </view>
-          <view class="setting-row setting-row--input">
-            <text class="setting-label">AI API Key</text>
-            <view class="setting-input-wrap">
-              <input
-                class="setting-input"
-                :value="settings.aiApiKey"
-                :password="true"
-                placeholder="sk-..."
-                placeholder-class="input-placeholder"
-                @blur="onInput('aiApiKey', $event)"
-                aria-label="AI API Key"
-              />
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">API Key</text>
+              <view class="setting-input-wrap">
+                <input class="setting-input" :value="settings.ocrApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" @blur="onInput('ocrApiKey', $event)" />
+              </view>
+            </view>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">模型 ID</text>
+              <view class="setting-input-wrap">
+                <input class="setting-input" :value="settings.ocrModel" placeholder="model-name" placeholder-class="input-placeholder" @blur="onInput('ocrModel', $event)" />
+              </view>
             </view>
           </view>
+
+          <!-- 生图大模型 -->
+          <view class="ai-group">
+            <text class="ai-group-title">生图大模型</text>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">服务地址</text>
+              <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.aiServiceUrl }">
+                <input class="setting-input" :value="settings.aiServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" @input="onInput('aiServiceUrl', $event)" @blur="onInputBlur('aiServiceUrl', $event)" />
+              </view>
+              <text v-if="errors.aiServiceUrl" class="setting-error">{{ errors.aiServiceUrl }}</text>
+            </view>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">API Key</text>
+              <view class="setting-input-wrap">
+                <input class="setting-input" :value="settings.aiApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" @blur="onInput('aiApiKey', $event)" />
+              </view>
+            </view>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">模型 ID</text>
+              <view class="setting-input-wrap">
+                <input class="setting-input" :value="settings.aiModel" placeholder="model-name" placeholder-class="input-placeholder" @blur="onInput('aiModel', $event)" />
+              </view>
+            </view>
+          </view>
+
+          <!-- 视频大模型 -->
+          <view class="ai-group">
+            <text class="ai-group-title">视频大模型</text>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">服务地址</text>
+              <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.videoServiceUrl }">
+                <input class="setting-input" :value="settings.videoServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" @input="onInput('videoServiceUrl', $event)" @blur="onInputBlur('videoServiceUrl', $event)" />
+              </view>
+              <text v-if="errors.videoServiceUrl" class="setting-error">{{ errors.videoServiceUrl }}</text>
+            </view>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">API Key</text>
+              <view class="setting-input-wrap">
+                <input class="setting-input" :value="settings.videoApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" @blur="onInput('videoApiKey', $event)" />
+              </view>
+            </view>
+            <view class="setting-row setting-row--input">
+              <text class="setting-label">模型 ID</text>
+              <view class="setting-input-wrap">
+                <input class="setting-input" :value="settings.videoModel" placeholder="model-name" placeholder-class="input-placeholder" @blur="onInput('videoModel', $event)" />
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 第三方服务 -->
+    <view class="section">
+      <view class="section-header">
+        <view class="eyebrow">
+          <text class="eyebrow-text">第三方服务</text>
+        </view>
+      </view>
+      <view class="section-shell">
+        <view class="section-core">
           <view class="setting-row setting-row--input">
-            <text class="setting-label">AI 模型 ID</text>
+            <text class="setting-label">高德地图 API Key</text>
             <view class="setting-input-wrap">
-              <input
-                class="setting-input"
-                :value="settings.aiModel"
-                placeholder="gpt-4o-mini"
-                placeholder-class="input-placeholder"
-                @blur="onInput('aiModel', $event)"
-                aria-label="AI 模型 ID"
-              />
+              <input class="setting-input" :value="settings.amapKey" :password="true" placeholder="高德地图 Key" placeholder-class="input-placeholder" @blur="onInput('amapKey', $event)" />
             </view>
           </view>
         </view>
@@ -201,16 +249,27 @@ const settings = reactive({
   countdownWarning: true,
   countdownWarningMinutes: 5,
   longPressInput: true,
+  // 识图
+  ocrServiceUrl: '',
+  ocrApiKey: '',
+  ocrModel: '',
+  // 生图
   aiServiceUrl: '',
   aiApiKey: '',
-  aiModel: 'gpt-4o-mini',
+  aiModel: '',
+  // 视频
+  videoServiceUrl: '',
+  videoApiKey: '',
+  videoModel: '',
+  // 高德
+  amapKey: '',
   theme: 'dark'
 })
 
 const errors = reactive({
+  ocrServiceUrl: '',
   aiServiceUrl: '',
-  aiApiKey: '',
-  aiModel: ''
+  videoServiceUrl: ''
 })
 
 const cityIndex = computed(() => {
@@ -276,6 +335,7 @@ function validateUrl(val) {
   }
 }
 
+
 function onInput(key, e) {
   const val = e.detail.value
   errors[key] = ''
@@ -285,8 +345,12 @@ function onInput(key, e) {
 
 function onInputBlur(key, e) {
   const val = e.detail.value
-  if (key === 'aiServiceUrl') {
+  if (key === 'ocrServiceUrl') {
+    errors.ocrServiceUrl = validateUrl(val)
+  } else if (key === 'aiServiceUrl') {
     errors.aiServiceUrl = validateUrl(val)
+  } else if (key === 'videoServiceUrl') {
+    errors.videoServiceUrl = validateUrl(val)
   }
 }
 
@@ -448,6 +512,22 @@ onShow(() => {
 
 .setting-label--danger {
   color: var(--c-danger, $accent-danger-light);
+}
+
+/* ── AI Group ── */
+.ai-group {
+  &:not(:last-child) {
+    border-bottom: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+  }
+}
+
+.ai-group-title {
+  font-size: $type-label-size;
+  font-weight: $type-label-weight;
+  color: var(--c-accent, $accent-orange);
+  letter-spacing: $tracking-wide;
+  padding: 20rpx 28rpx 0;
+  display: block;
 }
 
 .picker-box {
