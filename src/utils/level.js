@@ -1,24 +1,24 @@
 // 经验值等级体系
 export const LEVELS = [
   { tier: 1, name: '青铜', level: 1, min: 0, max: 99, icon: '🥉' },
-  { tier: 1, name: '青铜', level: 2, min: 100, max: 249, icon: '🥉' },
-  { tier: 1, name: '青铜', level: 3, min: 250, max: 499, icon: '🥉' },
-  { tier: 2, name: '白银', level: 1, min: 500, max: 799, icon: '🥈' },
-  { tier: 2, name: '白银', level: 2, min: 800, max: 1199, icon: '🥈' },
-  { tier: 2, name: '白银', level: 3, min: 1200, max: 1799, icon: '🥈' },
-  { tier: 3, name: '黄金', level: 1, min: 1800, max: 2499, icon: '🥇' },
-  { tier: 3, name: '黄金', level: 2, min: 2500, max: 3499, icon: '🥇' },
-  { tier: 3, name: '黄金', level: 3, min: 3500, max: 4999, icon: '🥇' },
-  { tier: 4, name: '铂金', level: 1, min: 5000, max: 6999, icon: '💎' },
-  { tier: 4, name: '铂金', level: 2, min: 7000, max: 9499, icon: '💎' },
-  { tier: 4, name: '铂金', level: 3, min: 9500, max: 12999, icon: '💎' },
-  { tier: 5, name: '钻石', level: 1, min: 13000, max: 17499, icon: '💠' },
-  { tier: 5, name: '钻石', level: 2, min: 17500, max: 22999, icon: '💠' },
-  { tier: 5, name: '钻石', level: 3, min: 23000, max: 29999, icon: '💠' },
-  { tier: 6, name: '星耀', level: 1, min: 30000, max: 39999, icon: '⭐' },
-  { tier: 6, name: '星耀', level: 2, min: 40000, max: 52999, icon: '⭐' },
-  { tier: 6, name: '星耀', level: 3, min: 53000, max: 69999, icon: '⭐' },
-  { tier: 7, name: '王者', level: 0, min: 70000, max: Infinity, icon: '👑' }
+  { tier: 1, name: '青铜', level: 2, min: 100, max: 299, icon: '🥉' },
+  { tier: 1, name: '青铜', level: 3, min: 300, max: 599, icon: '🥉' },
+  { tier: 2, name: '白银', level: 1, min: 600, max: 1199, icon: '🥈' },
+  { tier: 2, name: '白银', level: 2, min: 1200, max: 1999, icon: '🥈' },
+  { tier: 2, name: '白银', level: 3, min: 2000, max: 3199, icon: '🥈' },
+  { tier: 3, name: '黄金', level: 1, min: 3200, max: 4999, icon: '🥇' },
+  { tier: 3, name: '黄金', level: 2, min: 5000, max: 7499, icon: '🥇' },
+  { tier: 3, name: '黄金', level: 3, min: 7500, max: 10999, icon: '🥇' },
+  { tier: 4, name: '铂金', level: 1, min: 11000, max: 15999, icon: '💎' },
+  { tier: 4, name: '铂金', level: 2, min: 16000, max: 21999, icon: '💎' },
+  { tier: 4, name: '铂金', level: 3, min: 22000, max: 29999, icon: '💎' },
+  { tier: 5, name: '钻石', level: 1, min: 30000, max: 39999, icon: '💠' },
+  { tier: 5, name: '钻石', level: 2, min: 40000, max: 51999, icon: '💠' },
+  { tier: 5, name: '钻石', level: 3, min: 52000, max: 64999, icon: '💠' },
+  { tier: 6, name: '星耀', level: 1, min: 65000, max: 79999, icon: '⭐' },
+  { tier: 6, name: '星耀', level: 2, min: 80000, max: 99999, icon: '⭐' },
+  { tier: 6, name: '星耀', level: 3, min: 100000, max: 129999, icon: '⭐' },
+  { tier: 7, name: '王者', level: 0, min: 130000, max: Infinity, icon: '👑' }
 ]
 
 // 将挑战分数转换为经验值
