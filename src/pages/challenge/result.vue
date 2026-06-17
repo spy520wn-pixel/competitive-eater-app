@@ -884,13 +884,13 @@ onShow(() => {
   background: var(--c-surface-2, $glass-white-2);
   border: 1rpx solid var(--c-surface-5, $glass-white-5);
   border-radius: $radius-lg;
-  padding: 28rpx;
+  padding: 24rpx;
 }
 
 .detail-group {
   &:not(:last-child) {
-    margin-bottom: 24rpx;
-    padding-bottom: 20rpx;
+    margin-bottom: 16rpx;
+    padding-bottom: 14rpx;
     border-bottom: 1rpx solid var(--c-surface-3, $glass-white-3);
   }
 }
@@ -899,7 +899,7 @@ onShow(() => {
   font-size: $type-label-size;
   font-weight: $type-label-weight;
   letter-spacing: $tracking-wide;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
   display: block;
 }
 

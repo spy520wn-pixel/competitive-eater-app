@@ -51,18 +51,18 @@
         </view>
         <text class="section-title">点餐明细</text>
       </view>
-      <view v-for="group in groupedItems" :key="group.category" class="group-shell">
-        <view class="group-core">
-          <text class="group-title" :style="{ color: getCategoryColor(group.category) }">{{ group.category }}</text>
+      <view class="detail-core">
+        <view v-for="group in groupedItems" :key="group.category" class="detail-group">
+          <text class="detail-group-title" :style="{ color: getCategoryColor(group.category) }">{{ group.category }}</text>
           <view v-for="item in group.items" :key="item.menuItemId" class="item-row">
             <text class="item-name">{{ item.name }}</text>
             <text class="item-qty">{{ item.quantity }}{{ item.unit }}</text>
           </view>
         </view>
-      </view>
-      <view v-if="record.items.length === 0" class="empty-items">
-        <text class="empty-items-icon">📝</text>
-        <text class="empty-items-text">本次挑战未记录菜品</text>
+        <view v-if="record.items.length === 0" class="empty-items">
+          <text class="empty-items-icon">📝</text>
+          <text class="empty-items-text">本次挑战未记录菜品</text>
+        </view>
       </view>
     </view>
 
@@ -372,32 +372,28 @@ onShow(() => {
   box-shadow: var(--c-shadow-inner, $shadow-inner);
 }
 
-/* ── Group Double-Bezel ── */
-.group-shell {
+/* ── Detail Single Card ── */
+.detail-core {
   background: var(--c-surface-2, $glass-white-2);
-  border: 1rpx solid var(--c-surface-4, $glass-white-4);
-  border-radius: $radius-xl;
-  padding: $bezel-offset;
-  margin-bottom: $inter-group;
+  border: 1rpx solid var(--c-surface-5, $glass-white-5);
+  border-radius: $radius-lg;
+  padding: 24rpx;
 }
 
-.group-core {
-  background: var(--c-surface-0, $surface-0);
-  border-radius: $radius-md;
-  padding: $card-pad-inner;
-  border: 1rpx solid var(--c-surface-3, $glass-white-3);
-  box-shadow: var(--c-shadow-inner, $shadow-inner);
+.detail-group {
+  &:not(:last-child) {
+    margin-bottom: 16rpx;
+    padding-bottom: 14rpx;
+    border-bottom: 1rpx solid var(--c-surface-3, $glass-white-3);
+  }
 }
 
-.group-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: var(--c-accent, $accent-orange);
-  margin-bottom: $intra-group;
-  padding-bottom: $intra-tight;
-  border-bottom: 1rpx solid var(--c-surface-4, $glass-white-4);
+.detail-group-title {
+  font-size: $type-label-size;
+  font-weight: $type-label-weight;
+  letter-spacing: $tracking-wide;
+  margin-bottom: 8rpx;
   display: block;
-  letter-spacing: $tracking-normal;
 }
 
 .item-row {
