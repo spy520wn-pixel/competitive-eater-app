@@ -25,6 +25,14 @@ $accent-danger-light: #FF5C50;
 $accent-emerald: #34D399;
 $accent-violet: #8B5CF6;
 
+/* ── Category Colors (Food Types) ── */
+$cat-meat: #E8453C;
+$cat-seafood: #3B82F6;
+$cat-staples: #F59E0B;
+$cat-dessert: #EC4899;
+$cat-drinks: #8B5CF6;
+$cat-other: #6B7280;
+
 /* ── Material Layers (Refined Glass) ── */
 $glass-white-2: rgba(255, 255, 255, 0.02);
 $glass-white-3: rgba(255, 255, 255, 0.03);
@@ -104,10 +112,10 @@ $dur-slow: 600ms;
 $dur-entrance: 750ms;
 $dur-cinematic: 1000ms;
 
-/* ── Typography (Premium Stack) ── */
-$font-display: 'Plus Jakarta Sans', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
-$font-body: 'Plus Jakarta Sans', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
-$font-family: 'Plus Jakarta Sans', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+/* ── Typography (Manrope + Noto Sans SC) ── */
+$font-display: 'Manrope', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+$font-body: 'Manrope', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+$font-family: 'Manrope', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
 $font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Monaco', monospace;
 
 /* ── Letter Spacing (Refined) ── */

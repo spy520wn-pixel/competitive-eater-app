@@ -66,6 +66,18 @@ export const recordStore = {
     })
   },
 
+  abandon(recordId) {
+    const now = new Date().toISOString()
+    const record = recordStorage.getById(recordId)
+    if (!record) return
+    const duration = Math.round((new Date(now) - new Date(record.startTime)) / 60000)
+    recordStorage.update(recordId, {
+      endTime: now,
+      duration,
+      status: '已放弃'
+    })
+  },
+
   remove(recordId) {
     recordStorage.remove(recordId)
   },

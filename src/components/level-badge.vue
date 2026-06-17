@@ -64,8 +64,8 @@ const layoutClass = computed(() => `level-badge--${props.layout}`)
   border-radius: $radius-pill;
   background: radial-gradient(ellipse, var(--c-gold-glow-strong, $glow-gold-strong) 0%, transparent 70%);
   pointer-events: none;
-  animation: breathe 4s $ease-in-out-smooth infinite;
-  will-change: opacity, transform;
+  animation: glowPulse 3s $ease-in-out-smooth infinite;
+  will-change: opacity, transform, box-shadow;
   contain: layout style paint;
 }
 
@@ -167,8 +167,16 @@ const layoutClass = computed(() => `level-badge--${props.layout}`)
   border-radius: $radius-pill;
   transform-origin: left;
   transform: scaleX(var(--fill-scale, 0));
-  transition: transform 0.6s $ease-out-expo;
-  box-shadow: 0 0 12rpx rgba(255, 215, 0, 0.3);
+  transition: transform 1.2s $ease-out-expo;
+  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.35);
+  animation: expShimmer 2s $ease-in-out-smooth infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes expShimmer {
+  0% { background-position: 0% 0; }
+  50% { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
 }
 
 .exp-text {

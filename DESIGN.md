@@ -29,17 +29,17 @@ colors:
   cream-text-tertiary: "#545468"
 typography:
   display:
-    fontFamily: "Plus Jakarta Sans, Noto Sans SC, -apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, sans-serif"
+    fontFamily: "Manrope, Noto Sans SC, -apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, sans-serif"
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "-0.025em"
   body:
-    fontFamily: "Plus Jakarta Sans, Noto Sans SC, -apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, sans-serif"
+    fontFamily: "Manrope, Noto Sans SC, -apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, sans-serif"
     fontWeight: 400
     lineHeight: 1.5
     letterSpacing: "-0.01em"
   label:
-    fontFamily: "Plus Jakarta Sans, Noto Sans SC, -apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, sans-serif"
+    fontFamily: "Manrope, Noto Sans SC, -apple-system, BlinkMacSystemFont, PingFang SC, Helvetica Neue, sans-serif"
     fontWeight: 500
     lineHeight: 1.4
     letterSpacing: "0.04em"
@@ -151,11 +151,11 @@ components:
 
 ## 3. Typography
 
-**Display Font:** Plus Jakarta Sans（英文）+ Noto Sans SC（中文）
-**Body Font:** Plus Jakarta Sans（英文）+ Noto Sans SC（中文）
+**Display Font:** Manrope（英文）+ Noto Sans SC（中文）
+**Body Font:** Manrope（英文）+ Noto Sans SC（中文）
 **Mono Font:** JetBrains Mono
 
-**Character:** 现代、友好、略带几何感。Plus Jakarta Sans 的圆润字母搭配 Noto Sans SC 的清晰中文字体，既有游戏感又不失专业。字重对比明显（标题 700，正文 400，标签 500），层次分明。
+**Character:** 现代、几何、有力量感。Manrope 的几何线条搭配 Noto Sans SC 的清晰中文字体，既有游戏感又不失专业。字重对比明显（标题 700，正文 400，标签 500），层次分明。Manrope 支持 800 字重，适合游戏化数字展示。
 
 ### Hierarchy
 - **Display** (700, 48rpx, line-height 1.2): 大标题、统计数据的数字。用于战斗力、最高分等「炫耀性」数据。

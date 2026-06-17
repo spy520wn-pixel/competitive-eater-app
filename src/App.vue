@@ -128,6 +128,19 @@ onLaunch(() => {
   --c-info-soft: rgba(59, 130, 246, 0.08);
   --c-emerald: #34D399;
   --c-violet: #8B5CF6;
+  /* Category colors (dark: vibrant on dark bg) */
+  --c-cat-meat: #E8453C;
+  --c-cat-seafood: #3B82F6;
+  --c-cat-staples: #F59E0B;
+  --c-cat-dessert: #EC4899;
+  --c-cat-drinks: #8B5CF6;
+  --c-cat-other: #9CA3AF;
+  --c-cat-meat-glow: rgba(232, 69, 60, 0.25);
+  --c-cat-seafood-glow: rgba(59, 130, 246, 0.25);
+  --c-cat-staples-glow: rgba(245, 158, 11, 0.25);
+  --c-cat-dessert-glow: rgba(236, 72, 153, 0.25);
+  --c-cat-drinks-glow: rgba(139, 92, 246, 0.25);
+  --c-cat-other-glow: rgba(156, 163, 175, 0.25);
   --c-border: rgba(255, 255, 255, 0.10);
   --c-border-light: rgba(255, 255, 255, 0.05);
   --c-border-subtle: rgba(255, 255, 255, 0.03);
@@ -195,6 +208,19 @@ onLaunch(() => {
   --c-info-soft: rgba(37, 99, 235, 0.08);
   --c-emerald: #16A36A;
   --c-violet: #7C3AED;
+  /* Category colors (light: deeper/muted on light bg) */
+  --c-cat-meat: #C03030;
+  --c-cat-seafood: #2563EB;
+  --c-cat-staples: #B45309;
+  --c-cat-dessert: #BE185D;
+  --c-cat-drinks: #6D28D9;
+  --c-cat-other: #4B5563;
+  --c-cat-meat-glow: rgba(192, 48, 48, 0.15);
+  --c-cat-seafood-glow: rgba(37, 99, 235, 0.15);
+  --c-cat-staples-glow: rgba(180, 83, 9, 0.15);
+  --c-cat-dessert-glow: rgba(190, 24, 93, 0.15);
+  --c-cat-drinks-glow: rgba(109, 40, 217, 0.15);
+  --c-cat-other-glow: rgba(75, 85, 99, 0.15);
   --c-border: rgba(0, 0, 0, 0.06);
   --c-border-light: rgba(0, 0, 0, 0.03);
   --c-border-subtle: rgba(0, 0, 0, 0.02);
@@ -222,7 +248,7 @@ onLaunch(() => {
 }
 
 /* ═══ Font Loading (only weights actually used by design system) ═══ */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap');
 
 /* ═══ Global Reset & Foundation ═══ */
 page {
@@ -385,6 +411,79 @@ page {
 @keyframes shimmerGold {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
+}
+
+/* ═══ Premium Animation Keyframes ═══ */
+@keyframes revealSlide {
+  from {
+    opacity: 0;
+    transform: translateY(48rpx) scale(0.97);
+    filter: blur(4rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes badgePop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 20rpx rgba(255, 107, 53, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 40rpx rgba(255, 107, 53, 0.3);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmerSlide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ═══ Reduced Motion ═══ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ═══ Grain Texture Overlay (H5 only — too expensive on APP WebView) ═══ */

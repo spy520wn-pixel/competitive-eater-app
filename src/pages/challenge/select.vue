@@ -20,20 +20,29 @@
         v-for="(shop, index) in filteredShops"
         :key="shop.id"
         class="shop-card-shell"
+        :class="getShopTier(shop.id)"
         role="button"
         :aria-label="shop.name"
         :style="{ animationDelay: index * 60 + 'ms' }"
         @tap="onSelectShop(shop)"
       >
         <view class="shop-card-core">
-          <view class="shop-card__icon">
+          <view class="shop-card__icon" :class="getShopTier(shop.id) ? 'shop-card__icon--' + getShopTier(shop.id) : ''">
             <text class="icon-text">{{ getCategoryIcon(shop.category) }}</text>
           </view>
           <view class="shop-card__info">
-            <text class="shop-card__name">{{ shop.name }}</text>
+            <view class="shop-card__name-row">
+              <text class="shop-card__name">{{ shop.name }}</text>
+              <text v-if="isRecentShop(shop.id)" class="shop-card__hot">🔥</text>
+            </view>
             <text class="shop-card__meta">
               {{ shop.category }} · 时限 {{ shop.mealTimeLimit }}分钟
             </text>
+            <view class="shop-card__stats" v-if="getShopBest(shop.id)">
+              <text class="shop-card__best">最高 {{ getShopBest(shop.id) }}</text>
+              <text class="shop-card__dot">·</text>
+              <text class="shop-card__count">{{ getShopCount(shop.id) }} 次</text>
+            </view>
           </view>
           <view class="arrow-wrap">
             <text class="shop-card__arrow">›</text>
@@ -103,6 +112,31 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '../../store/shop-store'
 import { recordStore } from '../../store/record-store'
+
+function getShopBest(shopId) {
+  const best = recordStore.getBestByShop(shopId)
+  return best ? best.score : null
+}
+
+function getShopCount(shopId) {
+  return recordStore.getByShopId(shopId).filter(r => r.status === '已完成').length
+}
+
+function getShopTier(shopId) {
+  const count = getShopCount(shopId)
+  if (count >= 10) return 'shop-tier--gold'
+  if (count >= 5) return 'shop-tier--silver'
+  if (count >= 1) return 'shop-tier--bronze'
+  return ''
+}
+
+function isRecentShop(shopId) {
+  const records = recordStore.getByShopId(shopId).filter(r => r.status === '已完成')
+  if (records.length === 0) return false
+  const latest = new Date(records[0].createdAt)
+  const daysSince = (Date.now() - latest.getTime()) / (1000 * 60 * 60 * 24)
+  return daysSince <= 7
+}
 import TierPicker from '../../components/tier-picker.vue'
 import EmptyState from '@/components/empty-state.vue'
 import SearchBar from '@/components/search-bar.vue'
@@ -230,6 +264,9 @@ onShow(() => {
   padding-bottom: $page-pad-bottom;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
 }
 
 /* ── Search Bar ── */
@@ -240,7 +277,6 @@ onShow(() => {
   border: 1rpx solid var(--c-surface-5, $glass-white-5);
   border-radius: $radius-lg;
   padding: 22rpx 28rpx;
-  margin-bottom: $section-gap;
   position: relative;
   z-index: 1;
   letter-spacing: $tracking-wide;
@@ -274,14 +310,12 @@ onShow(() => {
   z-index: 1;
 }
 
-/* ── Shop Card ── */
+/* ── Shop Card (tactile) ── */
 .shop-card-shell {
-  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
-  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  background: var(--c-surface-1, $surface-1);
+  border: 1rpx solid var(--c-border, $hairline);
   border-radius: $radius-xl;
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.25), 0 1rpx 3rpx rgba(0, 0, 0, 0.15);
   margin-bottom: $intra-group;
   animation: fadeInUp $dur-normal $ease-out-expo both;
   transition: transform $dur-fast $ease-spring, box-shadow $dur-fast ease;
@@ -290,17 +324,13 @@ onShow(() => {
 
 .shop-card-shell:active {
   transform: scale(0.98);
-  box-shadow: $shadow-sm;
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .shop-card-core {
   display: flex;
   align-items: center;
-  background: var(--c-surface-0, $surface-0);
-  border-radius: $radius-md;
   padding: $card-pad-inner $card-pad-compact;
-  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
-  box-shadow: var(--c-shadow-inner, $shadow-inner);
 }
 
 .shop-card__icon {
@@ -338,6 +368,69 @@ onShow(() => {
   font-size: 24rpx;
   color: var(--c-text-tertiary, $text-tertiary);
   letter-spacing: $tracking-wide;
+}
+
+.shop-card__name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.shop-card__hot {
+  font-size: 24rpx;
+}
+
+.shop-card__stats {
+  display: flex;
+  align-items: center;
+  gap: $intra-tight;
+  margin-top: 4rpx;
+}
+
+.shop-card__best {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--c-accent, $accent-orange);
+  letter-spacing: $tracking-wide;
+}
+
+.shop-card__dot {
+  font-size: 22rpx;
+  color: var(--c-text-ghost, $text-ghost);
+}
+
+.shop-card__count {
+  font-size: 22rpx;
+  color: var(--c-text-muted, $text-muted);
+  letter-spacing: $tracking-wide;
+}
+
+/* ── Shop Tiers (visual weight by usage) ── */
+.shop-tier--bronze .shop-card__icon {
+  background: rgba(205, 127, 50, 0.12);
+  border-color: rgba(205, 127, 50, 0.2);
+  animation: badgePop 0.5s $ease-out-expo both;
+}
+
+.shop-tier--silver .shop-card__icon {
+  background: rgba(192, 192, 192, 0.12);
+  border-color: rgba(192, 192, 192, 0.25);
+  animation: badgePop 0.5s $ease-out-expo 0.1s both;
+}
+
+.shop-tier--gold {
+  border-color: rgba(255, 215, 0, 0.15) !important;
+}
+
+.shop-tier--gold .shop-card__icon {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.25);
+  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.1);
+  animation: badgePop 0.6s $ease-out-expo 0.15s both;
+}
+
+.shop-card__hot {
+  animation: badgePop 0.4s $ease-out-expo 0.2s both;
 }
 
 .arrow-wrap {

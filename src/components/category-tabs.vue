@@ -10,8 +10,8 @@
       role="tab"
       @tap="$emit('update:modelValue', cat)"
     >
-      <view class="tab-indicator" />
-      <text class="tab-text">{{ cat }}</text>
+      <view class="tab-indicator" :style="modelValue === cat ? { background: getCategoryColor(cat), boxShadow: '0 0 24rpx ' + getCategoryGlow(cat) } : {}" />
+      <text class="tab-text" :style="modelValue === cat ? { color: getCategoryColor(cat) } : {}">{{ cat }}</text>
     </view>
   </view>
 </template>
@@ -23,6 +23,23 @@ defineProps({
 })
 
 defineEmits(['update:modelValue'])
+
+const CATEGORY_CSS = {
+  '肉类': { color: 'var(--c-cat-meat)', glow: 'var(--c-cat-meat-glow)' },
+  '海鲜': { color: 'var(--c-cat-seafood)', glow: 'var(--c-cat-seafood-glow)' },
+  '主食': { color: 'var(--c-cat-staples)', glow: 'var(--c-cat-staples-glow)' },
+  '甜点': { color: 'var(--c-cat-dessert)', glow: 'var(--c-cat-dessert-glow)' },
+  '饮料': { color: 'var(--c-cat-drinks)', glow: 'var(--c-cat-drinks-glow)' },
+  '其他': { color: 'var(--c-cat-other)', glow: 'var(--c-cat-other-glow)' }
+}
+
+function getCategoryColor(name) {
+  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).color
+}
+
+function getCategoryGlow(name) {
+  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).glow
+}
 </script>
 
 <style lang="scss" scoped>
@@ -30,48 +47,54 @@ defineEmits(['update:modelValue'])
   display: flex;
   flex-direction: column;
   background: var(--c-surface-0, #08080F);
-  width: 200rpx;
+  width: 220rpx;
   padding-top: 8rpx;
-  border-right: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+  border-right: 2rpx solid rgba(255, 107, 53, 0.12);
 }
 
 .tab-item {
   display: flex;
   align-items: center;
-  min-height: 88rpx;
-  padding: 30rpx 18rpx;
+  min-height: 100rpx;
+  padding: 30rpx 22rpx;
   position: relative;
   transition: background $dur-normal $ease-spring, transform $dur-fast $ease-spring;
   animation: fadeInLeft $dur-entrance $ease-out-expo both;
 }
 
 .tab-item:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .tab-item--active {
-  background: var(--c-surface-4, $glass-white-4);
+  background: rgba(255, 107, 53, 0.08);
 }
 
 .tab-indicator {
-  width: 6rpx;
-  height: 38rpx;
-  border-radius: 3rpx;
+  width: 8rpx;
+  height: 42rpx;
+  border-radius: 4rpx;
   background: transparent;
-  margin-right: 18rpx;
+  margin-right: 20rpx;
   transform: scaleY(0);
-  transform-origin: top;
-  transition: transform $dur-normal $ease-spring, background $dur-normal $ease-spring, box-shadow $dur-normal $ease-spring;
+  transform-origin: center;
+  transition: transform $dur-slow $ease-out-expo, background $dur-slow $ease-out-expo, box-shadow $dur-slow $ease-out-expo;
 }
 
 .tab-item--active .tab-indicator {
   transform: scaleY(1);
-  background: linear-gradient(180deg, var(--c-accent, $accent-orange), var(--c-accent-light, $accent-orange-light));
-  box-shadow: 0 0 16rpx var(--c-accent-glow, $glow-orange);
+  background: var(--c-accent, $accent-orange);
+  box-shadow: 0 0 24rpx var(--c-accent-glow, $glow-orange);
+  animation: indicatorGlow 2s $ease-in-out-smooth infinite;
+}
+
+@keyframes indicatorGlow {
+  0%, 100% { box-shadow: 0 0 20rpx var(--c-accent-glow, $glow-orange); }
+  50% { box-shadow: 0 0 36rpx var(--c-accent-glow-strong, $glow-orange-strong); }
 }
 
 .tab-text {
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: var(--c-text-tertiary, $text-tertiary);
   transition: color $dur-normal $ease-spring, font-weight $dur-normal $ease-spring;
   letter-spacing: $tracking-normal;
@@ -79,6 +102,6 @@ defineEmits(['update:modelValue'])
 
 .tab-item--active .tab-text {
   color: var(--c-accent, $accent-orange);
-  font-weight: 600;
+  font-weight: 700;
 }
 </style>

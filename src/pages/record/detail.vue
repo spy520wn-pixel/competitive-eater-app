@@ -38,7 +38,7 @@
       </view>
       <view class="chart-shell">
         <view class="chart-core">
-          <radar-chart :data="categoryTotals" />
+          <radar-chart :data="categoryTotals" :theme="currentTheme" />
         </view>
       </view>
     </view>
@@ -53,7 +53,7 @@
       </view>
       <view v-for="group in groupedItems" :key="group.category" class="group-shell">
         <view class="group-core">
-          <text class="group-title">{{ group.category }}</text>
+          <text class="group-title" :style="{ color: getCategoryColor(group.category) }">{{ group.category }}</text>
           <view v-for="item in group.items" :key="item.menuItemId" class="item-row">
             <text class="item-name">{{ item.name }}</text>
             <text class="item-qty">{{ item.quantity }}{{ item.unit }}</text>
@@ -92,6 +92,19 @@ import { saveReceiptToAlbum, calcReceiptHeight } from '../../utils/receipt-rende
 import RadarChart from '../../components/radar-chart.vue'
 import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
+
+const CATEGORY_CSS = {
+  '肉类': 'var(--c-cat-meat)',
+  '海鲜': 'var(--c-cat-seafood)',
+  '主食': 'var(--c-cat-staples)',
+  '甜点': 'var(--c-cat-dessert)',
+  '饮料': 'var(--c-cat-drinks)',
+  '其他': 'var(--c-cat-other)'
+}
+
+function getCategoryColor(name) {
+  return CATEGORY_CSS[name] || 'var(--c-accent)'
+}
 
 const recordId = ref('')
 const canvasWidth = ref(375)

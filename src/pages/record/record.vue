@@ -21,6 +21,7 @@
         v-for="(group, index) in displayedGroups"
         :key="group.shopId"
         class="shop-card-shell"
+        :class="getShopTier(group.count)"
         role="button"
         :aria-label="group.shopName"
         :style="{ animationDelay: index * 80 + 'ms' }"
@@ -28,11 +29,14 @@
       >
         <view class="shop-card-core">
           <view class="shop-left">
-            <view class="shop-icon-wrap">
+            <view class="shop-icon-wrap" :class="group.count >= 5 ? 'shop-icon-wrap--frequent' : ''">
               <text class="shop-icon">{{ group.icon }}</text>
             </view>
             <view class="shop-info">
-              <text class="shop-name">{{ group.shopName }}</text>
+              <view class="shop-name-row">
+                <text class="shop-name">{{ group.shopName }}</text>
+                <text v-if="isRecent(group.latestDate)" class="shop-hot">🔥</text>
+              </view>
               <view class="shop-meta">
                 <text class="meta-score">最高战斗力：{{ group.bestScore }}</text>
                 <text class="meta-dot">·</text>
@@ -135,6 +139,19 @@ function loadData() {
   displayCount.value = PAGE_SIZE
 }
 
+function getShopTier(count) {
+  if (count >= 10) return 'shop-tier--gold'
+  if (count >= 5) return 'shop-tier--silver'
+  if (count >= 1) return 'shop-tier--bronze'
+  return ''
+}
+
+function isRecent(dateStr) {
+  if (!dateStr) return false
+  const daysSince = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)
+  return daysSince <= 7
+}
+
 function goShopRecords(shopId) {
   uni.navigateTo({ url: `/pages/record/shop-records?shopId=${shopId}` })
 }
@@ -165,6 +182,9 @@ onShow(() => {
   padding: $page-pad-y $page-pad-x $page-pad-bottom;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
 }
 
 /* ── Stats Bar ── */
@@ -185,34 +205,28 @@ onShow(() => {
   z-index: 1;
 }
 
-/* ── Shop Card ── */
+/* ── Shop Card (tactile, solid feel) ── */
 .shop-card-shell {
-  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
+  background: var(--c-surface-1, $surface-1);
   border: 1rpx solid var(--c-border, $hairline);
   border-radius: $radius-xl;
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.25), 0 1rpx 3rpx rgba(0, 0, 0, 0.15);
   margin-bottom: $inter-group;
-  animation: fadeInUp $dur-slow $ease-out-expo both;
+  animation: revealSlide $dur-entrance $ease-out-expo both;
   transition: transform $dur-fast $ease-spring, box-shadow $dur-fast $ease-spring;
   overflow: hidden;
 }
 
 .shop-card-shell:active {
   transform: scale(0.98);
-  box-shadow: $shadow-sm;
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.2);
 }
 
 .shop-card-core {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--c-surface-0, $surface-0);
-  border-radius: $radius-lg;
   padding: $card-pad-compact;
-  border: 1rpx solid var(--c-surface-3, $glass-white-3);
-  box-shadow: var(--c-shadow-inner, $shadow-inner);
   min-width: 0;
 }
 
@@ -247,6 +261,12 @@ onShow(() => {
   min-width: 0;
 }
 
+.shop-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
 .shop-name {
   font-size: var(--text-title-size, $type-title-size);
   font-weight: var(--text-headline-weight, $type-headline-weight);
@@ -256,6 +276,11 @@ onShow(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.shop-hot {
+  font-size: 24rpx;
+  flex-shrink: 0;
 }
 
 .shop-meta {
@@ -361,5 +386,30 @@ onShow(() => {
   font-size: var(--text-label-size, $type-label-size);
   color: var(--c-text-ghost, $text-ghost);
   letter-spacing: var(--text-label-ls, $type-label-ls);
+}
+
+/* ── Shop Tiers ── */
+.shop-tier--bronze .shop-icon-wrap {
+  background: rgba(205, 127, 50, 0.12);
+  border-color: rgba(205, 127, 50, 0.2);
+}
+
+.shop-tier--silver .shop-icon-wrap {
+  background: rgba(192, 192, 192, 0.12);
+  border-color: rgba(192, 192, 192, 0.25);
+}
+
+.shop-tier--gold {
+  border-color: rgba(255, 215, 0, 0.15) !important;
+}
+
+.shop-tier--gold .shop-icon-wrap {
+  background: rgba(255, 215, 0, 0.1);
+  border-color: rgba(255, 215, 0, 0.25);
+  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.1);
+}
+
+.shop-icon-wrap--frequent {
+  box-shadow: 0 0 12rpx rgba(255, 107, 53, 0.15);
 }
 </style>

@@ -106,11 +106,6 @@
         </view>
       </view>
 
-      <!-- Success Message -->
-      <view v-if="importSuccess" class="success-message">
-        <text class="success-icon">✓</text>
-        <text class="success-text">导入成功</text>
-      </view>
     </view>
   </view>
 </template>
@@ -141,7 +136,6 @@ const results = ref([])
 const selectedIds = ref(new Set())
 const importing = ref(false)
 const duplicateCount = ref(0)
-const importSuccess = ref(false)
 
 const selectedCount = computed(() => selectedIds.value.size)
 
@@ -156,7 +150,6 @@ watch(() => props.visible, (val) => {
     results.value = []
     selectedIds.value = new Set()
     duplicateCount.value = 0
-    importSuccess.value = false
   }
 })
 
@@ -267,14 +260,12 @@ async function handleImport() {
       importedCount++
     }
 
-    importSuccess.value = true
     uni.showToast({
       title: `成功导入 ${importedCount} 家店铺`,
       icon: 'success'
     })
 
     setTimeout(() => {
-      importSuccess.value = false
       emit('imported')
       close()
     }, 800)
@@ -659,37 +650,5 @@ function goToAddShop() {
   font-size: 28rpx;
   font-weight: 600;
   color: var(--c-text-on-accent, #FFFFFF);
-}
-
-/* ── Success Message ── */
-.success-message {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16rpx;
-  background: var(--c-bg, $void-black);
-  animation: fadeInScale $dur-normal $ease-out-expo;
-}
-
-.success-icon {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 50%;
-  background: var(--c-success-soft, rgba(52, 211, 153, 0.08));
-  border: 2rpx solid var(--c-success, #34D399);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 48rpx;
-  color: var(--c-success, #34D399);
-}
-
-.success-text {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--c-success, #34D399);
 }
 </style>

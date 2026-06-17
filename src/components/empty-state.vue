@@ -44,7 +44,7 @@ defineEmits(['action'])
   justify-content: center;
   margin-bottom: $intra-group;
   box-shadow: var(--c-shadow-md, $shadow-md), var(--c-shadow-inner, $shadow-inner);
-  animation: emptyFloat 4s $ease-in-out-smooth infinite;
+  animation: emptyFloat 5s $ease-in-out-smooth infinite;
 }
 
 .empty-icon {

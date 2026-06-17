@@ -6,12 +6,12 @@
       class="bar-row"
       :style="{ animationDelay: index * 100 + 'ms' }"
     >
-      <text class="bar-label">{{ item.name }}</text>
+      <text class="bar-label" :style="{ color: getCategoryColor(item.name) }">{{ item.name }}</text>
       <view class="bar-track">
-        <view class="bar-fill" :style="{ transform: 'scaleX(' + item.percent / 100 + ')' }" />
-        <view class="bar-glow" :style="{ transform: 'scaleX(' + item.percent / 100 + ')' }" />
+        <view class="bar-fill" :style="{ transform: 'scaleX(' + item.percent / 100 + ')', background: getCategoryColor(item.name) }" />
+        <view class="bar-glow" :style="{ transform: 'scaleX(' + item.percent / 100 + ')', background: getCategoryGlow(item.name) }" />
       </view>
-      <text class="bar-value">{{ item.value }}</text>
+      <text class="bar-value" :style="{ color: getCategoryColor(item.name) }">{{ item.value }}</text>
     </view>
   </view>
 </template>
@@ -22,6 +22,23 @@ import { computed } from 'vue'
 const props = defineProps({
   data: { type: Object, default: () => ({}) }
 })
+
+const CATEGORY_CSS = {
+  '肉类': { color: 'var(--c-cat-meat)', glow: 'var(--c-cat-meat-glow)' },
+  '海鲜': { color: 'var(--c-cat-seafood)', glow: 'var(--c-cat-seafood-glow)' },
+  '主食': { color: 'var(--c-cat-staples)', glow: 'var(--c-cat-staples-glow)' },
+  '甜点': { color: 'var(--c-cat-dessert)', glow: 'var(--c-cat-dessert-glow)' },
+  '饮料': { color: 'var(--c-cat-drinks)', glow: 'var(--c-cat-drinks-glow)' },
+  '其他': { color: 'var(--c-cat-other)', glow: 'var(--c-cat-other-glow)' }
+}
+
+function getCategoryColor(name) {
+  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).color
+}
+
+function getCategoryGlow(name) {
+  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).glow
+}
 
 const sortedData = computed(() => {
   const entries = Object.entries(props.data).map(([name, value]) => ({ name, value }))
@@ -67,9 +84,8 @@ const sortedData = computed(() => {
   height: 100%;
   width: 100%;
   border-radius: 12rpx;
-  background: linear-gradient(90deg, var(--c-accent, $accent-orange), var(--c-gold, $accent-gold));
   transform-origin: left;
-  transition: transform 1s $ease-spring;
+  transition: transform 1s $ease-out-expo;
   will-change: transform;
   position: relative;
   z-index: 2;
@@ -82,10 +98,9 @@ const sortedData = computed(() => {
   width: 100%;
   height: 100%;
   border-radius: 12rpx;
-  background: linear-gradient(90deg, var(--c-accent-glow, rgba(255, 107, 53, 0.25)), var(--c-gold-glow, rgba(255, 215, 0, 0.25)));
   filter: blur(10rpx);
   transform-origin: left;
-  transition: transform 1s $ease-spring;
+  transition: transform 1s $ease-out-expo;
   z-index: 1;
 }
 
@@ -93,7 +108,6 @@ const sortedData = computed(() => {
   width: 52rpx;
   text-align: right;
   font-size: 22rpx;
-  color: var(--c-gold, $accent-gold);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;

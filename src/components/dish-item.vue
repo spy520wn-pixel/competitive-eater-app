@@ -77,13 +77,13 @@ function inputQuantity() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 30rpx;
+  padding: 36rpx 30rpx;
   border-bottom: 1rpx solid var(--c-border-subtle, $hairline-subtle);
   transition: background $dur-normal $ease-spring;
 }
 
 .dish-item--active {
-  background: var(--c-accent-soft, $glow-orange-soft);
+  background: rgba(255, 107, 53, 0.10);
 }
 
 .dish-info {
@@ -94,9 +94,9 @@ function inputQuantity() {
 }
 
 .dish-name {
-  font-size: 30rpx;
+  font-size: 32rpx;
   color: var(--c-text-primary, $text-primary);
-  font-weight: 500;
+  font-weight: 600;
   margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -106,7 +106,7 @@ function inputQuantity() {
 }
 
 .dish-item--active .dish-name {
-  color: var(--c-text-on-accent, #FFFFFF);
+  color: var(--c-accent, $accent-orange);
 }
 
 .dish-unit {
@@ -122,9 +122,9 @@ function inputQuantity() {
 }
 
 .qty-btn {
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: $radius-lg;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-xl;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,12 +185,13 @@ function inputQuantity() {
 }
 
 .qty-value--bump {
-  animation: qtyBump 0.3s $ease-out-expo;
+  animation: qtyBump 0.35s $ease-out-expo;
 }
 
 @keyframes qtyBump {
   0% { transform: scale(1); }
-  50% { transform: scale(1.3); }
+  30% { transform: scale(1.4); }
+  60% { transform: scale(0.92); }
   100% { transform: scale(1); }
 }
 </style>

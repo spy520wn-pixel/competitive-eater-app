@@ -797,6 +797,16 @@ function onSave() {
     return
   }
 
+  if (form.cost && (isNaN(Number(form.cost)) || Number(form.cost) < 0)) {
+    uni.showToast({ title: '人均消费请输入有效数字', icon: 'none' })
+    return
+  }
+
+  if (form.rating && (isNaN(Number(form.rating)) || Number(form.rating) < 1 || Number(form.rating) > 5)) {
+    uni.showToast({ title: '评分请输入 1 到 5 之间的数字', icon: 'none' })
+    return
+  }
+
   const existingShop = isEdit.value ? shopStore.getById(shopId.value) : null
   const shopData = {
     name: form.name,
@@ -805,9 +815,9 @@ function onSave() {
     city: form.city,
     mealTimeLimit: form.mealTimeLimit,
     location: form.location,
-    cost: form.cost || existingShop?.cost || '',
+    cost: form.cost ? Number(form.cost) : (existingShop?.cost || ''),
     photos: existingShop?.photos || [],
-    rating: form.rating || existingShop?.rating || ''
+    rating: form.rating ? Number(form.rating) : (existingShop?.rating || '')
   }
 
   if (isEdit.value) {
@@ -861,15 +871,17 @@ function onSave() {
 }
 
 .carousel-dot {
-  width: 12rpx;
+  width: 28rpx;
   height: 12rpx;
-  border-radius: 50%;
+  border-radius: 6rpx;
   background: rgba(255, 255, 255, 0.35);
-  transition: width $dur-fast $ease-out-quint, background $dur-fast $ease-out-quint;
+  transform: scaleX(0.43);
+  transform-origin: center;
+  transition: transform $dur-fast $ease-out-quint, background $dur-fast $ease-out-quint;
 }
 
 .carousel-dot--active {
-  width: 28rpx;
+  transform: scaleX(1);
   border-radius: 6rpx;
   background: var(--c-accent, $accent-orange);
 }

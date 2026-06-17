@@ -7,7 +7,11 @@
       :class="{ 'tabbar-item--active': current === index }"
       @tap="switchTab(index)"
     >
-      <text class="tabbar-icon">{{ item.icon }}</text>
+      <image
+        class="tabbar-icon-img"
+        :src="current === index ? item.activeIcon : item.icon"
+        mode="aspectFit"
+      />
       <text class="tabbar-text" :style="isLight ? { color: '#545468' } : {}">{{ item.text }}</text>
     </view>
   </view>
@@ -24,10 +28,10 @@ const theme = ref('dark')
 const isLight = computed(() => theme.value === 'light')
 
 const tabs = [
-  { pagePath: 'pages/index/index', text: '首页', icon: '🏠', type: 'home' },
-  { pagePath: 'pages/record/record', text: '战绩', icon: '🏆', type: 'record' },
-  { pagePath: 'pages/challenge/select', text: '挑战', icon: '🍽️', type: 'challenge' },
-  { pagePath: 'pages/mine/index', text: '我的', icon: '👤', type: 'mine' }
+  { pagePath: 'pages/index/index', text: '首页', icon: '/static/images/tab-home.png', activeIcon: '/static/images/tab-home-active.png', type: 'home' },
+  { pagePath: 'pages/record/record', text: '战绩', icon: '/static/images/tab-record.png', activeIcon: '/static/images/tab-record-active.png', type: 'record' },
+  { pagePath: 'pages/challenge/select', text: '挑战', icon: '/static/images/tab-challenge.png', activeIcon: '/static/images/tab-challenge-active.png', type: 'challenge' },
+  { pagePath: 'pages/mine/index', text: '我的', icon: '/static/images/tab-mine.png', activeIcon: '/static/images/tab-mine-active.png', type: 'mine' }
 ]
 
 const pages = [
@@ -106,12 +110,13 @@ onShow(() => {
   transform: scale(0.92);
 }
 
-.tabbar-icon {
-  font-size: 40rpx;
-  transition: transform 0.2s ease;
+.tabbar-icon-img {
+  width: 48rpx;
+  height: 48rpx;
+  transition: transform 0.2s $ease-out-expo;
 }
 
-.tabbar-item--active .tabbar-icon {
+.tabbar-item--active .tabbar-icon-img {
   transform: scale(1.1);
 }
 

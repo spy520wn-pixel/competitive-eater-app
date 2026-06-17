@@ -5,6 +5,16 @@
     <view class="ambient-orb ambient-orb--gold" />
     <view class="ambient-orb ambient-orb--orange" />
 
+    <!-- Cinematic score reveal: spotlight + particles -->
+    <view v-if="showSpotlight" class="spotlight-mask" />
+    <canvas
+      v-if="showParticles"
+      canvas-id="particleCanvas"
+      id="particleCanvas"
+      class="particle-canvas"
+      :style="{ width: canvasWidth + 'px', height: canvasHeight + 'px' }"
+    />
+
     <!-- Header result -->
     <view class="result-header">
       <text class="result-emoji">🎉</text>
@@ -16,7 +26,7 @@
       </text>
 
       <!-- Score card — Double-Bezel -->
-      <view class="score-shell">
+      <view class="score-shell" :class="{ 'score-shell--cinematic': showSpotlight }">
         <view class="score-core">
           <view class="score-glow" />
           <text class="score-label">战斗力</text>
@@ -54,11 +64,11 @@
           <view class="stats-grid">
             <view v-for="cat in categoryStats" :key="cat.name" class="stat-col">
               <view class="stat-bar-bg">
-                <view class="stat-bar" :style="{ transform: 'scaleY(' + cat.percent / 100 + ')' }" />
-                <view class="stat-bar-glow" :style="{ transform: 'scaleY(' + cat.percent / 100 + ')' }" />
+                <view class="stat-bar" :style="{ transform: 'scaleY(' + cat.percent / 100 + ')', background: getCategoryColor(cat.name) }" />
+                <view class="stat-bar-glow" :style="{ transform: 'scaleY(' + cat.percent / 100 + ')', background: getCategoryGlow(cat.name) }" />
               </view>
-              <text class="stat-label">{{ cat.name }}</text>
-              <text class="stat-val">{{ cat.total }}</text>
+              <text class="stat-label" :style="{ color: getCategoryColor(cat.name) }">{{ cat.name }}</text>
+              <text class="stat-val" :style="{ color: getCategoryColor(cat.name) }">{{ cat.total }}</text>
             </view>
           </view>
         </view>
@@ -79,7 +89,7 @@
       <view v-show="showDetails">
         <view v-for="group in groupedItems" :key="group.category" class="group-shell">
           <view class="group-core">
-            <text class="group-title">{{ group.category }}</text>
+            <text class="group-title" :style="{ color: getCategoryColor(group.category) }">{{ group.category }}</text>
             <view v-for="item in group.items" :key="item.menuItemId" class="detail-item">
               <text class="detail-name">{{ item.name }}</text>
               <text class="detail-qty">{{ item.quantity }}{{ item.unit }}</text>
@@ -150,14 +160,33 @@ import { saveReceiptToAlbum, calcReceiptHeight } from '../../utils/receipt-rende
 import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
+const CATEGORY_CSS = {
+  '肉类': { color: 'var(--c-cat-meat)', glow: 'var(--c-cat-meat-glow)' },
+  '海鲜': { color: 'var(--c-cat-seafood)', glow: 'var(--c-cat-seafood-glow)' },
+  '主食': { color: 'var(--c-cat-staples)', glow: 'var(--c-cat-staples-glow)' },
+  '甜点': { color: 'var(--c-cat-dessert)', glow: 'var(--c-cat-dessert-glow)' },
+  '饮料': { color: 'var(--c-cat-drinks)', glow: 'var(--c-cat-drinks-glow)' },
+  '其他': { color: 'var(--c-cat-other)', glow: 'var(--c-cat-other-glow)' }
+}
+
+function getCategoryColor(name) {
+  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).color
+}
+
+function getCategoryGlow(name) {
+  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).glow
+}
+
 const recordId = ref('')
 const canvasWidth = ref(375)
 const canvasHeight = ref(800)
-const showStats = ref(false)
+const showStats = ref(true)
 const showDetails = ref(false)
 const showLevelUp = ref(false)
 const previousLevel = ref(null)
 const displayScore = ref(0)
+const showSpotlight = ref(false)
+const showParticles = ref(false)
 const record = ref({
   shopName: '',
   tierName: '',
@@ -255,14 +284,157 @@ function animateScore(target) {
   const step = () => {
     const elapsed = Date.now() - startTime
     const progress = Math.min(elapsed / duration, 1)
-    // ease-out-expo curve
     const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress)
     displayScore.value = Math.round(eased * target)
     if (progress < 1) {
       setTimeout(step, 16)
+    } else {
+      // Score animation complete, trigger cinematic reveal
+      triggerCinematicReveal()
     }
   }
   step()
+}
+
+function triggerCinematicReveal() {
+  // Haptic feedback
+  // #ifdef APP-PLUS
+  uni.vibrateShort({ type: 'heavy' })
+  // #endif
+
+  // Show spotlight
+  showSpotlight.value = true
+
+  // Launch particles after a brief beat
+  setTimeout(() => {
+    showParticles.value = true
+    nextTick(() => launchParticles())
+  }, 200)
+
+  // Fade out spotlight after particles settle
+  setTimeout(() => {
+    showSpotlight.value = false
+  }, 2500)
+}
+
+function launchParticles() {
+  const query = uni.createSelectorQuery()
+  query.select('.score-shell').boundingClientRect(rect => {
+    if (!rect) return
+
+    const ctx = uni.createCanvasContext('particleCanvas')
+    if (!ctx) return
+
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    const w = canvasWidth.value
+    const h = canvasHeight.value
+
+    // Create particles
+    const particles = []
+    const PARTICLE_COUNT = 80
+    const GOLDEN_COLORS = ['#FFD700', '#FFA500', '#FF8C00', '#FFE066', '#FFB347', '#E85520']
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const angle = (Math.PI * 2 * i) / PARTICLE_COUNT + (Math.random() - 0.5) * 0.5
+      const speed = 3 + Math.random() * 8
+      const size = 2 + Math.random() * 5
+      particles.push({
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 2,
+        size,
+        color: GOLDEN_COLORS[Math.floor(Math.random() * GOLDEN_COLORS.length)],
+        alpha: 1,
+        life: 1,
+        decay: 0.008 + Math.random() * 0.012
+      })
+    }
+
+    // Add a few larger "star" particles
+    for (let i = 0; i < 12; i++) {
+      const angle = (Math.PI * 2 * i) / 12
+      const speed = 5 + Math.random() * 4
+      particles.push({
+        x: centerX,
+        y: centerY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 3,
+        size: 6 + Math.random() * 4,
+        color: '#FFD700',
+        alpha: 1,
+        life: 1,
+        decay: 0.006 + Math.random() * 0.008,
+        isStar: true
+      })
+    }
+
+    let animFrame = null
+    const startTime = Date.now()
+
+    function animate() {
+      const elapsed = Date.now() - startTime
+      if (elapsed > 3000) {
+        showParticles.value = false
+        return
+      }
+
+      ctx.clearRect(0, 0, w, h)
+
+      let alive = 0
+      for (const p of particles) {
+        if (p.life <= 0) continue
+        alive++
+
+        p.x += p.vx
+        p.y += p.vy
+        p.vy += 0.15 // gravity
+        p.vx *= 0.99 // friction
+        p.life -= p.decay
+        p.alpha = Math.max(0, p.life)
+
+        ctx.globalAlpha = p.alpha
+
+        if (p.isStar) {
+          // Draw star shape
+          ctx.setFillStyle(p.color)
+          ctx.beginPath()
+          const cx = p.x, cy = p.y, r = p.size
+          for (let j = 0; j < 5; j++) {
+            const a = (j * Math.PI * 2) / 5 - Math.PI / 2
+            const ox = cx + r * Math.cos(a)
+            const oy = cy + r * Math.sin(a)
+            if (j === 0) ctx.moveTo(ox, oy)
+            else ctx.lineTo(ox, oy)
+            const ia = a + Math.PI / 5
+            const ix = cx + r * 0.4 * Math.cos(ia)
+            const iy = cy + r * 0.4 * Math.sin(ia)
+            ctx.lineTo(ix, iy)
+          }
+          ctx.closePath()
+          ctx.fill()
+        } else {
+          // Draw circle
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+          ctx.setFillStyle(p.color)
+          ctx.fill()
+        }
+      }
+
+      ctx.globalAlpha = 1
+      ctx.draw()
+
+      if (alive > 0) {
+        animFrame = setTimeout(animate, 16)
+      } else {
+        showParticles.value = false
+      }
+    }
+
+    animate()
+  }).exec()
 }
 
 onLoad((options) => {
@@ -320,31 +492,72 @@ onShow(() => {
   padding-bottom: $section-gap;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 40rpx;
 }
 
-/* ── Ambient Glows ── */
+/* ── Cinematic Score Reveal ── */
+.spotlight-mask {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 35%, transparent 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0.85) 100%);
+  z-index: 50;
+  pointer-events: none;
+  animation: spotlightReveal 1.5s $ease-out-expo both;
+}
+
+@keyframes spotlightReveal {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.particle-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 51;
+  pointer-events: none;
+}
+
+/* ── Ambient Glows (mesh-style for result page) ── */
 .ambient-orb {
   position: fixed;
-  border-radius: 50%;
   pointer-events: none;
   z-index: 0;
 }
 
 .ambient-orb--gold {
-  width: 500rpx;
-  height: 500rpx;
-  top: -100rpx;
+  width: 600rpx;
+  height: 600rpx;
+  top: -150rpx;
   left: 50%;
   transform: translateX(-50%);
-  background: radial-gradient(circle, var(--c-gold-soft, $glow-gold-soft) 0%, transparent 70%);
+  border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
+  background: radial-gradient(ellipse at 40% 40%, var(--c-gold-soft, $glow-gold-soft) 0%, transparent 60%);
+  animation: meshFloatCenter 12s $ease-in-out-smooth infinite;
 }
 
 .ambient-orb--orange {
   width: 400rpx;
   height: 400rpx;
   bottom: 200rpx;
-  right: -100rpx;
-  background: radial-gradient(circle, var(--c-accent-soft, $glow-orange-soft) 0%, transparent 70%);
+  right: -80rpx;
+  border-radius: 55% 45% 50% 50% / 45% 55% 45% 55%;
+  background: radial-gradient(ellipse at 60% 60%, var(--c-accent-soft, $glow-orange-soft) 0%, transparent 60%);
+  animation: meshFloat 10s $ease-in-out-smooth infinite reverse;
+}
+
+@keyframes meshFloat {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  33% { transform: rotate(3deg) scale(1.05); }
+  66% { transform: rotate(-2deg) scale(0.97); }
+}
+
+@keyframes meshFloatCenter {
+  0%, 100% { transform: translateX(-50%) rotate(0deg) scale(1); }
+  33% { transform: translateX(-50%) rotate(3deg) scale(1.05); }
+  66% { transform: translateX(-50%) rotate(-2deg) scale(0.97); }
 }
 
 /* ── Result Header ── */
@@ -392,6 +605,25 @@ onShow(() => {
   backdrop-filter: blur(12rpx);
   -webkit-backdrop-filter: blur(12rpx);
   overflow: hidden;
+  transition: box-shadow 0.6s $ease-out-expo, border-color 0.6s $ease-out-expo;
+}
+
+.score-shell--cinematic {
+  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 80rpx rgba(255, 215, 0, 0.3), 0 0 160rpx rgba(255, 215, 0, 0.15);
+  border-color: rgba(255, 215, 0, 0.4);
+  animation: scoreGlowBurst 1.5s $ease-out-expo both;
+}
+
+@keyframes scoreGlowBurst {
+  0% {
+    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 0 transparent;
+  }
+  30% {
+    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 120rpx rgba(255, 215, 0, 0.5), 0 0 200rpx rgba(255, 215, 0, 0.25);
+  }
+  100% {
+    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 80rpx rgba(255, 215, 0, 0.3), 0 0 160rpx rgba(255, 215, 0, 0.15);
+  }
 }
 
 .score-core {
@@ -443,13 +675,29 @@ onShow(() => {
   font-variant-numeric: tabular-nums;
   letter-spacing: $tracking-tighter;
   text-shadow: 0 0 40rpx var(--c-gold-glow-strong, $glow-gold-strong);
-  animation: scoreReveal 0.6s $ease-out-expo 1.6s both;
+  animation: scoreHeroReveal 1s $ease-out-expo 0.8s both;
 }
 
-@keyframes scoreReveal {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); text-shadow: 0 0 60rpx var(--c-gold-glow-strong, $glow-gold-strong); }
-  100% { transform: scale(1); }
+@keyframes scoreHeroReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) translateY(20rpx);
+    filter: blur(8rpx);
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06) translateY(-4rpx);
+    filter: blur(0);
+  }
+  70% {
+    transform: scale(0.98) translateY(0);
+    text-shadow: 0 0 60rpx var(--c-gold-glow-strong, $glow-gold-strong);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    text-shadow: 0 0 40rpx var(--c-gold-glow-strong, $glow-gold-strong);
+  }
 }
 
 .score-duration {
@@ -495,7 +743,6 @@ onShow(() => {
 
 /* ── Section ── */
 .section {
-  margin-top: $section-gap;
   position: relative;
   z-index: 1;
 }
@@ -813,10 +1060,28 @@ onShow(() => {
   background: var(--c-bg-elevated, $abyss);
   border: 1rpx solid var(--c-gold-glow, $glow-gold);
   border-radius: $radius-3xl;
-  box-shadow: var(--c-card-shadow-elevated), 0 0 60rpx var(--c-gold-glow, $glow-gold);
+  box-shadow: var(--c-card-shadow-elevated), 0 0 80rpx var(--c-gold-glow, $glow-gold);
   overflow: hidden;
-  animation: scaleIn $dur-normal $ease-out-expo;
+  animation: levelupReveal 0.8s $ease-out-expo;
   position: relative;
+}
+
+@keyframes levelupReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(40rpx);
+    filter: blur(8rpx);
+  }
+  40% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  60% {
+    transform: scale(1.04) translateY(-8rpx);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
 }
 
 .levelup-confetti {

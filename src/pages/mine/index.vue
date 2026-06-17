@@ -157,6 +157,9 @@ function showAbout() {
   padding: $page-pad-y $page-pad-x;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
 }
 
 /* ── Profile Card (Double-Bezel) ── */
@@ -167,7 +170,6 @@ function showAbout() {
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
   backdrop-filter: blur(12rpx);
   -webkit-backdrop-filter: blur(12rpx);
-  margin-bottom: $section-gap;
   position: relative;
   z-index: 1;
   animation: fadeInUp $dur-slow $ease-out-expo both;
@@ -295,8 +297,16 @@ function showAbout() {
   border-radius: $radius-pill;
   transform-origin: left;
   transform: scaleX(var(--fill-scale, 0));
-  transition: transform 0.6s $ease-out-expo;
-  box-shadow: 0 0 12rpx rgba(255, 215, 0, 0.3);
+  transition: transform 1.2s $ease-out-expo;
+  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.35);
+  animation: expShimmer 2s $ease-in-out-smooth infinite;
+  background-size: 200% 100%;
+}
+
+@keyframes expShimmer {
+  0% { background-position: 0% 0; }
+  50% { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
 }
 
 .exp-text {
@@ -330,15 +340,12 @@ function showAbout() {
   letter-spacing: var(--text-display-ls, $type-display-ls);
 }
 
-/* ── Stats Banner (Double-Bezel) ── */
+/* ── Stats Banner (solid, no glass) ── */
 .stats-shell {
-  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
-  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  background: var(--c-surface-1, $surface-1);
+  border: 1rpx solid var(--c-border, $hairline);
   border-radius: $radius-2xl;
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
-  margin-bottom: $section-gap;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.25);
   position: relative;
   z-index: 1;
   animation: fadeInUp $dur-slow $ease-out-expo 0.1s both;
@@ -383,14 +390,12 @@ function showAbout() {
   background: linear-gradient(180deg, transparent, var(--c-surface-6, $glass-white-6), transparent);
 }
 
-/* ── Menu Section (Double-Bezel) ── */
+/* ── Menu Section (clean, minimal) ── */
 .menu-section {
-  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
-  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  background: var(--c-surface-1, $surface-1);
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
   border-radius: $radius-2xl;
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.15);
   overflow: hidden;
   position: relative;
   z-index: 1;

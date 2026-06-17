@@ -1,32 +1,33 @@
 <template>
   <view class="dashboard" :data-theme="currentTheme">
     <nav-bar title="大胃王" :show-back="false" />
-    <!-- Ambient glow orbs -->
-    <view class="ambient-orb ambient-orb--1" />
-    <view class="ambient-orb ambient-orb--2" />
+    <!-- Ambient glow orbs (parallax) -->
+    <view class="ambient-orb ambient-orb--1" :style="{ transform: 'translateY(' + parallaxY1 + 'rpx)' }" />
+    <view class="ambient-orb ambient-orb--2" :style="{ transform: 'translateY(' + parallaxY2 + 'rpx)' }" />
 
-    <!-- Header -->
-    <view class="header">
+    <!-- Header (slight counter-parallax for depth) -->
+    <view class="header" :style="{ transform: 'translateY(' + (-parallaxY1 * 0.15) + 'rpx)' }">
       <view class="header-top">
         <level-badge :exp="stats.totalExp" size="lg" :show-exp="true" layout="horizontal" />
       </view>
 
-      <!-- Stats — Double-Bezel Card -->
+      <!-- Stats — Hero Score + Supporting -->
       <view class="stats-shell">
         <view class="stats-core">
-          <view class="stat-item" style="animation-delay: 0.15s">
-            <text class="stat-value">{{ stats.maxScore }}</text>
-            <text class="stat-label">最高战斗力</text>
+          <view class="stat-hero" style="animation-delay: 0.1s">
+            <text class="stat-hero-label">最高战斗力</text>
+            <text class="stat-hero-value">{{ stats.maxScore }}</text>
           </view>
-          <view class="stat-divider" />
-          <view class="stat-item" style="animation-delay: 0.25s">
-            <text class="stat-value">{{ stats.totalRecords }}</text>
-            <text class="stat-label">总挑战</text>
-          </view>
-          <view class="stat-divider" />
-          <view class="stat-item" style="animation-delay: 0.35s">
-            <text class="stat-value">{{ stats.shopCount }}</text>
-            <text class="stat-label">已挑战</text>
+          <view class="stat-supporting">
+            <view class="stat-item" style="animation-delay: 0.2s">
+              <text class="stat-value">{{ stats.totalRecords }}</text>
+              <text class="stat-label">总挑战</text>
+            </view>
+            <view class="stat-divider" />
+            <view class="stat-item" style="animation-delay: 0.3s">
+              <text class="stat-value">{{ stats.shopCount }}</text>
+              <text class="stat-label">已挑战店铺</text>
+            </view>
           </view>
         </view>
       </view>
@@ -159,7 +160,7 @@
 <script setup>
 import NavBar from '@/components/nav-bar.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onPageScroll } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
 import { shopStore } from '../../store/shop-store'
 import { settingsStore, currentTheme } from '../../store/settings-store'
@@ -231,6 +232,16 @@ function handleThemeChange(theme) {
   applyPageTheme(theme)
 }
 
+// Parallax scroll
+const parallaxY1 = ref(0)
+const parallaxY2 = ref(0)
+
+onPageScroll((e) => {
+  const scrollY = e.scrollTop
+  parallaxY1.value = scrollY * 0.3
+  parallaxY2.value = scrollY * 0.5
+})
+
 onMounted(() => {
   const theme = settingsStore.get().theme || 'dark'
   currentTheme.value = theme
@@ -285,13 +296,11 @@ function goToShops() {
   overflow: hidden;
 }
 
-/* ── Ambient Glow Orbs (Richer Mesh) ── */
+/* ── Ambient Glow Orbs (organic mesh) ── */
 .ambient-orb {
   position: absolute;
-  border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  animation: breathe 8s $ease-in-out-smooth infinite;
   contain: layout style paint;
 }
 
@@ -300,7 +309,9 @@ function goToShops() {
   height: 700rpx;
   top: -250rpx;
   right: -250rpx;
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.12) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%);
+  border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
+  background: radial-gradient(ellipse at 30% 30%, rgba(255, 107, 53, 0.12) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%);
+  animation: orbFloat1 15s $ease-in-out-smooth infinite;
 }
 
 .ambient-orb--2 {
@@ -308,15 +319,26 @@ function goToShops() {
   height: 550rpx;
   bottom: 200rpx;
   left: -180rpx;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(52, 211, 153, 0.04) 40%, transparent 70%);
-  animation-delay: -4s;
+  border-radius: 55% 45% 50% 50% / 45% 55% 45% 55%;
+  background: radial-gradient(ellipse at 70% 70%, rgba(139, 92, 246, 0.08) 0%, rgba(52, 211, 153, 0.04) 40%, transparent 70%);
+  animation: orbFloat2 12s $ease-in-out-smooth infinite;
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(5deg) scale(1.06); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(-4deg) scale(1.04); }
 }
 
 /* ── Header ── */
 .header {
   position: relative;
   z-index: 1;
-  padding: 56rpx $page-pad-x $section-gap;
+  padding: 56rpx $page-pad-x 40rpx;
   background: linear-gradient(180deg, var(--c-bg-elevated, $abyss) 0%, var(--c-bg, $void-black) 100%);
 }
 
@@ -325,23 +347,75 @@ function goToShops() {
   animation: fadeInUp $dur-entrance $ease-out-expo both;
 }
 
-/* ── Stats Bar (Double-Bezel) ── */
+/* ── Stats Bar (Double-Bezel, heavier treatment) ── */
 .stats-shell {
-  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
-  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  background: linear-gradient(165deg, var(--c-surface-10, $glass-white-10) 0%, var(--c-surface-4, $glass-white-4) 100%);
+  border: 1rpx solid var(--c-surface-15, $glass-white-15);
   border-radius: $radius-2xl;
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
+  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 40rpx rgba(255, 107, 53, 0.06);
+  backdrop-filter: blur(16rpx);
+  -webkit-backdrop-filter: blur(16rpx);
   animation: fadeInUp $dur-slow $ease-out-expo 0.1s both;
   overflow: hidden;
 }
 
 .stats-core {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $card-pad-inner;
+  gap: $intra-group;
+}
+
+.stat-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $intra-tight;
+  animation: fadeInUp $dur-slow $ease-out-expo both;
+}
+
+.stat-hero-label {
+  font-size: var(--text-label-size, $type-label-size);
+  font-weight: var(--text-label-weight, $type-label-weight);
+  line-height: var(--text-label-lh, $type-label-lh);
+  color: var(--c-text-tertiary, $text-tertiary);
+  letter-spacing: $tracking-ultra-wide;
+  text-transform: uppercase;
+}
+
+.stat-hero-value {
+  font-size: 80rpx;
+  font-weight: 900;
+  color: var(--c-gold, $accent-gold);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: $tracking-tighter;
+  text-shadow: 0 0 30rpx var(--c-gold-glow-strong, $glow-gold-strong);
+  animation: heroNumberReveal 0.8s $ease-out-expo 0.3s both;
+}
+
+@keyframes heroNumberReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(16rpx);
+    filter: blur(6rpx);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04) translateY(-4rpx);
+    filter: blur(0);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+
+.stat-supporting {
+  display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: $card-pad-compact;
+  width: 100%;
 }
 
 .stat-item {
@@ -446,13 +520,15 @@ function goToShops() {
   padding: 0 $page-pad-x;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 36rpx;
 }
 
 /* ── Dual Charts Row ── */
 .dual-charts {
   display: flex;
   gap: 20rpx;
-  margin-bottom: $inter-group;
   animation: fadeInUp $dur-slow $ease-out-expo 0.12s both;
 }
 
@@ -477,15 +553,14 @@ function goToShops() {
   font-size: 28rpx;
 }
 
-/* ── Elevated Cards (Double-Bezel) ── */
+/* ── Chart Cards (lighter glass treatment) ── */
 .card-shell {
-  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
-  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  background: linear-gradient(165deg, var(--c-surface-6, $glass-white-6) 0%, var(--c-surface-2, $glass-white-2) 100%);
+  border: 1rpx solid var(--c-surface-8, $glass-white-8);
   border-radius: $radius-2xl;
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
-  margin-bottom: $inter-group;
+  box-shadow: var(--c-shadow-lg, $shadow-lg), var(--c-shadow-inner, $shadow-inner);
+  backdrop-filter: blur(8rpx);
+  -webkit-backdrop-filter: blur(8rpx);
   animation: fadeInUp $dur-slow $ease-out-expo both;
   overflow: hidden;
 }

@@ -1,19 +1,16 @@
 <template>
   <view class="page" :data-theme="currentTheme">
-    <!-- Custom navbar -->
+    <!-- Custom navbar — Game HUD -->
     <view class="navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="navbar-content">
         <view class="navbar-left">
-          <view class="timer-icon-wrap">
-            <text class="timer-icon">⏱</text>
-          </view>
           <text class="timer-text" :class="{ 'timer-text--danger': isTimeDanger, 'timer-text--pulse': isTimeDanger }">
             {{ timerDisplay }}
           </text>
         </view>
         <view class="navbar-right">
           <view class="end-btn" role="button" aria-label="结束挑战" @tap="onFinish">
-            <text class="end-btn-text">结束挑战</text>
+            <text class="end-btn-text">结束</text>
           </view>
         </view>
       </view>
@@ -55,7 +52,7 @@
       </scroll-view>
     </view>
 
-    <!-- Bottom stats bar -->
+    <!-- Bottom stats bar — Game HUD -->
     <view class="bottom-bar">
       <view class="stats">
         <text class="stats-text">已选 <text class="stats-num">{{ totalItems }}</text> 道菜</text>
@@ -67,7 +64,6 @@
       <view class="score-preview" v-if="totalItems > 0">
         <text class="score-label">预计</text>
         <text class="score-value">{{ previewScore }}</text>
-        <text class="score-label">分/人</text>
       </view>
     </view>
 
@@ -86,6 +82,9 @@
             <view class="confirm-btn confirm-btn--finish" @tap="confirmFinish">
               <text class="confirm-btn-text confirm-btn-text--finish">结算</text>
             </view>
+          </view>
+          <view class="abandon-action" @tap="confirmAbandon">
+            <text class="abandon-text">放弃本次挑战</text>
           </view>
         </view>
       </view>
@@ -202,6 +201,34 @@ function onFinish() {
 function confirmFinish() {
   showFinishConfirm.value = false
   finishChallenge()
+}
+
+function confirmAbandon() {
+  showFinishConfirm.value = false
+  uni.showModal({
+    title: '放弃挑战？',
+    content: '本次挑战将不会记录战绩，确定放弃吗？',
+    confirmText: '放弃',
+    confirmColor: '#FF3B30',
+    success(res) {
+      if (res.confirm) {
+        abandonChallenge()
+      }
+    }
+  })
+}
+
+function abandonChallenge() {
+  if (record.value.status !== '进行中') return
+
+  recordStore.abandon(recordId.value)
+
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+
+  uni.navigateBack()
 }
 
 function finishChallenge() {
@@ -348,15 +375,28 @@ onShow(() => {
   flex-direction: column;
 }
 
-/* ── Custom Navbar ── */
+/* ── Game HUD Navbar ── */
 .navbar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  background: linear-gradient(180deg, var(--c-surface-0, $surface-0) 0%, var(--c-bg, $void-black) 100%);
-  border-bottom: 1rpx solid var(--c-border-light, $glass-white-4);
+  background: var(--c-surface-0, $surface-0);
+  border-bottom: 3rpx solid var(--c-accent, $accent-orange);
+  box-shadow: 0 4rpx 24rpx rgba(255, 107, 53, 0.15);
+  animation: hudSlideIn 0.6s $ease-out-expo both;
+}
+
+@keyframes hudSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .navbar-content {
@@ -369,41 +409,25 @@ onShow(() => {
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: $intra-group;
-}
-
-.timer-icon-wrap {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background: var(--c-gold-glow, $glow-gold);
-  border: 1rpx solid var(--c-gold-glow-strong, $glow-gold-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.timer-icon {
-  font-size: 28rpx;
 }
 
 .timer-text {
-  font-size: 48rpx;
-  font-weight: 800;
+  font-size: 64rpx;
+  font-weight: 900;
   color: var(--c-gold, $accent-gold);
   font-variant-numeric: tabular-nums;
-  letter-spacing: $tracking-wide;
-  text-shadow: 0 0 20rpx var(--c-gold-glow-strong, $glow-gold-strong);
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 30rpx var(--c-gold-glow-strong, $glow-gold-strong);
   transition: color $dur-normal $ease-in-out-smooth;
 }
 
 .timer-text--danger {
   color: var(--c-danger, $accent-danger);
-  text-shadow: 0 0 20rpx $shadow-glow-danger;
+  text-shadow: 0 0 30rpx rgba(255, 59, 48, 0.4);
 }
 
 .timer-text--pulse {
-  animation: pulse 1s $ease-spring infinite;
+  animation: pulse 1s $ease-out-expo infinite;
 }
 
 .navbar-right {
@@ -412,21 +436,20 @@ onShow(() => {
 }
 
 .end-btn {
-  background: linear-gradient(135deg, var(--c-danger, $accent-danger), $accent-danger-light);
+  background: var(--c-danger, $accent-danger);
   border-radius: $radius-pill;
-  padding: 14rpx 32rpx;
-  box-shadow: $shadow-glow-danger;
+  padding: 16rpx 36rpx;
   transition: transform $dur-normal $ease-spring;
 }
 
 .end-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.93);
 }
 
 .end-btn-text {
-  font-size: 26rpx;
-  color: var(--c-text-on-accent, #FFFFFF);
-  font-weight: 600;
+  font-size: 28rpx;
+  color: #FFFFFF;
+  font-weight: 700;
   letter-spacing: $tracking-wide;
 }
 
@@ -445,6 +468,7 @@ onShow(() => {
 .navbar-tier {
   font-size: 26rpx;
   color: var(--c-accent, $accent-orange);
+  font-weight: 600;
   letter-spacing: $tracking-wide;
 }
 
@@ -486,14 +510,14 @@ onShow(() => {
   color: var(--c-text-muted, $text-muted);
 }
 
-/* ── Bottom Stats Bar ── */
+/* ── Bottom Stats Bar — Game HUD ── */
 .bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--c-overlay, $glass-black-60);
-  border-top: 1rpx solid var(--c-border-light, $glass-white-4);
+  background: linear-gradient(180deg, rgba(6, 6, 11, 0.85) 0%, rgba(6, 6, 11, 0.98) 100%);
+  border-top: 2rpx solid rgba(255, 107, 53, 0.2);
   padding: $intra-group $page-pad-x;
   padding-bottom: calc($intra-group + env(safe-area-inset-bottom));
   display: flex;
@@ -502,6 +526,18 @@ onShow(() => {
   z-index: 100;
   backdrop-filter: blur(20rpx);
   -webkit-backdrop-filter: blur(20rpx);
+  animation: hudBarSlideIn 0.5s $ease-out-expo 0.2s both;
+}
+
+@keyframes hudBarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .stats {
@@ -530,22 +566,26 @@ onShow(() => {
 .score-preview {
   display: flex;
   align-items: baseline;
-  gap: $intra-tight;
+  gap: 8rpx;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1rpx solid rgba(255, 215, 0, 0.2);
+  border-radius: $radius-pill;
+  padding: 10rpx 24rpx;
 }
 
 .score-label {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: var(--c-text-tertiary, $text-tertiary);
   letter-spacing: $tracking-wide;
 }
 
 .score-value {
-  font-size: 40rpx;
-  font-weight: 800;
+  font-size: 44rpx;
+  font-weight: 900;
   color: var(--c-gold, $accent-gold);
   font-variant-numeric: tabular-nums;
   letter-spacing: $tracking-wide;
-  text-shadow: 0 0 16rpx var(--c-gold-glow-strong, $glow-gold-strong);
+  text-shadow: 0 0 20rpx var(--c-gold-glow-strong, $glow-gold-strong);
 }
 
 /* ── Confirm Dialog ── */
@@ -560,7 +600,6 @@ onShow(() => {
   -webkit-backdrop-filter: blur(20rpx);
   display: flex;
   align-items: center;
-  animation: fadeIn $dur-fast $ease-in-out-smooth;
   justify-content: center;
   z-index: 200;
   animation: fadeIn $dur-normal $ease-out-expo;
@@ -576,7 +615,6 @@ onShow(() => {
   position: relative;
   animation: scaleIn $dur-normal $ease-out-expo;
 }
-
 
 .confirm-glow {
   position: absolute;
@@ -661,5 +699,18 @@ onShow(() => {
 
 .confirm-btn-text--finish {
   color: var(--c-text-on-accent, #FFFFFF);
+}
+
+.abandon-action {
+  margin-top: $intra-group;
+  padding: $intra-tight;
+  text-align: center;
+}
+
+.abandon-text {
+  font-size: 24rpx;
+  color: var(--c-text-muted, $text-muted);
+  text-decoration: underline;
+  text-underline-offset: 6rpx;
 }
 </style>

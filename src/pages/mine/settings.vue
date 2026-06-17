@@ -104,16 +104,18 @@
         <view class="section-core">
           <view class="setting-row setting-row--input">
             <text class="setting-label">AI 服务地址</text>
-            <view class="setting-input-wrap">
+            <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.aiServiceUrl }">
               <input
                 class="setting-input"
                 :value="settings.aiServiceUrl"
                 placeholder="https://..."
                 placeholder-class="input-placeholder"
-                @blur="onInput('aiServiceUrl', $event)"
+                @input="onInput('aiServiceUrl', $event)"
+                @blur="onInputBlur('aiServiceUrl', $event)"
                 aria-label="AI 服务地址"
               />
             </view>
+            <text v-if="errors.aiServiceUrl" class="setting-error">{{ errors.aiServiceUrl }}</text>
           </view>
           <view class="setting-row setting-row--input">
             <text class="setting-label">AI API Key</text>
@@ -205,6 +207,12 @@ const settings = reactive({
   theme: 'dark'
 })
 
+const errors = reactive({
+  aiServiceUrl: '',
+  aiApiKey: '',
+  aiModel: ''
+})
+
 const cityIndex = computed(() => {
   const idx = cities.indexOf(settings.defaultCity)
   return idx >= 0 ? idx : 0
@@ -257,10 +265,29 @@ function onToggle(key, e) {
   save(key, val)
 }
 
+function validateUrl(val) {
+  if (!val) return ''
+  try {
+    const url = new URL(val)
+    if (!['http:', 'https:'].includes(url.protocol)) return '请输入 http 或 https 开头的地址'
+    return ''
+  } catch {
+    return '请输入有效的 URL 格式'
+  }
+}
+
 function onInput(key, e) {
   const val = e.detail.value
+  errors[key] = ''
   settings[key] = val
   save(key, val)
+}
+
+function onInputBlur(key, e) {
+  const val = e.detail.value
+  if (key === 'aiServiceUrl') {
+    errors.aiServiceUrl = validateUrl(val)
+  }
 }
 
 function onThemeChange(theme) {
@@ -318,11 +345,16 @@ onShow(() => {
   min-height: 100vh;
   background: var(--c-bg, $void-black);
   padding: $page-pad-y $page-pad-x;
+  display: flex;
+  flex-direction: column;
+  gap: 48rpx;
 }
 
 /* ── Section ── */
 .section {
-  margin-bottom: $section-gap;
+  display: flex;
+  flex-direction: column;
+  gap: $intra-group;
 }
 
 .section-header {
@@ -370,14 +402,12 @@ onShow(() => {
   text-transform: uppercase;
 }
 
-/* ── Section Card (Double-Bezel) ── */
+/* ── Section Card (flat, clean) ── */
 .section-shell {
-  background: linear-gradient(165deg, var(--c-surface-8, $glass-white-8) 0%, var(--c-surface-3, $glass-white-3) 100%);
-  border: 1rpx solid var(--c-surface-12, $glass-white-12);
+  background: var(--c-surface-1, $surface-1);
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
   border-radius: $radius-2xl;
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.15);
   overflow: hidden;
   animation: fadeInUp $dur-slow $ease-out-expo both;
 }
@@ -457,6 +487,17 @@ onShow(() => {
 
 .setting-input-wrap:focus-within {
   border-color: var(--c-border-active, $hairline-active);
+}
+
+.setting-input-wrap--error {
+  border-color: var(--c-danger, $accent-danger) !important;
+}
+
+.setting-error {
+  font-size: 22rpx;
+  color: var(--c-danger, $accent-danger-light);
+  margin-top: 8rpx;
+  letter-spacing: $tracking-normal;
 }
 
 .setting-input {
