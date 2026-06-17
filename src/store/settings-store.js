@@ -37,7 +37,23 @@ try {
 export const settingsStore = {
   get() {
     try {
-      return { ...defaultSettings, ...(uni.getStorageSync(SETTINGS_KEY) || {}) }
+      const stored = uni.getStorageSync(SETTINGS_KEY) || {}
+      // 迁移：如果存储中没有 ocrServiceUrl（新字段），说明是旧版配置，需要用新默认值覆盖 AI 系列
+      if (!stored.ocrServiceUrl && stored.aiServiceUrl !== undefined) {
+        stored.ocrServiceUrl = defaultSettings.ocrServiceUrl
+        stored.ocrApiKey = defaultSettings.ocrApiKey
+        stored.ocrModel = defaultSettings.ocrModel
+        stored.aiServiceUrl = defaultSettings.aiServiceUrl
+        stored.aiApiKey = defaultSettings.aiApiKey
+        stored.aiModel = defaultSettings.aiModel
+        stored.videoServiceUrl = defaultSettings.videoServiceUrl
+        stored.videoApiKey = defaultSettings.videoApiKey
+        stored.videoModel = defaultSettings.videoModel
+        stored.amapKey = stored.amapKey || defaultSettings.amapKey
+        // 写回 storage
+        try { uni.setStorageSync(SETTINGS_KEY, stored) } catch (e) { /* ignore */ }
+      }
+      return { ...defaultSettings, ...stored }
     } catch {
       return { ...defaultSettings }
     }
