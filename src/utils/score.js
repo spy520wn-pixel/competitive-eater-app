@@ -1,13 +1,12 @@
 const CATEGORY_WEIGHTS = {
   '肉类': 3,
   '海鲜': 3,
+  '蔬菜': 1,
   '主食': 2,
+  '饮品': 1,
   '甜点': 2,
-  '饮料': 1,
   '其他': 1
 }
-
-const CATEGORY_BONUS = 20
 
 export function calculateScore(items, diners = 1) {
   if (!items || items.length === 0) return 0
@@ -25,10 +24,6 @@ export function calculateScore(items, diners = 1) {
     score += total * weight
   }
 
-  const categoryCount = Object.keys(categoryTotals).length
-  score += categoryCount * CATEGORY_BONUS
-
-  // 根据就餐人数打折
   if (diners > 1) {
     score = Math.round(score / diners)
   }
