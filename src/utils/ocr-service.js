@@ -1,5 +1,6 @@
 import { settingsStore } from '../store/settings-store'
 import { createMenuItem } from '../store/models'
+import { withRetry } from './retry'
 
 const CATEGORY_KEYWORDS = {
   '肉类': ['牛肉', '猪肉', '羊肉', '鸡肉', '鸭肉', '肥牛', '五花', '牛排', '鸡翅', '排骨'],
@@ -31,7 +32,7 @@ export async function recognize(imagePath) {
 
   const base64 = await imageToBase64(imagePath)
 
-  const response = await uni.request({
+  const response = await withRetry(() => uni.request({
     url: settings.ocrServiceUrl,
     method: 'POST',
     header: {
@@ -52,7 +53,7 @@ export async function recognize(imagePath) {
         ]
       }]
     }
-  })
+  }), { label: '识图大模型' })
 
   const content = response.data.choices[0].message.content
   const jsonMatch = content.match(/\[[\s\S]*\]/)

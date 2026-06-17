@@ -1,4 +1,5 @@
 import { settingsStore } from '../store/settings-store'
+import { withRetry } from './retry'
 
 const STYLE_PROMPTS = {
   '搞笑夸张': '搞笑夸张风格，食物放大变大，添加表情包元素，色彩鲜艳，有趣幽默',
@@ -33,7 +34,7 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
 
 要求：突出战绩数据，视觉冲击力强，适合发朋友圈炫耀。`
 
-  const response = await uni.request({
+  const response = await withRetry(() => uni.request({
     url: settings.aiServiceUrl,
     method: 'POST',
     header: {
@@ -45,7 +46,7 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
       prompt,
       size: '1024x1024'
     }
-  })
+  }), { label: '生图大模型' })
 
   return response.data.data[0].url
 }
@@ -269,7 +270,7 @@ export async function recognizeMenu(imagePath) {
   // 将图片转为base64
   const imageBase64 = await imageToBase64(imagePath)
 
-  const response = await new Promise((resolve, reject) => {
+  const response = await withRetry(() => new Promise((resolve, reject) => {
     uni.request({
       url: ocrServiceUrl,
       method: 'POST',
@@ -307,7 +308,7 @@ export async function recognizeMenu(imagePath) {
       success: (res) => resolve(res),
       fail: (err) => reject(err)
     })
-  })
+  }), { label: '识图大模型' })
 
   if (response.statusCode !== 200) {
     throw new Error(`AI服务请求失败: ${response.statusCode}`)
