@@ -93,17 +93,10 @@ import RadarChart from '../../components/radar-chart.vue'
 import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
-const CATEGORY_CSS = {
-  '肉类': 'var(--c-cat-meat)',
-  '海鲜': 'var(--c-cat-seafood)',
-  '主食': 'var(--c-cat-staples)',
-  '甜点': 'var(--c-cat-dessert)',
-  '饮料': 'var(--c-cat-drinks)',
-  '其他': 'var(--c-cat-other)'
-}
+import { CATEGORY_CSS } from '@/utils/category-constants.js'
 
 function getCategoryColor(name) {
-  return CATEGORY_CSS[name] || 'var(--c-accent)'
+  return (CATEGORY_CSS[name] || { color: 'var(--c-accent)' }).color
 }
 
 const recordId = ref('')

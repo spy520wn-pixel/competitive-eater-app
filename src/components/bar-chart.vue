@@ -18,19 +18,11 @@
 
 <script setup>
 import { computed } from 'vue'
+import { CATEGORY_CSS } from '@/utils/category-constants.js'
 
 const props = defineProps({
   data: { type: Object, default: () => ({}) }
 })
-
-const CATEGORY_CSS = {
-  '肉类': { color: 'var(--c-cat-meat)', glow: 'var(--c-cat-meat-glow)' },
-  '海鲜': { color: 'var(--c-cat-seafood)', glow: 'var(--c-cat-seafood-glow)' },
-  '主食': { color: 'var(--c-cat-staples)', glow: 'var(--c-cat-staples-glow)' },
-  '甜点': { color: 'var(--c-cat-dessert)', glow: 'var(--c-cat-dessert-glow)' },
-  '饮料': { color: 'var(--c-cat-drinks)', glow: 'var(--c-cat-drinks-glow)' },
-  '其他': { color: 'var(--c-cat-other)', glow: 'var(--c-cat-other-glow)' }
-}
 
 function getCategoryColor(name) {
   return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).color
