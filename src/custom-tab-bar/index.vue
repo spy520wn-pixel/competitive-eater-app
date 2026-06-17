@@ -31,6 +31,7 @@ const tabs = [
   { pagePath: 'pages/index/index', text: '首页', icon: '/static/images/tab-home.png', activeIcon: '/static/images/tab-home-active.png', type: 'home' },
   { pagePath: 'pages/record/record', text: '战绩', icon: '/static/images/tab-record.png', activeIcon: '/static/images/tab-record-active.png', type: 'record' },
   { pagePath: 'pages/challenge/select', text: '挑战', icon: '/static/images/tab-challenge.png', activeIcon: '/static/images/tab-challenge-active.png', type: 'challenge' },
+  { pagePath: 'pages/creation/index', text: 'AI创作', icon: '/static/images/tab-creation.png', activeIcon: '/static/images/tab-creation-active.png', type: 'creation' },
   { pagePath: 'pages/mine/index', text: '我的', icon: '/static/images/tab-mine.png', activeIcon: '/static/images/tab-mine-active.png', type: 'mine' }
 ]
 
@@ -38,6 +39,7 @@ const pages = [
   'pages/index/index',
   'pages/record/record',
   'pages/challenge/select',
+  'pages/creation/index',
   'pages/mine/index'
 ]
 

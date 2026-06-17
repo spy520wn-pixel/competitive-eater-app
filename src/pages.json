@@ -50,6 +50,20 @@
       }
     },
     {
+      "path": "pages/creation/index",
+      "style": {
+        "navigationBarTitleText": "AI 创作",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/creation/create",
+      "style": {
+        "navigationBarTitleText": "创作",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/mine/index",
       "style": {
         "navigationBarTitleText": "我的",
@@ -104,6 +118,10 @@
       {
         "pagePath": "pages/challenge/select",
         "text": "挑战"
+      },
+      {
+        "pagePath": "pages/creation/index",
+        "text": "AI创作"
       },
       {
         "pagePath": "pages/mine/index",
