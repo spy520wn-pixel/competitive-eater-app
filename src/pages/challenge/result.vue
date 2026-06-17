@@ -86,20 +86,20 @@
         </view>
         <text class="collapse-icon">{{ showDetails ? '▾' : '▸' }}</text>
       </view>
-      <view v-show="showDetails">
-        <view v-for="group in groupedItems" :key="group.category" class="group-shell">
-          <view class="group-core">
-            <text class="group-title" :style="{ color: getCategoryColor(group.category) }">{{ group.category }}</text>
+      <view v-show="showDetails" class="detail-shell">
+        <view class="detail-core">
+          <view v-for="group in groupedItems" :key="group.category" class="detail-group">
+            <text class="detail-group-title" :style="{ color: getCategoryColor(group.category) }">{{ group.category }}</text>
             <view v-for="item in group.items" :key="item.menuItemId" class="detail-item">
               <text class="detail-name">{{ item.name }}</text>
               <text class="detail-qty">{{ item.quantity }}{{ item.unit }}</text>
             </view>
           </view>
-        </view>
-        <view v-if="record.items.length === 0" class="empty-items">
-          <text class="empty-items-icon">📝</text>
-          <text class="empty-items-text">本次挑战未记录菜品</text>
-          <text class="empty-items-hint">下次挑战时记得记录哦</text>
+          <view v-if="record.items.length === 0" class="empty-items">
+            <text class="empty-items-icon">📝</text>
+            <text class="empty-items-text">本次挑战未记录菜品</text>
+            <text class="empty-items-hint">下次挑战时记得记录哦</text>
+          </view>
         </view>
       </view>
     </view>
@@ -875,33 +875,32 @@ onShow(() => {
   letter-spacing: var(--text-label-ls, $type-label-ls);
 }
 
-/* ── Group Double-Bezel ── */
-.group-shell {
+/* ── Detail Single Card ── */
+.detail-shell {
+  animation: fadeInUp $dur-slow $ease-out-expo both;
+}
+
+.detail-core {
   background: var(--c-surface-2, $glass-white-2);
-  border: 1rpx solid var(--c-hairline, $hairline);
-  border-radius: $radius-xl;
-  padding: $bezel-offset;
-  margin-bottom: $inter-group;
-  animation: fadeInUp $dur-slow $ease-out-expo 0.3s both;
-}
-
-.group-core {
-  background: var(--c-surface-0, $surface-0);
+  border: 1rpx solid var(--c-surface-5, $glass-white-5);
   border-radius: $radius-lg;
-  padding: $card-pad-inner;
-  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
-  box-shadow: var(--c-shadow-inner, $shadow-inner);
+  padding: 28rpx;
 }
 
-.group-title {
-  font-size: var(--text-title-size, $type-title-size);
-  font-weight: var(--text-title-weight, $type-title-weight);
-  line-height: var(--text-title-lh, $type-title-lh);
-  color: var(--c-accent, $accent-orange);
-  margin-bottom: $intra-group;
-  padding-bottom: $intra-tight;
-  border-bottom: 1rpx solid var(--c-hairline, $hairline);
-  letter-spacing: var(--text-title-ls, $type-title-ls);
+.detail-group {
+  &:not(:last-child) {
+    margin-bottom: 24rpx;
+    padding-bottom: 20rpx;
+    border-bottom: 1rpx solid var(--c-surface-3, $glass-white-3);
+  }
+}
+
+.detail-group-title {
+  font-size: $label-size;
+  font-weight: $font-medium;
+  letter-spacing: $tracking-wide;
+  margin-bottom: 12rpx;
+  display: block;
 }
 
 .detail-item {
@@ -917,6 +916,7 @@ onShow(() => {
   line-height: var(--text-body-lh, $type-body-lh);
   color: var(--c-text-primary, $text-primary);
   letter-spacing: var(--text-body-ls, $type-body-ls);
+  flex: 1;
 }
 
 .detail-qty {
@@ -926,6 +926,7 @@ onShow(() => {
   color: var(--c-gold, $accent-gold);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--text-body-ls, $type-body-ls);
+  margin-left: 16rpx;
 }
 
 .empty-items {
