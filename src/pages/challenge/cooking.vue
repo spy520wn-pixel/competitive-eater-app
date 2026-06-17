@@ -9,6 +9,10 @@
           </text>
         </view>
         <view class="navbar-right">
+          <view class="hud-camera" @tap="onCamera">
+            <text class="hud-camera-icon">📷</text>
+            <text v-if="photoCount > 0" class="hud-camera-badge">{{ photoCount }}</text>
+          </view>
           <view class="end-btn" role="button" aria-label="结束挑战" @tap="onFinish">
             <text class="end-btn-text">结束</text>
           </view>
@@ -121,6 +125,7 @@ const categories = ref([])
 const activeCategory = ref('')
 const quantities = ref({})
 const showFinishConfirm = ref(false)
+const photoCount = ref(0)
 
 let timerInterval = null
 const remainingSeconds = ref(0)
@@ -196,6 +201,27 @@ function updateQuantity(dish, newQty) {
 
 function onFinish() {
   showFinishConfirm.value = true
+}
+
+function onCamera() {
+  uni.showActionSheet({
+    itemList: ['拍照', '从相册选择'],
+    success: (res) => {
+      const sourceType = res.tapIndex === 0 ? ['camera'] : ['album']
+      uni.chooseImage({
+        count: 9 - photoCount.value,
+        sizeType: ['compressed'],
+        sourceType,
+        success: (imgRes) => {
+          imgRes.tempFilePaths.forEach(path => {
+            recordStore.addPhoto(recordId.value, path)
+          })
+          photoCount.value += imgRes.tempFilePaths.length
+          uni.showToast({ title: `已保存 ${imgRes.tempFilePaths.length} 张照片`, icon: 'success' })
+        }
+      })
+    }
+  })
 }
 
 function confirmFinish() {
@@ -335,6 +361,7 @@ function loadRecord() {
     q[item.menuItemId] = item.quantity
   })
   quantities.value = q
+  photoCount.value = rec.photos?.length || 0
 }
 
 onLoad((options) => {
@@ -433,6 +460,43 @@ onShow(() => {
 .navbar-right {
   display: flex;
   align-items: center;
+  gap: $intra-group;
+}
+
+.hud-camera {
+  position: relative;
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-surface-3, $glass-white-3);
+  border-radius: 50%;
+  border: 1rpx solid var(--c-surface-5, $glass-white-5);
+  transition: transform $dur-fast $ease-spring;
+}
+
+.hud-camera:active {
+  transform: scale(0.9);
+}
+
+.hud-camera-icon {
+  font-size: 28rpx;
+}
+
+.hud-camera-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  text-align: center;
+  font-size: 18rpx;
+  color: #fff;
+  background: $accent-orange;
+  border-radius: $radius-pill;
+  padding: 0 6rpx;
 }
 
 .end-btn {
