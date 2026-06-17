@@ -64,6 +64,13 @@
       }
     },
     {
+      "path": "pages/creation/preview",
+      "style": {
+        "navigationBarTitleText": "视频预览",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/mine/index",
       "style": {
         "navigationBarTitleText": "我的",

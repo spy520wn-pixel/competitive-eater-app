@@ -160,8 +160,11 @@ function onCardTap(item) {
         urls: [item.resultUrl],
         current: item.resultUrl
       })
+    } else if (item.type === 'video' && item.resultUrl) {
+      uni.navigateTo({
+        url: `/pages/creation/preview?id=${item.id}`
+      })
     }
-    // 视频暂不处理预览
   } else if (item.status === 'failed') {
     uni.showModal({
       title: '重新创作',
