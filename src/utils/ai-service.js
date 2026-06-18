@@ -618,16 +618,23 @@ export async function generateImage({ record, style, photoPaths = [] }) {
     }
   }
 
-  const response = await withRetry(() => uni.request({
-    url: settings.aiServiceUrl,
-    method: 'POST',
-    header: {
-      'Authorization': `Bearer ${settings.aiApiKey}`,
-      'Content-Type': 'application/json'
-    },
-    data: requestData
+  const response = await withRetry(() => new Promise((resolve, reject) => {
+    uni.request({
+      url: settings.aiServiceUrl,
+      method: 'POST',
+      header: {
+        'Authorization': `Bearer ${settings.aiApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      data: requestData,
+      success: (res) => resolve(res),
+      fail: (err) => reject(err)
+    })
   }), { label: '生图大模型' })
 
+  if (response.statusCode !== 200) {
+    throw new Error(`生图服务返回错误 (${response.statusCode}): ${JSON.stringify(response.data)}`)
+  }
   if (!response.data?.data?.[0]?.url) {
     throw new Error('生图服务返回数据格式错误')
   }
@@ -656,14 +663,18 @@ export async function createVideoTask({ record, photoPath }) {
   // 注意：视频 API 的 image 字段要求是公网 URL，不支持 base64
   // 当前不传 image，使用纯文生视频模式
 
-  const response = await withRetry(() => uni.request({
-    url: settings.videoServiceUrl,
-    method: 'POST',
-    header: {
-      'Authorization': `Bearer ${settings.videoApiKey}`,
-      'Content-Type': 'application/json'
-    },
-    data: requestData
+  const response = await withRetry(() => new Promise((resolve, reject) => {
+    uni.request({
+      url: settings.videoServiceUrl,
+      method: 'POST',
+      header: {
+        'Authorization': `Bearer ${settings.videoApiKey}`,
+        'Content-Type': 'application/json'
+      },
+      data: requestData,
+      success: (res) => resolve(res),
+      fail: (err) => reject(err)
+    })
   }), { label: '视频大模型' })
 
   return {
