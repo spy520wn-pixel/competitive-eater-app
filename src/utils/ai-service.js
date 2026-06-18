@@ -677,6 +677,10 @@ export async function createVideoTask({ record, photoPath }) {
     })
   }), { label: '视频大模型' })
 
+  if (response.statusCode !== 200) {
+    throw new Error(`视频服务返回错误 (${response.statusCode}): ${JSON.stringify(response.data)}`)
+  }
+
   return {
     taskId: response.data.task_id,
     videoId: response.data.video_id
@@ -686,13 +690,21 @@ export async function createVideoTask({ record, photoPath }) {
 export async function queryVideoResult(videoId) {
   const settings = settingsStore.get()
 
-  const response = await uni.request({
-    url: `https://apihub.agnes-ai.com/agnesapi?video_id=${videoId}`,
-    method: 'GET',
-    header: {
-      'Authorization': `Bearer ${settings.videoApiKey}`
-    }
+  const response = await new Promise((resolve, reject) => {
+    uni.request({
+      url: `https://apihub.agnes-ai.com/agnesapi?video_id=${videoId}`,
+      method: 'GET',
+      header: {
+        'Authorization': `Bearer ${settings.videoApiKey}`
+      },
+      success: (res) => resolve(res),
+      fail: (err) => reject(err)
+    })
   })
+
+  if (response.statusCode !== 200) {
+    throw new Error(`视频查询返回错误 (${response.statusCode}): ${JSON.stringify(response.data)}`)
+  }
 
   return {
     status: response.data.status,
