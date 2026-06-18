@@ -1,6 +1,14 @@
 import { settingsStore } from '../store/settings-store'
 import { withRetry } from './retry'
 
+function buildCategoryText(items) {
+  const summary = {}
+  items.forEach(item => {
+    summary[item.category] = (summary[item.category] || 0) + item.quantity
+  })
+  return Object.entries(summary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+}
+
 export const IMAGE_STYLES = {
   '搞笑夸张': '搞笑夸张风格，食物放大变大，添加表情包元素，色彩鲜艳，有趣幽默',
   '动漫二次元': '动漫二次元风格，日系画风，可爱Q版人物，鲜艳配色',
@@ -79,12 +87,7 @@ export async function generatePoster(record, style, photoPaths = []) {
 
   const styleDesc = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
 
-  const catSummary = {}
-  record.items.forEach(item => {
-    if (!catSummary[item.category]) catSummary[item.category] = 0
-    catSummary[item.category] += item.quantity
-  })
-  const catText = Object.entries(catSummary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+  const catText = buildCategoryText(record.items)
 
   const prompt = `生成一张大胃王战绩海报。
 风格：${styleDesc}
@@ -451,6 +454,7 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
   try {
     const response = await withRetry(() => new Promise((resolve, reject) => {
       uni.request({
+        // 复用 OCR 大模型配置（同一服务同时支持识图和文本生成）
         url: settings.ocrServiceUrl,
         method: 'POST',
         header: {
@@ -527,6 +531,7 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
   try {
     const response = await withRetry(() => new Promise((resolve, reject) => {
       uni.request({
+        // 复用 OCR 大模型配置（同一服务同时支持识图和文本生成）
         url: settings.ocrServiceUrl,
         method: 'POST',
         header: {
@@ -560,12 +565,7 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
 function generateLocalPrompt(record, style) {
   const styleDesc = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
 
-  const catSummary = {}
-  record.items.forEach(item => {
-    if (!catSummary[item.category]) catSummary[item.category] = 0
-    catSummary[item.category] += item.quantity
-  })
-  const catText = Object.entries(catSummary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+  const catText = buildCategoryText(record.items)
 
   return `${styleDesc}。
 大胃王战绩海报：
@@ -584,12 +584,7 @@ export async function generateImage({ record, style, photoPaths = [] }) {
 
   const stylePrompt = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
 
-  const catSummary = {}
-  record.items.forEach(item => {
-    if (!catSummary[item.category]) catSummary[item.category] = 0
-    catSummary[item.category] += item.quantity
-  })
-  const catText = Object.entries(catSummary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+  const catText = buildCategoryText(record.items)
 
   const prompt = `${stylePrompt}。
 大胃王战绩海报：
@@ -634,6 +629,9 @@ export async function generateImage({ record, style, photoPaths = [] }) {
     data: requestData
   }), { label: '生图大模型' })
 
+  if (!response.data?.data?.[0]?.url) {
+    throw new Error('生图服务返回数据格式错误')
+  }
   return response.data.data[0].url
 }
 
@@ -643,12 +641,7 @@ export async function createVideoTask({ record, photoPath }) {
     throw new Error('请先在设置中配置视频大模型服务地址和 API Key')
   }
 
-  const catSummary = {}
-  record.items.forEach(item => {
-    if (!catSummary[item.category]) catSummary[item.category] = 0
-    catSummary[item.category] += item.quantity
-  })
-  const catText = Object.entries(catSummary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+  const catText = buildCategoryText(record.items)
 
   const prompt = `大胃王挑战精彩瞬间，${record.shopName}，战斗力${record.score}分，吃了${catText}，动感镜头，电影级画质。`
 
