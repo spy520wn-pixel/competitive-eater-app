@@ -585,17 +585,13 @@ export async function generateImage({ record, style, photoPaths = [] }) {
     throw new Error('请先在设置中配置生图大模型服务地址和 API Key')
   }
 
-  const stylePrompt = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
-
-  const catText = buildCategoryText(record.items)
-
-  const prompt = `${stylePrompt}。
-大胃王战绩海报：
-- 店铺：${record.shopName}
-- 战斗力：${record.score}分
-- 菜品：${catText}
-- 时长：${record.duration}分钟
-要求：突出战绩数据，视觉冲击力强，适合发朋友圈炫耀。`
+  // 根据是否有照片选择不同的提示词生成方式
+  let prompt
+  if (photoPaths.length > 0) {
+    prompt = await generatePromptWithPhoto(record, style, photoPaths)
+  } else {
+    prompt = await generatePrompt(record, style)
+  }
 
   const requestData = {
     model: settings.aiModel || 'agnes-image-2.0-flash',
