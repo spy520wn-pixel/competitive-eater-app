@@ -12,6 +12,65 @@ export const IMAGE_STYLES = {
   '油画艺术': '油画艺术风格，厚涂笔触，浓郁色彩，艺术感，古典画风'
 }
 
+const TEXT_TO_IMAGE_SYSTEM_PROMPT = `你是一个专业的 AI 创作提示词生成助手。你的任务是根据用户的大胃王挑战战绩数据，生成高质量的图像生成提示词。
+
+## 输入数据
+- 店铺名称
+- 档位名称（可选）
+- 菜品列表（名称、数量、分类）
+- 风格选择
+- 战斗力评分
+- 时长
+
+## 输出要求
+1. 生成一段画面感强的场景描述
+2. 突出具体菜品名称，而非分类汇总
+3. 结合风格特点，添加相应的视觉元素
+4. 适合生成朋友圈炫耀的图片
+5. 长度控制在 200-300 字
+6. 直接输出提示词内容，不要添加任何解释或说明
+
+## 示例输入
+- 店铺：海底捞火锅
+- 菜品：肥牛卷x3、虾滑x2、毛肚x1、羊肉卷x2、冰淇淋x1
+- 风格：搞笑夸张
+- 战斗力：85分
+- 时长：90分钟
+
+## 示例输出
+在海底捞火锅的热闹氛围中，一位大胃王正在享用丰盛的美食。桌上摆满了肥牛卷、虾滑、毛肚、羊肉卷等8道美味，搭配冰淇淋作为完美收尾。战斗力评分85分，用时90分钟。搞笑夸张风格，食物放大变大，添加表情包元素，色彩鲜艳，有趣幽默。`
+
+const IMAGE_TO_IMAGE_SYSTEM_PROMPT = `你是一个专业的 AI 创作提示词生成助手。你的任务是根据用户上传的照片和大胃王挑战战绩数据，生成高质量的图像生成提示词。
+
+## 输入数据
+- 用户上传的照片（将作为参考图）
+- 店铺名称
+- 档位名称（可选）
+- 菜品列表（名称、数量、分类）
+- 风格选择
+- 战斗力评分
+- 时长
+
+## 输出要求
+1. 先描述照片中的食物内容
+2. 结合战绩数据，补充照片中可能未体现的菜品
+3. 生成融合照片内容和战绩数据的场景描述
+4. 结合风格特点，添加相应的视觉元素
+5. 提示词中注明"参考图片中的内容"
+6. 长度控制在 200-300 字
+7. 直接输出提示词内容，不要添加任何解释或说明
+
+## 示例输入
+- 照片：火锅照片
+- 店铺：海底捞火锅
+- 菜品：肥牛卷x3、虾滑x2、毛肚x1、羊肉卷x2、冰淇淋x1
+- 风格：搞笑夸张
+- 战斗力：85分
+- 时长：90分钟
+
+## 示例输出
+参考图片中的火锅场景，桌上摆满了各种美食。结合战绩数据，补充了照片中可能未体现的菜品：肥牛卷、虾滑、毛肚、羊肉卷等8道美味，搭配冰淇淋作为完美收尾。在海底捞火锅的氛围下，大胃王挑战成功，战斗力评分85分，用时90分钟。搞笑夸张风格，保留原图构图，增加夸张表现元素，食物放大变大，添加表情包元素。`
+
 export async function generatePoster(record, style, photoPaths = []) {
   const settings = settingsStore.get()
   if (!settings.aiServiceUrl || !settings.aiApiKey) {
@@ -368,6 +427,153 @@ export async function recognizeMenu(imagePath) {
     console.error('解析AI返回数据失败:', content, e)
     throw new Error('解析AI返回数据失败，请重试')
   }
+}
+
+export async function generatePrompt(record, style) {
+  const settings = settingsStore.get()
+  if (!settings.ocrServiceUrl || !settings.ocrApiKey) {
+    return generateLocalPrompt(record, style)
+  }
+
+  const styleDesc = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
+  const itemsText = record.items.map(item =>
+    `${item.name}x${item.quantity}`
+  ).join('、')
+
+  const userMessage = `请根据以下数据生成图像提示词：
+- 店铺：${record.shopName}
+${record.tierName ? '- 档位：' + record.tierName : ''}
+- 菜品：${itemsText}
+- 风格：${style}（${styleDesc}）
+- 战斗力：${record.score}分
+- 时长：${record.duration}分钟`
+
+  try {
+    const response = await withRetry(() => new Promise((resolve, reject) => {
+      uni.request({
+        url: settings.ocrServiceUrl,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.ocrApiKey}`
+        },
+        data: {
+          model: settings.ocrModel || 'agnes-2.0-flash',
+          messages: [
+            { role: 'system', content: TEXT_TO_IMAGE_SYSTEM_PROMPT },
+            { role: 'user', content: userMessage }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        },
+        success: (res) => resolve(res),
+        fail: (err) => reject(err)
+      })
+    }), { label: 'LLM 提示词生成' })
+
+    if (response.statusCode === 200 && response.data.choices?.[0]) {
+      return response.data.choices[0].message.content.trim()
+    }
+  } catch (e) {
+    console.warn('LLM 提示词生成失败，降级使用本地模板:', e.message)
+  }
+
+  return generateLocalPrompt(record, style)
+}
+
+export async function generatePromptWithPhoto(record, style, photoPaths) {
+  const settings = settingsStore.get()
+  if (!settings.ocrServiceUrl || !settings.ocrApiKey) {
+    return generateLocalPrompt(record, style)
+  }
+
+  const styleDesc = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
+  const itemsText = record.items.map(item =>
+    `${item.name}x${item.quantity}`
+  ).join('、')
+
+  const userMessage = `请根据以下数据和照片生成图像提示词：
+- 照片：用户上传了${photoPaths.length}张照片（将作为参考图）
+- 店铺：${record.shopName}
+${record.tierName ? '- 档位：' + record.tierName : ''}
+- 菜品：${itemsText}
+- 风格：${style}（${styleDesc}）
+- 战斗力：${record.score}分
+- 时长：${record.duration}分钟
+
+请先识别照片中的食物内容，然后结合战绩数据生成融合提示词。`
+
+  const imageContent = []
+  for (const path of photoPaths.slice(0, 3)) {
+    try {
+      const base64 = await imageToBase64(path)
+      if (base64) {
+        imageContent.push({
+          type: 'image_url',
+          image_url: { url: base64 }
+        })
+      }
+    } catch (e) {
+      console.warn('照片转 base64 失败:', e.message)
+    }
+  }
+
+  if (imageContent.length === 0) {
+    return generatePrompt(record, style)
+  }
+
+  imageContent.push({ type: 'text', text: userMessage })
+
+  try {
+    const response = await withRetry(() => new Promise((resolve, reject) => {
+      uni.request({
+        url: settings.ocrServiceUrl,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.ocrApiKey}`
+        },
+        data: {
+          model: settings.ocrModel || 'agnes-2.0-flash',
+          messages: [
+            { role: 'system', content: IMAGE_TO_IMAGE_SYSTEM_PROMPT },
+            { role: 'user', content: imageContent }
+          ],
+          max_tokens: 1000,
+          temperature: 0.7
+        },
+        success: (res) => resolve(res),
+        fail: (err) => reject(err)
+      })
+    }), { label: 'LLM 提示词生成' })
+
+    if (response.statusCode === 200 && response.data.choices?.[0]) {
+      return response.data.choices[0].message.content.trim()
+    }
+  } catch (e) {
+    console.warn('LLM 提示词生成失败，降级使用本地模板:', e.message)
+  }
+
+  return generateLocalPrompt(record, style)
+}
+
+function generateLocalPrompt(record, style) {
+  const styleDesc = IMAGE_STYLES[style] || IMAGE_STYLES['简约战绩']
+
+  const catSummary = {}
+  record.items.forEach(item => {
+    if (!catSummary[item.category]) catSummary[item.category] = 0
+    catSummary[item.category] += item.quantity
+  })
+  const catText = Object.entries(catSummary).map(([cat, qty]) => `${cat}${qty}`).join('、')
+
+  return `${styleDesc}。
+大胃王战绩海报：
+- 店铺：${record.shopName}
+- 战斗力：${record.score}分
+- 菜品：${catText}
+- 时长：${record.duration}分钟
+要求：突出战绩数据，视觉冲击力强，适合发朋友圈炫耀。`
 }
 
 export async function generateImage({ record, style, photoPaths = [] }) {
