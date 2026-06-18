@@ -114,6 +114,9 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
     }
   }), { label: '生图大模型' })
 
+  if (!response.data?.data?.[0]?.url) {
+    throw new Error('生图服务返回数据格式错误')
+  }
   return response.data.data[0].url
 }
 
