@@ -9,17 +9,19 @@
     </view>
 
     <!-- Sort bar -->
-    <view v-if="shopGroups.length > 0" class="sort-bar">
+    <view v-if="shopGroups.length > 0" class="sort-bar" role="radiogroup" aria-label="排序方式">
       <view class="sort-options">
         <text
           v-for="opt in sortOptions"
           :key="opt.key"
           class="sort-tag"
+          role="radio"
+          :aria-checked="sortBy === opt.key ? 'true' : 'false'"
           :class="{ 'sort-tag--active': sortBy === opt.key }"
           @tap="toggleSort(opt.key)"
         >{{ opt.label }}</text>
       </view>
-      <view class="sort-order" @tap="toggleOrder">
+      <view class="sort-order" role="button" :aria-label="sortOrder === 'desc' ? '降序排列，点击切换为升序' : '升序排列，点击切换为降序'" @tap="toggleOrder">
         <text class="sort-order-icon">{{ sortOrder === 'desc' ? '↓' : '↑' }}</text>
       </view>
     </view>
@@ -93,6 +95,7 @@ import { getRelativeTime, formatDate } from '@/utils/time.js'
 import EmptyState from '@/components/empty-state.vue'
 import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
+import { getShopTier, isRecent, getShopIcon } from '@/utils/shop-utils.js'
 
 const PAGE_SIZE = 20
 const records = ref([])
@@ -114,15 +117,6 @@ function toggleSort(key) {
 
 function toggleOrder() {
   sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
-}
-
-const CATEGORY_ICONS = {
-  '自助餐': '🍖',
-  '海鲜': '🦐',
-  '火锅': '🍲',
-  '烧烤': '🥩',
-  '日料': '🍣',
-  'default': '🍽️'
 }
 
 const shopGroups = computed(() => {
@@ -150,7 +144,7 @@ const shopGroups = computed(() => {
   return Object.values(groups)
     .map(g => ({
       ...g,
-      icon: CATEGORY_ICONS[g.shopName] || CATEGORY_ICONS['default']
+      icon: getShopIcon(g.shopName)
     }))
     .sort((a, b) => {
       const order = sortOrder.value === 'desc' ? 1 : -1
@@ -180,19 +174,6 @@ function loadMore() {
 function loadData() {
   records.value = recordStore.getAll()
   displayCount.value = PAGE_SIZE
-}
-
-function getShopTier(count) {
-  if (count >= 10) return 'shop-tier--gold'
-  if (count >= 5) return 'shop-tier--silver'
-  if (count >= 1) return 'shop-tier--bronze'
-  return ''
-}
-
-function isRecent(dateStr) {
-  if (!dateStr) return false
-  const daysSince = (Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)
-  return daysSince <= 7
 }
 
 function goShopRecords(shopId) {
@@ -263,13 +244,13 @@ onShow(() => {
   border-radius: $radius-pill;
   background: var(--c-surface-2, $glass-white-2);
   border: 1rpx solid transparent;
-  transition: all $dur-micro $ease-out-expo;
+  transition: color $dur-micro $ease-out-expo, border-color $dur-micro $ease-out-expo;
 }
 
 .sort-tag--active {
-  color: $accent-orange;
-  border-color: $accent-orange;
-  background: rgba(255, 107, 53, 0.1);
+  color: var(--c-accent);
+  border-color: var(--c-accent);
+  background: var(--c-accent-glow);
 }
 
 .sort-order {
@@ -292,7 +273,7 @@ onShow(() => {
   background: var(--c-surface-1, $surface-1);
   border: 1rpx solid var(--c-border, $hairline);
   border-radius: $radius-xl;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.25), 0 1rpx 3rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2rpx 12rpx var(--c-shadow-md), 0 1rpx 3rpx var(--c-shadow-sm);
   margin-bottom: $inter-group;
   animation: revealSlide $dur-entrance $ease-out-expo both;
   transition: transform $dur-fast $ease-spring, box-shadow $dur-fast $ease-spring;
@@ -301,7 +282,7 @@ onShow(() => {
 
 .shop-card-shell:active {
   transform: scale(0.98);
-  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1rpx 4rpx var(--c-shadow-sm);
 }
 
 .shop-card-core {
@@ -435,7 +416,7 @@ onShow(() => {
   align-items: center;
   justify-content: center;
   margin-bottom: $intra-group;
-  animation: float 4s $ease-in-out-smooth infinite;
+  animation: float 4s $ease-in-out-smooth 3;
 }
 
 .empty-icon {
@@ -472,26 +453,26 @@ onShow(() => {
 
 /* ── Shop Tiers ── */
 .shop-tier--bronze .shop-icon-wrap {
-  background: rgba(205, 127, 50, 0.12);
-  border-color: rgba(205, 127, 50, 0.2);
+  background: var(--c-tier-bronze-soft);
+  border-color: var(--c-tier-bronze-border);
 }
 
 .shop-tier--silver .shop-icon-wrap {
-  background: rgba(192, 192, 192, 0.12);
-  border-color: rgba(192, 192, 192, 0.25);
+  background: var(--c-tier-silver-soft);
+  border-color: var(--c-tier-silver-border);
 }
 
 .shop-tier--gold {
-  border-color: rgba(255, 215, 0, 0.15) !important;
+  border-color: var(--c-gold-soft) !important;
 }
 
 .shop-tier--gold .shop-icon-wrap {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.25);
-  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.1);
+  background: var(--c-gold-soft);
+  border-color: var(--c-gold-glow-strong);
+  box-shadow: 0 0 16rpx var(--c-glow-gold);
 }
 
 .shop-icon-wrap--frequent {
-  box-shadow: 0 0 12rpx rgba(255, 107, 53, 0.15);
+  box-shadow: 0 0 12rpx var(--c-glow-accent);
 }
 </style>

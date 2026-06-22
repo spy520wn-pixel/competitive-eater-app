@@ -8,7 +8,7 @@
       aria-label="搜索店铺"
     >
       <template #extra>
-        <view class="import-btn" @tap="showImportPanel">
+        <view class="import-btn" role="button" aria-label="导入店铺" @tap="showImportPanel">
           <text class="import-btn__text">📥 导入</text>
         </view>
       </template>
@@ -49,11 +49,11 @@
           <view class="shop-card__glow" />
         </view>
         <view class="shop-card-actions" :class="{ 'shop-card-actions--visible': swipedShopId === shop.id }">
-          <view class="swipe-action swipe-action--edit" @tap="editShop(shop)">
+          <view class="swipe-action swipe-action--edit" role="button" aria-label="编辑店铺" @tap="editShop(shop)">
             <text class="swipe-action-icon">✏️</text>
             <text class="swipe-action-text">编辑</text>
           </view>
-          <view class="swipe-action swipe-action--delete" @tap="deleteShop(shop)">
+          <view class="swipe-action swipe-action--delete" role="button" aria-label="删除店铺" @tap="deleteShop(shop)">
             <text class="swipe-action-icon">🗑</text>
             <text class="swipe-action-text">删除</text>
           </view>
@@ -74,15 +74,17 @@
     />
 
     <!-- Floating Add Button -->
-    <view class="fab" @tap="addShop">
+    <view class="fab" role="button" aria-label="添加店铺" @tap="addShop">
       <text class="fab-text">+</text>
     </view>
 
     <!-- Import Panel -->
     <ImportShopsPanel
       :visible="importPanelVisible"
+      :existing-shops="shops"
       @close="importPanelVisible = false"
       @imported="onImported"
+      @import-shops="onImportShops"
     />
   </view>
 </template>
@@ -93,7 +95,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { onShow, onReachBottom } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
-import { settingsStore, currentTheme } from '@/store/settings-store.js'
+import { settingsStore, currentTheme, getConfirmColor } from '@/store/settings-store.js'
 import ImportShopsPanel from '@/components/import-shops-panel.vue'
 import EmptyState from '@/components/empty-state.vue'
 import SearchBar from '@/components/search-bar.vue'
@@ -165,6 +167,11 @@ function onImported() {
   loadShops()
 }
 
+function onImportShops(shopsToImport) {
+  shopsToImport.forEach(shopData => shopStore.create(shopData))
+  loadShops()
+}
+
 function editShop(shop) {
   swipedShopId.value = null
   uni.navigateTo({ url: `/pages/mine/shop-edit?id=${shop.id}` })
@@ -175,7 +182,7 @@ function deleteShop(shop) {
   uni.showModal({
     title: '确认删除',
     content: `确定要删除「${shop.name}」吗？此操作不可恢复。`,
-    confirmColor: '#FF6B35',
+    confirmColor: getConfirmColor(),
     success(res) {
       if (res.confirm) {
         shopStore.remove(shop.id)
@@ -283,13 +290,11 @@ function onTouchEnd(shopId) {
   border: 1rpx solid var(--c-border-active, $hairline-active);
   border-radius: $radius-xl;
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
   transition: transform $dur-fast $ease-spring, box-shadow $dur-fast $ease-out-quint;
   overflow: hidden;
   &:active {
     transform: scale(0.98);
-    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 30rpx rgba(255, 107, 53, 0.12);
+    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 30rpx var(--c-accent-glow);
   }
 }
 
@@ -429,11 +434,6 @@ function onTouchEnd(shopId) {
   font-weight: 300;
   line-height: 1;
   margin-top: -2rpx;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 /* ── List End ── */

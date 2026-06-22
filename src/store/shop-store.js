@@ -47,75 +47,77 @@ export const shopStore = {
   // 档位管理
   addTier(shopId, tierName) {
     const shop = shopStorage.getById(shopId)
-    if (!shop) return null
+    if (!shop) return { success: false, error: '店铺不存在' }
     const tier = createTier({ shopId, name: tierName })
-    shop.tiers = [...shop.tiers, tier]
-    shop.hasTiers = true
-    shopStorage.update(shopId, { tiers: shop.tiers, hasTiers: true })
-    return tier
+    const newTiers = [...shop.tiers, tier]
+    shopStorage.update(shopId, { tiers: newTiers, hasTiers: true })
+    return { success: true, data: tier }
   },
 
   removeTier(shopId, tierId) {
     const shop = shopStorage.getById(shopId)
-    if (!shop) return
-    shop.tiers = shop.tiers.filter(t => t.id !== tierId)
-    if (shop.tiers.length === 0) shop.hasTiers = false
-    shopStorage.update(shopId, { tiers: shop.tiers, hasTiers: shop.hasTiers })
+    if (!shop) return { success: false, error: '店铺不存在' }
+    const newTiers = shop.tiers.filter(t => t.id !== tierId)
+    shopStorage.update(shopId, { tiers: newTiers, hasTiers: newTiers.length > 0 })
+    return { success: true }
   },
 
   updateTier(shopId, tierId, updates) {
     const shop = shopStorage.getById(shopId)
-    if (!shop) return
-    shop.tiers = shop.tiers.map(t => t.id === tierId ? { ...t, ...updates } : t)
-    shopStorage.update(shopId, { tiers: shop.tiers })
+    if (!shop) return { success: false, error: '店铺不存在' }
+    const newTiers = shop.tiers.map(t => t.id === tierId ? { ...t, ...updates } : t)
+    shopStorage.update(shopId, { tiers: newTiers })
+    return { success: true }
   },
 
   // 菜单管理
   addMenuItem(shopId, itemData, tierId = null) {
     const shop = shopStorage.getById(shopId)
-    if (!shop) return null
+    if (!shop) return { success: false, error: '店铺不存在' }
     const item = createMenuItem({ ...itemData, shopId, tierId: tierId || '' })
     if (tierId) {
-      shop.tiers = shop.tiers.map(t => {
+      const newTiers = shop.tiers.map(t => {
         if (t.id === tierId) return { ...t, menu: [...t.menu, item] }
         return t
       })
-      shopStorage.update(shopId, { tiers: shop.tiers })
+      shopStorage.update(shopId, { tiers: newTiers })
     } else {
-      shop.menu = [...shop.menu, item]
-      shopStorage.update(shopId, { menu: shop.menu })
+      const newMenu = [...shop.menu, item]
+      shopStorage.update(shopId, { menu: newMenu })
     }
-    return item
+    return { success: true, data: item }
   },
 
   removeMenuItem(shopId, itemId, tierId = null) {
     const shop = shopStorage.getById(shopId)
-    if (!shop) return
+    if (!shop) return { success: false, error: '店铺不存在' }
     if (tierId) {
-      shop.tiers = shop.tiers.map(t => {
+      const newTiers = shop.tiers.map(t => {
         if (t.id === tierId) return { ...t, menu: t.menu.filter(m => m.id !== itemId) }
         return t
       })
-      shopStorage.update(shopId, { tiers: shop.tiers })
+      shopStorage.update(shopId, { tiers: newTiers })
     } else {
-      shop.menu = shop.menu.filter(m => m.id !== itemId)
-      shopStorage.update(shopId, { menu: shop.menu })
+      const newMenu = shop.menu.filter(m => m.id !== itemId)
+      shopStorage.update(shopId, { menu: newMenu })
     }
+    return { success: true }
   },
 
   updateMenuItem(shopId, itemId, updates, tierId = null) {
     const shop = shopStorage.getById(shopId)
-    if (!shop) return
+    if (!shop) return { success: false, error: '店铺不存在' }
     if (tierId) {
-      shop.tiers = shop.tiers.map(t => {
+      const newTiers = shop.tiers.map(t => {
         if (t.id === tierId) return { ...t, menu: t.menu.map(m => m.id === itemId ? { ...m, ...updates } : m) }
         return t
       })
-      shopStorage.update(shopId, { tiers: shop.tiers })
+      shopStorage.update(shopId, { tiers: newTiers })
     } else {
-      shop.menu = shop.menu.map(m => m.id === itemId ? { ...m, ...updates } : m)
-      shopStorage.update(shopId, { menu: shop.menu })
+      const newMenu = shop.menu.map(m => m.id === itemId ? { ...m, ...updates } : m)
+      shopStorage.update(shopId, { menu: newMenu })
     }
+    return { success: true }
   },
 
   getMenu(shopId, tierId = null) {
@@ -132,6 +134,12 @@ export const shopStore = {
     shopStorage.batchUpdate(list => {
       const shop = list.find(s => s.id === shopId)
       if (!shop) return
+      // Deep clone nested structures before mutation
+      if (tierId) {
+        shop.tiers = shop.tiers.map(t => ({ ...t, menu: [...t.menu] }))
+      } else {
+        shop.menu = [...shop.menu]
+      }
       items.forEach(itemData => {
         const item = createMenuItem({ ...itemData, shopId, tierId: tierId || '' })
         if (tierId) {

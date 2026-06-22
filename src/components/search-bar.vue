@@ -91,7 +91,7 @@ onUnmounted(() => {
 .search-clear {
   font-size: 28rpx;
   color: var(--c-text-muted, $text-muted);
-  padding: 8rpx 12rpx;
+  padding: 16rpx 20rpx;
   margin-left: 8rpx;
   opacity: 0.6;
   transition: opacity $dur-micro $ease-out-expo;

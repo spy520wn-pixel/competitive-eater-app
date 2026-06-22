@@ -72,6 +72,7 @@
 <script setup>
 import NavBar from '@/components/nav-bar.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { CATEGORY_ORDER } from '@/constants/categories.js'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { recordStore } from '../../store/record-store'
 import { settingsStore, currentTheme } from '../../store/settings-store'
@@ -81,8 +82,6 @@ import EmptyState from '@/components/empty-state.vue'
 const shopId = ref('')
 const shopName = ref('')
 const records = ref([])
-
-const CATEGORY_ORDER = ['肉类', '海鲜', '主食', '甜点', '饮料', '其他']
 
 function formatDate(isoStr) {
   if (!isoStr) return ''
@@ -172,8 +171,6 @@ onShow(() => {
   border: 1rpx solid var(--c-surface-12, $glass-white-12);
   border-radius: $radius-2xl;
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
   margin-bottom: $section-gap;
   animation: fadeInUp $dur-slow $ease-out-expo both;
   overflow: hidden;
@@ -226,8 +223,6 @@ onShow(() => {
   border: 1rpx solid var(--c-surface-12, $glass-white-12);
   border-radius: $radius-2xl;
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
   animation: fadeInUp $dur-slow $ease-out-expo both;
   transition: transform $dur-fast $ease-spring, box-shadow $dur-fast $ease-spring;
   overflow: hidden;
@@ -238,9 +233,9 @@ onShow(() => {
 }
 
 .record-card-shell--best {
-  border-color: rgba(255, 215, 0, 0.3);
-  background: linear-gradient(165deg, rgba(255, 215, 0, 0.12) 0%, rgba(255, 215, 0, 0.04) 100%);
-  box-shadow: 0 8rpx 40rpx rgba(255, 215, 0, 0.15), var(--c-shadow-inner, $shadow-inner);
+  border-color: var(--c-gold-glow-strong);
+  background: linear-gradient(165deg, var(--c-gold-soft) 0%, var(--c-gold-soft) 100%);
+  box-shadow: 0 8rpx 40rpx var(--c-glow-gold), var(--c-shadow-inner, $shadow-inner);
 }
 
 .record-card-core {
@@ -252,8 +247,8 @@ onShow(() => {
 }
 
 .record-card-shell--best .record-card-core {
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.06) 0%, var(--c-surface-0, $surface-0) 100%);
-  border-color: rgba(255, 215, 0, 0.1);
+  background: linear-gradient(135deg, var(--c-gold-soft) 0%, var(--c-surface-0, $surface-0) 100%);
+  border-color: var(--c-gold-glow);
 }
 
 .record-top {
@@ -293,12 +288,12 @@ onShow(() => {
 
 .record-score--best {
   color: var(--c-gold, $accent-gold);
-  text-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3);
+  text-shadow: 0 0 20rpx var(--c-gold-glow-strong);
 }
 
 .best-badge {
-  animation: pulseGlow 2s ease-in-out infinite;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 215, 0, 0.1) 100%);
+  animation: pulseGlow 2s ease-in-out 3;
+  background: linear-gradient(135deg, var(--c-gold-glow) 0%, var(--c-gold-glow) 100%);
   border-radius: $radius-pill;
   padding: 4rpx 12rpx;
   margin-left: 8rpx;

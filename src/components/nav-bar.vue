@@ -1,12 +1,12 @@
 <template>
-  <view class="nav-bar" :style="navBarStyle">
+  <view class="nav-bar" :data-theme="theme">
     <view :style="{ height: statusBarHeight + 'px' }" />
     <view class="nav-bar__content">
-      <view class="nav-bar__left" @tap="onBack" v-if="showBack">
-        <text class="nav-bar__back" :style="textStyle">‹</text>
+      <view class="nav-bar__left" role="button" tabindex="0" aria-label="返回" @tap="onBack" @keydown.enter="onBack" v-if="showBack">
+        <text class="nav-bar__back">‹</text>
       </view>
       <view class="nav-bar__left" v-else />
-      <text class="nav-bar__title" :style="textStyle">{{ title }}</text>
+      <text class="nav-bar__title">{{ title }}</text>
       <view class="nav-bar__right">
         <slot name="right" />
       </view>
@@ -17,8 +17,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { settingsStore } from '@/store/settings-store.js'
+import { ref, onMounted } from 'vue'
+import { useTheme } from '@/composables/useTheme.js'
 
 const props = defineProps({
   title: { type: String, default: '' },
@@ -26,37 +26,13 @@ const props = defineProps({
 })
 
 const statusBarHeight = ref(20)
-const theme = ref('dark')
-
-function readTheme() {
-  try {
-    const s = settingsStore.get()
-    theme.value = s.theme || 'dark'
-  } catch (e) {}
-}
+const { theme } = useTheme()
 
 onMounted(() => {
-  readTheme()
   try {
     const sysInfo = uni.getSystemInfoSync()
     statusBarHeight.value = sysInfo.statusBarHeight || 20
   } catch (e) {}
-  uni.$on('theme-apply', (t) => { theme.value = t })
-  uni.$on('tabbar-theme-change', (t) => { theme.value = t })
-})
-
-const navBarStyle = computed(() => {
-  const isLight = theme.value === 'light'
-  return {
-    background: isLight ? '#F4F1EC' : '#0A0A12'
-  }
-})
-
-const textStyle = computed(() => {
-  const isLight = theme.value === 'light'
-  return {
-    color: isLight ? '#181820' : '#F0F0F5'
-  }
 })
 
 function onBack() {
@@ -71,6 +47,7 @@ function onBack() {
   left: 0;
   right: 0;
   z-index: 999;
+  background: var(--c-bg);
 }
 
 .nav-bar__content {
@@ -100,6 +77,7 @@ function onBack() {
   font-size: 28px;
   font-weight: 300;
   line-height: 44px;
+  color: var(--c-text-primary);
 }
 
 .nav-bar__title {
@@ -107,5 +85,6 @@ function onBack() {
   font-weight: 600;
   text-align: center;
   flex: 1;
+  color: var(--c-text-primary);
 }
 </style>

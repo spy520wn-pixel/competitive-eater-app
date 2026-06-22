@@ -50,7 +50,7 @@
 
     <!-- Category stats (collapsible) -->
     <view class="section">
-      <view class="section-header section-header--collapsible" @tap="showStats = !showStats">
+      <view class="section-header section-header--collapsible" role="button" :aria-expanded="showStats ? 'true' : 'false'" aria-label="分类食量统计" @tap="showStats = !showStats">
         <view class="header-left">
           <view class="eyebrow">
             <text class="eyebrow-text">统计</text>
@@ -77,7 +77,7 @@
 
     <!-- Order details (collapsible) -->
     <view class="section">
-      <view class="section-header section-header--collapsible" @tap="showDetails = !showDetails">
+      <view class="section-header section-header--collapsible" role="button" :aria-expanded="showDetails ? 'true' : 'false'" aria-label="点餐明细" @tap="showDetails = !showDetails">
         <view class="header-left">
           <view class="eyebrow">
             <text class="eyebrow-text">明细</text>
@@ -119,6 +119,8 @@
           class="photo-thumb"
           :src="p"
           mode="aspectFill"
+          lazy-load
+          :aria-label="'挑战照片 ' + (i + 1)"
           @tap="previewPhoto(i)"
         />
       </view>
@@ -142,7 +144,7 @@
       :style="{ position: 'fixed', left: '-9999px', width: canvasWidth + 'px', height: canvasHeight + 'px' }" />
 
     <!-- Level Up Celebration -->
-    <view v-if="showLevelUp" class="levelup-mask" @tap="showLevelUp = false">
+    <view v-if="showLevelUp" class="levelup-mask" role="dialog" aria-modal="true" aria-label="恭喜升级" @tap="showLevelUp = false">
       <view class="levelup-dialog" @tap.stop>
         <view class="levelup-confetti">
           <text class="confetti-item">🎉</text>
@@ -162,7 +164,7 @@
           </view>
           <text class="levelup-desc">继续挑战，解锁更多成就！</text>
         </view>
-        <view class="levelup-action" @tap="showLevelUp = false">
+        <view class="levelup-action" role="button" aria-label="太棒了" @tap="showLevelUp = false">
           <text class="levelup-action-text">太棒了！</text>
         </view>
       </view>
@@ -179,16 +181,8 @@ import { getLevel, scoreToExp } from '../../utils/level'
 import { saveReceiptToAlbum, calcReceiptHeight } from '../../utils/receipt-renderer'
 import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
-
-import { CATEGORY_CSS } from '@/utils/category-constants.js'
-
-function getCategoryColor(name) {
-  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).color
-}
-
-function getCategoryGlow(name) {
-  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).glow
-}
+import { formatDate } from '@/utils/time.js'
+import { getCategoryColor, getCategoryGlow } from '@/utils/category-constants.js'
 
 const recordId = ref('')
 const canvasWidth = ref(375)
@@ -249,22 +243,23 @@ const groupedItems = computed(() => {
   }))
 })
 
-function formatDate(isoStr) {
-  if (!isoStr) return ''
-  const d = new Date(isoStr)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 function goHome() {
   uni.switchTab({ url: '/pages/index/index' })
 }
 
 async function onGenerateReceipt() {
   uni.showLoading({ title: '生成中...' })
-  canvasHeight.value = calcReceiptHeight(record.value)
-  await nextTick()
-  await saveReceiptToAlbum(record.value, canvasWidth.value)
-  uni.hideLoading()
+  try {
+    canvasHeight.value = calcReceiptHeight(record.value)
+    await nextTick()
+    await saveReceiptToAlbum(record.value, canvasWidth.value)
+    uni.showToast({ title: '已保存到相册', icon: 'success' })
+  } catch (e) {
+    console.error('生成小票失败:', e)
+    uni.showToast({ title: '生成失败，请重试', icon: 'none' })
+  } finally {
+    uni.hideLoading()
+  }
 }
 
 function onShare() {
@@ -521,7 +516,7 @@ onShow(() => {
 .spotlight-mask {
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 35%, transparent 0%, rgba(0, 0, 0, 0.6) 60%, rgba(0, 0, 0, 0.85) 100%);
+  background: var(--c-overlay);
   z-index: 50;
   pointer-events: none;
   animation: spotlightReveal 1.5s $ease-out-expo both;
@@ -555,7 +550,7 @@ onShow(() => {
   transform: translateX(-50%);
   border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
   background: radial-gradient(ellipse at 40% 40%, var(--c-gold-soft, $glow-gold-soft) 0%, transparent 60%);
-  animation: meshFloatCenter 12s $ease-in-out-smooth infinite;
+  animation: meshFloatCenter 12s $ease-in-out-smooth 3;
 }
 
 .ambient-orb--orange {
@@ -565,7 +560,7 @@ onShow(() => {
   right: -80rpx;
   border-radius: 55% 45% 50% 50% / 45% 55% 45% 55%;
   background: radial-gradient(ellipse at 60% 60%, var(--c-accent-soft, $glow-orange-soft) 0%, transparent 60%);
-  animation: meshFloat 10s $ease-in-out-smooth infinite reverse;
+  animation: meshFloat 10s $ease-in-out-smooth 3 reverse;
 }
 
 @keyframes meshFloat {
@@ -622,15 +617,13 @@ onShow(() => {
   border: 1rpx solid var(--c-border-active, $hairline-active);
   border-radius: $radius-2xl;
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
   overflow: hidden;
   transition: box-shadow 0.6s $ease-out-expo, border-color 0.6s $ease-out-expo;
 }
 
 .score-shell--cinematic {
-  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 80rpx rgba(255, 215, 0, 0.3), 0 0 160rpx rgba(255, 215, 0, 0.15);
-  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 80rpx var(--c-gold-glow-strong), 0 0 160rpx var(--c-glow-gold);
+  border-color: var(--c-gold-glow-strong);
   animation: scoreGlowBurst 1.5s $ease-out-expo both;
 }
 
@@ -639,10 +632,10 @@ onShow(() => {
     box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 0 transparent;
   }
   30% {
-    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 120rpx rgba(255, 215, 0, 0.5), 0 0 200rpx rgba(255, 215, 0, 0.25);
+    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 120rpx var(--c-gold-glow-strong), 0 0 200rpx var(--c-glow-gold);
   }
   100% {
-    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 80rpx rgba(255, 215, 0, 0.3), 0 0 160rpx rgba(255, 215, 0, 0.15);
+    box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 80rpx var(--c-gold-glow-strong), 0 0 160rpx var(--c-glow-gold);
   }
 }
 
@@ -702,7 +695,7 @@ onShow(() => {
   0% {
     opacity: 0;
     transform: scale(0.6) translateY(20rpx);
-    filter: blur(8rpx);
+    filter: blur(4rpx);
     text-shadow: 0 0 0 transparent;
   }
   50% {
@@ -879,7 +872,7 @@ onShow(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, rgba(255, 107, 53, 0.3), rgba(255, 215, 0, 0.3));
+  background: linear-gradient(180deg, var(--c-glow-accent-strong), var(--c-gold-glow-strong));
   filter: blur(8rpx);
   transform-origin: bottom;
   transition: transform $dur-slow $ease-spring;
@@ -1105,7 +1098,7 @@ onShow(() => {
   0% {
     opacity: 0;
     transform: scale(0.7) translateY(40rpx);
-    filter: blur(8rpx);
+    filter: blur(4rpx);
   }
   40% {
     opacity: 1;
@@ -1134,7 +1127,7 @@ onShow(() => {
 
 .confetti-item {
   font-size: 48rpx;
-  animation: confettiFall 2.5s ease-in-out infinite;
+  animation: confettiFall 2.5s ease-in-out 3;
 }
 
 .confetti-item:nth-child(1) { animation-delay: 0s; font-size: 40rpx; }

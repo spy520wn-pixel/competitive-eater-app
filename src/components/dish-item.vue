@@ -7,16 +7,19 @@
     <view class="quantity-control">
       <view
         class="qty-btn qty-btn--minus"
+        role="button"
+        tabindex="0"
         aria-label="减少数量"
         :class="{ 'qty-btn--disabled': quantity <= 0 }"
         @tap="decrease"
+        @keydown.enter="decrease"
       >
         <text class="qty-btn-text">−</text>
       </view>
-      <view class="qty-display" @longpress="inputQuantity">
+      <view class="qty-display" role="status" :aria-label="item.name + ' 数量 ' + quantity" @longpress="inputQuantity">
         <text class="qty-value" :class="{ 'qty-value--has': quantity > 0, 'qty-value--bump': bumpKey }" :key="bumpKey">{{ quantity }}</text>
       </view>
-      <view class="qty-btn qty-btn--plus" aria-label="增加数量" @tap="increase">
+      <view class="qty-btn qty-btn--plus" role="button" tabindex="0" aria-label="增加数量" @tap="increase" @keydown.enter="increase">
         <text class="qty-btn-text">+</text>
       </view>
     </view>
@@ -77,13 +80,13 @@ function inputQuantity() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 36rpx 30rpx;
+  padding: 28rpx 24rpx;
   border-bottom: 1rpx solid var(--c-border-subtle, $hairline-subtle);
   transition: background $dur-normal $ease-spring;
 }
 
 .dish-item--active {
-  background: rgba(255, 107, 53, 0.10);
+  background: var(--c-accent-soft);
 }
 
 .dish-info {
@@ -91,6 +94,7 @@ function inputQuantity() {
   flex-direction: column;
   flex: 1;
   min-width: 0;
+  overflow: hidden;
 }
 
 .dish-name {
@@ -118,17 +122,19 @@ function inputQuantity() {
 .quantity-control {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 12rpx;
+  flex-shrink: 0;
+  margin-left: 16rpx;
 }
 
 .qty-btn {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: $radius-xl;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform $dur-fast $ease-spring, box-shadow $dur-normal $ease-spring;
+  transition: transform $dur-fast $ease-spring, box-shadow $dur-normal $ease-spring, background $dur-fast $ease-spring;
 }
 
 .qty-btn:active {
@@ -136,8 +142,12 @@ function inputQuantity() {
 }
 
 .qty-btn--minus {
+  background: var(--c-surface-3, $glass-white-3);
+  border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+}
+
+.qty-btn--minus:active {
   background: var(--c-surface-5, $glass-white-5);
-  border: 1rpx solid var(--c-hairline, $hairline);
 }
 
 .qty-btn--plus {
@@ -150,20 +160,24 @@ function inputQuantity() {
 }
 
 .qty-btn--disabled {
-  opacity: 0.25;
+  opacity: 0.2;
   pointer-events: none;
 }
 
 .qty-btn-text {
-  font-size: 38rpx;
+  font-size: 28rpx;
   color: var(--c-text-on-accent, #FFFFFF);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
 }
 
+.qty-btn--minus .qty-btn-text {
+  color: var(--c-text-secondary, $text-secondary);
+}
+
 .qty-display {
-  width: 84rpx;
-  height: 64rpx;
+  width: 64rpx;
+  height: 56rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,7 +187,7 @@ function inputQuantity() {
 }
 
 .qty-value {
-  font-size: 30rpx;
+  font-size: 24rpx;
   color: var(--c-text-tertiary, $text-tertiary);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -190,8 +204,7 @@ function inputQuantity() {
 
 @keyframes qtyBump {
   0% { transform: scale(1); }
-  30% { transform: scale(1.4); }
-  60% { transform: scale(0.92); }
+  40% { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
 </style>

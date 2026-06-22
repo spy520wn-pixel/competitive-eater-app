@@ -35,7 +35,9 @@
 </template>
 
 <script module="echartsModule" lang="renderjs">
-// ECharts 按需引入
+// ═══════════════════════════════════════════════════════
+// 1. ECharts 注册
+// ═══════════════════════════════════════════════════════
 import * as echarts from 'echarts/core'
 import { MapChart } from 'echarts/charts'
 import { EffectScatterChart, ScatterChart } from 'echarts/charts'
@@ -45,7 +47,10 @@ import { CanvasRenderer } from 'echarts/renderers'
 // 注册必要的组件
 echarts.use([MapChart, EffectScatterChart, ScatterChart, GeoComponent, TooltipComponent, CanvasRenderer])
 
-// 地图数据缓存
+// ═══════════════════════════════════════════════════════
+// 2. 地图加载工具函数
+// ═══════════════════════════════════════════════════════
+
 let chinaLoaded = false
 
 function fetchJSON(url) {
@@ -88,124 +93,25 @@ async function loadChinaMap() {
   }
 }
 
+// ═══════════════════════════════════════════════════════
+// 3. 图表实例管理 & 配置构建
+// ═══════════════════════════════════════════════════════
+
 let chartInstance = null
 let lastTheme = null
 let resizeBound = false
 let currentMapName = 'china'
 
-// City-level adcodes (Aliyun DataV API)
-const cityAdcodes = {
-  // 直辖市
-  '北京': 110000, '上海': 310000, '天津': 120000, '重庆': 500000,
-  // 广东
-  '广州': 440100, '深圳': 440300, '东莞': 441900, '佛山': 440600, '珠海': 440400,
-  '中山': 442000, '惠州': 441300, '江门': 440700, '汕头': 440500, '湛江': 440800,
-  '肇庆': 441200, '茂名': 440900, '揭阳': 445200, '梅州': 441400, '清远': 441800,
-  '韶关': 440200, '河源': 441600, '潮州': 445100, '阳江': 441700, '云浮': 445300,
-  // 浙江
-  '杭州': 330100, '宁波': 330200, '温州': 330300, '嘉兴': 330400, '湖州': 330500,
-  '绍兴': 330600, '金华': 330700, '台州': 331000, '衢州': 330800, '丽水': 331100, '舟山': 330900,
-  // 江苏
-  '南京': 320100, '苏州': 320500, '无锡': 320200, '常州': 320400, '南通': 320600,
-  '徐州': 320300, '扬州': 321000, '盐城': 320900, '镇江': 321100, '泰州': 321200,
-  '淮安': 320800, '连云港': 320700, '宿迁': 321300,
-  // 山东
-  '济南': 370100, '青岛': 370200, '烟台': 370600, '潍坊': 370700, '临沂': 371300,
-  '济宁': 370800, '淄博': 370300, '威海': 371000, '德州': 371400, '聊城': 371500,
-  '泰安': 370900, '菏泽': 371700, '枣庄': 370400, '日照': 371100, '滨州': 371600, '东营': 370500,
-  // 四川
-  '成都': 510100, '绵阳': 510700, '德阳': 510600, '宜宾': 511500, '南充': 511300,
-  '泸州': 510500, '达州': 511700, '乐山': 511100, '眉山': 511400, '遂宁': 510900,
-  '内江': 511000, '广安': 511600, '自贡': 510300, '攀枝花': 510400, '广元': 510800,
-  '雅安': 511800, '巴中': 511900, '资阳': 512000,
-  // 湖北
-  '武汉': 420100, '宜昌': 420500, '襄阳': 420600, '荆州': 421000, '黄冈': 421100,
-  '十堰': 420300, '孝感': 420900, '荆门': 420800, '鄂州': 420700, '黄石': 420200,
-  '咸宁': 421200, '随州': 421300, '恩施': 422800,
-  // 湖南
-  '长沙': 430100, '岳阳': 430600, '常德': 430700, '衡阳': 430400, '株洲': 430200,
-  '湘潭': 430300, '邵阳': 430500, '益阳': 430900, '郴州': 431000, '永州': 431100,
-  '怀化': 431200, '娄底': 431300, '张家界': 430800, '湘西': 433100,
-  // 河南
-  '郑州': 410100, '洛阳': 410300, '南阳': 411300, '许昌': 411000, '新乡': 410700,
-  '周口': 411600, '商丘': 411400, '信阳': 411500, '驻马店': 411700, '焦作': 410800,
-  '平顶山': 410400, '安阳': 410500, '开封': 410200, '濮阳': 410900, '鹤壁': 410600,
-  '漯河': 411100, '三门峡': 411200,
-  // 河北
-  '石家庄': 130100, '唐山': 130200, '保定': 130600, '邯郸': 130400, '沧州': 130900,
-  '廊坊': 131000, '邢台': 130500, '衡水': 131100, '秦皇岛': 130300, '张家口': 130700, '承德': 130800,
-  // 福建
-  '福州': 350100, '厦门': 350200, '泉州': 350500, '漳州': 350600, '龙岩': 350800,
-  '莆田': 350300, '三明': 350400, '南平': 350700, '宁德': 350900,
-  // 安徽
-  '合肥': 340100, '芜湖': 340200, '蚌埠': 340300, '阜阳': 341200, '安庆': 340800,
-  '六安': 341500, '马鞍山': 340500, '淮南': 340400, '淮北': 340600, '铜陵': 340700,
-  '宣城': 341800, '池州': 341700, '黄山': 341000, '滁州': 341100, '亳州': 341600, '宿州': 341300,
-  // 辽宁
-  '沈阳': 210100, '大连': 210200, '鞍山': 210300, '抚顺': 210400, '本溪': 210500,
-  '丹东': 210600, '锦州': 210700, '营口': 210800, '阜新': 210900, '辽阳': 211000,
-  '盘锦': 211100, '铁岭': 211200, '朝阳': 211300, '葫芦岛': 211400,
-  // 江西
-  '南昌': 360100, '赣州': 360700, '九江': 360400, '上饶': 361100, '抚州': 361000,
-  '宜春': 360900, '吉安': 360800, '萍乡': 360300, '景德镇': 360200, '新余': 360500, '鹰潭': 360600,
-  // 陕西
-  '西安': 610100, '咸阳': 610400, '宝鸡': 610300, '渭南': 610500, '汉中': 610700,
-  '延安': 610600, '安康': 610900, '榆林': 610800, '商洛': 611000, '铜川': 610200,
-  // 广西
-  '南宁': 450100, '柳州': 450200, '桂林': 450300, '玉林': 450900, '梧州': 450400,
-  '贵港': 450800, '百色': 451000, '河池': 451200, '钦州': 450700, '北海': 450500,
-  '防城港': 450600, '崇左': 451400, '来宾': 451300, '贺州': 451100,
-  // 云南
-  '昆明': 530100, '曲靖': 530300, '大理': 532900, '玉溪': 530400, '红河': 532500,
-  '昭通': 530600, '楚雄': 532300, '文山': 532600, '保山': 530500, '普洱': 530800,
-  '丽江': 530700, '临沧': 530900,
-  // 贵州
-  '贵阳': 520100, '遵义': 520300, '毕节': 520500, '黔南': 522700, '黔东南': 522600,
-  '铜仁': 520600, '六盘水': 520200, '黔西南': 522300, '安顺': 520400,
-  // 山西
-  '太原': 140100, '大同': 140200, '临汾': 141000, '运城': 140800, '长治': 140400,
-  '晋城': 140500, '忻州': 140900, '晋中': 140700, '朔州': 140600, '阳泉': 140300, '吕梁': 141100,
-  // 吉林
-  '长春': 220100, '吉林': 220200, '四平': 220300, '通化': 220500, '松原': 220700,
-  '延边': 222400, '白城': 220800, '白山': 220600, '辽源': 220400,
-  // 黑龙江
-  '哈尔滨': 230100, '大庆': 230600, '齐齐哈尔': 230200, '牡丹江': 231000, '绥化': 231200,
-  '佳木斯': 230800, '鸡西': 230300, '双鸭山': 230500, '鹤岗': 230400, '黑河': 231100,
-  '伊春': 230700, '七台河': 230900, '大兴安岭': 232700,
-  // 甘肃
-  '兰州': 620100, '天水': 620500, '酒泉': 620900, '庆阳': 621000, '平凉': 620800,
-  '白银': 620400, '武威': 620600, '张掖': 620700, '定西': 621100, '陇南': 621200,
-  '嘉峪关': 620200, '金昌': 620300, '临夏': 622900, '甘南': 623000,
-  // 内蒙古
-  '呼和浩特': 150100, '包头': 150200, '鄂尔多斯': 150600, '赤峰': 150400, '通辽': 150500,
-  '呼伦贝尔': 150700, '乌兰察布': 150900, '巴彦淖尔': 150800, '乌海': 150300,
-  '兴安盟': 152200, '锡林郭勒盟': 152500, '阿拉善盟': 152900,
-  // 新疆
-  '乌鲁木齐': 650100, '昌吉': 652300, '伊犁': 654000, '阿克苏': 652900, '喀什': 653100,
-  '巴音郭楞': 652800, '哈密': 652200, '吐鲁番': 652100, '和田': 653200, '塔城': 654200,
-  '阿勒泰': 654300, '克拉玛依': 650200, '博尔塔拉': 652700, '克孜勒苏': 653000,
-  // 海南
-  '海口': 460100, '三亚': 460200, '儋州': 460400, '琼海': 469002, '万宁': 469006, '文昌': 469005,
-  // 宁夏
-  '银川': 640100, '石嘴山': 640200, '吴忠': 640300, '固原': 640400, '中卫': 640500,
-  // 青海
-  '西宁': 630100, '海东': 630200, '海西': 632800, '海北': 632200, '海南州': 632500,
-  '黄南': 632300, '果洛': 632600, '玉树': 632700,
-  // 西藏
-  '拉萨': 540100, '日喀则': 540200, '林芝': 540400, '昌都': 540300, '山南': 540500,
-  '那曲': 540600, '阿里': 542500
-}
-
-// Cache loaded maps (内存缓存)
+// ── 地图缓存 ──
 const mapCache = new Set(['china'])
 
-async function ensureMap(cityName) {
+async function ensureMap(cityName, adcodes) {
   if (!cityName || cityName === '全国') {
     currentMapName = 'china'
     return
   }
 
-  const adcode = cityAdcodes[cityName]
+  const adcode = adcodes[cityName]
   if (!adcode) {
     currentMapName = 'china'
     return
@@ -230,13 +136,17 @@ async function ensureMap(cityName) {
   }
 }
 
+// ═══════════════════════════════════════════════════════
+// 4. 导出方法（renderjs → Vue 通信）
+// ═══════════════════════════════════════════════════════
+
 export default {
   methods: {
     async onDataChange(newValue, oldValue, ownerInstance, instance) {
       if (!newValue || !newValue.city) return
 
       await loadChinaMap()
-      await ensureMap(newValue.city)
+      await ensureMap(newValue.city, newValue.adcodes)
 
       // 确保 DOM 已就绪（APP 端可能有延迟）
       const tryInit = (retries) => {
@@ -293,7 +203,8 @@ export default {
 
     buildOption(data) {
       const { city, shops } = data
-      const isCity = !!cityAdcodes[city] && city !== '全国'
+      const adcodes = data.adcodes || {}
+      const isCity = !!adcodes[city] && city !== '全国'
       const theme = data.theme || document.documentElement.getAttribute('data-theme') || 'dark'
       const isLight = theme === 'light'
 
@@ -458,7 +369,7 @@ export default {
           // Highlight selected city area when viewing whole country
           ...(!isCity ? {
             regions: data.shops.length > 0 ? [{
-              name: cityAdcodes[data.city] ? data.city : '',
+              name: adcodes[data.city] ? data.city : '',
               itemStyle: {
                 areaColor: {
                   type: 'linear',
@@ -491,7 +402,9 @@ export default {
 </script>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { CITY_ADCODES } from '@/utils/map-adcodes.js'
+import { useTheme } from '@/composables/useTheme.js'
 
 const props = defineProps({
   shops: { type: Array, default: () => [] },
@@ -502,30 +415,12 @@ const props = defineProps({
 const emit = defineEmits(['markerTap'])
 
 const chartId = 'mapChart-' + Date.now()
-const currentTheme = ref('dark')
+const { theme } = useTheme()
+const currentTheme = theme
 const themeVersion = ref(0)
 
-function onThemeChange(theme) {
-  currentTheme.value = theme
+watch(theme, () => {
   themeVersion.value++
-}
-
-function readThemeFromStorage() {
-  try {
-    var s = uni.getStorageSync('eater_settings') || {}
-    currentTheme.value = s.theme || 'dark'
-  } catch (e) {}
-}
-
-onMounted(() => {
-  readThemeFromStorage()
-  uni.$on('tabbar-theme-change', onThemeChange)
-  uni.$on('theme-apply', onThemeChange)
-})
-
-onUnmounted(() => {
-  uni.$off('tabbar-theme-change', onThemeChange)
-  uni.$off('theme-apply', onThemeChange)
 })
 
 const enrichedShops = computed(() => {
@@ -556,6 +451,7 @@ const chartData = computed(() => {
     chartId,
     city: props.city,
     theme: currentTheme.value,
+    adcodes: CITY_ADCODES,
     // themeVersion 变化强制产生新对象引用，触发 renderjs onDataChange
     _tv: themeVersion.value,
     shops: list.map(s => ({
@@ -628,8 +524,8 @@ function onMarkerTap(shopId) {
 
 .legend-bubble--challenged {
   background: var(--c-surface-1, $surface-1);
-  border-color: rgba(255, 107, 53, 0.5);
-  box-shadow: 0 2rpx 8rpx rgba(255, 107, 53, 0.15);
+  border-color: var(--c-border-active);
+  box-shadow: 0 2rpx 8rpx var(--c-glow-accent);
 }
 
 .legend-bubble--unchallenged {
@@ -653,7 +549,7 @@ function onMarkerTap(shopId) {
 }
 
 .legend-arrow--challenged {
-  border-top-color: rgba(255, 107, 53, 0.5);
+  border-top-color: var(--c-border-active);
 }
 
 .legend-arrow--unchallenged {
@@ -672,7 +568,7 @@ function onMarkerTap(shopId) {
   margin-top: 4rpx;
   padding: 18rpx 22rpx;
   background: var(--c-accent-soft, $glow-orange-soft);
-  border: 1rpx solid rgba(255, 107, 53, 0.10);
+  border: 1rpx solid var(--c-accent-soft);
   border-radius: $radius-lg;
 }
 

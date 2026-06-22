@@ -5,7 +5,7 @@
 
 import { settingsStore } from '../store/settings-store'
 
-const DEFAULT_AMAP_KEY = 'cc91515d50ab91e20bc1ac6c8ca69600'
+const DEFAULT_AMAP_KEY = ''
 const AMAP_BASE_URL = 'https://restapi.amap.com/v3'
 
 function getAmapKey() {

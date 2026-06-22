@@ -4,13 +4,13 @@
     <view class="navbar" :style="{ paddingTop: statusBarHeight + 'px' }">
       <view class="navbar-content">
         <view class="navbar-left">
-          <text class="timer-text" :class="{ 'timer-text--danger': isTimeDanger, 'timer-text--pulse': isTimeDanger }">
+          <text class="timer-text" role="timer" aria-live="polite" :aria-label="'倒计时 ' + timerDisplay" :class="{ 'timer-text--danger': isTimeDanger, 'timer-text--pulse': isTimeDanger }">
             {{ timerDisplay }}
           </text>
         </view>
         <view class="navbar-right">
-          <view class="hud-camera" @tap="onCamera">
-            <text class="hud-camera-icon">📷</text>
+          <view class="hud-camera" role="button" tabindex="0" aria-label="拍照记录" @tap="onCamera" @keydown.enter="onCamera">
+            <text class="hud-camera-icon" aria-hidden="true">📷</text>
             <text v-if="photoCount > 0" class="hud-camera-badge">{{ photoCount }}</text>
           </view>
           <view class="end-btn" role="button" aria-label="结束挑战" @tap="onFinish">
@@ -80,14 +80,14 @@
           <text class="confirm-desc">已点 {{ totalItems }} 道菜，覆盖 {{ coveredCategories }} 个分类</text>
           <text class="confirm-score">预计得分：{{ previewScore }}</text>
           <view class="confirm-actions">
-            <view class="confirm-btn confirm-btn--cancel" @tap="showFinishConfirm = false">
+            <view class="confirm-btn confirm-btn--cancel" role="button" aria-label="继续吃" @tap="showFinishConfirm = false">
               <text class="confirm-btn-text">继续吃！</text>
             </view>
-            <view class="confirm-btn confirm-btn--finish" @tap="confirmFinish">
+            <view class="confirm-btn confirm-btn--finish" role="button" aria-label="结算" @tap="confirmFinish">
               <text class="confirm-btn-text confirm-btn-text--finish">结算</text>
             </view>
           </view>
-          <view class="abandon-action" @tap="confirmAbandon">
+          <view class="abandon-action" role="button" aria-label="放弃本次挑战" @tap="confirmAbandon">
             <text class="abandon-text">放弃本次挑战</text>
           </view>
         </view>
@@ -101,7 +101,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { shopStore } from '../../store/shop-store'
 import { recordStore } from '../../store/record-store'
-import { settingsStore, currentTheme } from '../../store/settings-store'
+import { settingsStore, currentTheme, getDangerColor } from '../../store/settings-store'
 import { calculateScore } from '../../utils/score'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 import CategoryTabs from '../../components/category-tabs.vue'
@@ -235,7 +235,7 @@ function confirmAbandon() {
     title: '放弃挑战？',
     content: '本次挑战将不会记录战绩，确定放弃吗？',
     confirmText: '放弃',
-    confirmColor: '#FF3B30',
+    confirmColor: getDangerColor(),
     success(res) {
       if (res.confirm) {
         abandonChallenge()
@@ -261,12 +261,10 @@ function finishChallenge() {
   if (record.value.status !== '进行中') return
 
   const items = []
+  const map = menuMap.value
   for (const [id, qty] of Object.entries(quantities.value)) {
-    if (qty > 0) {
-      const dish = menu.value.find(d => d.id === id)
-      if (dish) {
-        items.push({ category: dish.category, quantity: qty })
-      }
+    if (qty > 0 && map[id]) {
+      items.push({ category: map[id].category, quantity: qty })
     }
   }
 
@@ -411,7 +409,7 @@ onShow(() => {
   z-index: 100;
   background: var(--c-surface-0, $surface-0);
   border-bottom: 3rpx solid var(--c-accent, $accent-orange);
-  box-shadow: 0 4rpx 24rpx rgba(255, 107, 53, 0.15);
+  box-shadow: 0 4rpx 24rpx var(--c-glow-accent);
   animation: hudSlideIn 0.6s $ease-out-expo both;
 }
 
@@ -450,7 +448,7 @@ onShow(() => {
 
 .timer-text--danger {
   color: var(--c-danger, $accent-danger);
-  text-shadow: 0 0 30rpx rgba(255, 59, 48, 0.4);
+  text-shadow: 0 0 30rpx var(--c-danger-glow);
 }
 
 .timer-text--pulse {
@@ -493,7 +491,7 @@ onShow(() => {
   line-height: 32rpx;
   text-align: center;
   font-size: 18rpx;
-  color: #fff;
+  color: var(--c-text-on-accent);
   background: $accent-orange;
   border-radius: $radius-pill;
   padding: 0 6rpx;
@@ -512,7 +510,7 @@ onShow(() => {
 
 .end-btn-text {
   font-size: 28rpx;
-  color: #FFFFFF;
+  color: var(--c-text-on-accent);
   font-weight: 700;
   letter-spacing: $tracking-wide;
 }
@@ -540,12 +538,14 @@ onShow(() => {
 .main {
   flex: 1;
   display: flex;
+  flex-direction: row;
   min-height: 0;
+  gap: 0;
 }
 
 .dish-list {
   flex: 1;
-  height: calc(100vh - 300rpx);
+  min-height: 0;
   background: var(--c-bg, $void-black);
 }
 
@@ -580,16 +580,14 @@ onShow(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, rgba(6, 6, 11, 0.85) 0%, rgba(6, 6, 11, 0.98) 100%);
-  border-top: 2rpx solid rgba(255, 107, 53, 0.2);
+  background: var(--c-bg);
+  border-top: 2rpx solid var(--c-border-active);
   padding: $intra-group $page-pad-x;
   padding-bottom: calc($intra-group + env(safe-area-inset-bottom));
   display: flex;
   align-items: center;
   justify-content: space-between;
   z-index: 100;
-  backdrop-filter: blur(20rpx);
-  -webkit-backdrop-filter: blur(20rpx);
   animation: hudBarSlideIn 0.5s $ease-out-expo 0.2s both;
 }
 
@@ -631,8 +629,8 @@ onShow(() => {
   display: flex;
   align-items: baseline;
   gap: 8rpx;
-  background: rgba(255, 215, 0, 0.08);
-  border: 1rpx solid rgba(255, 215, 0, 0.2);
+  background: var(--c-gold-soft);
+  border: 1rpx solid var(--c-gold-glow-strong);
   border-radius: $radius-pill;
   padding: 10rpx 24rpx;
 }

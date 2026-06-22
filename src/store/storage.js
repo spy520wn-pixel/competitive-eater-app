@@ -13,8 +13,13 @@ export class Storage {
   }
 
   _writeToStorage(list) {
-    uni.setStorageSync(this.key, list)
-    this._cache = list
+    try {
+      uni.setStorageSync(this.key, list)
+      this._cache = list
+    } catch (e) {
+      console.error(`[Storage] 写入失败 (${this.key}):`, e.message)
+      throw new Error('存储空间不足，请清理数据后重试')
+    }
   }
 
   getAll() {
@@ -54,6 +59,10 @@ export class Storage {
     this._writeToStorage(list)
   }
 
+  invalidateCache() {
+    this._cache = null
+  }
+
   clear() {
     uni.removeStorageSync(this.key)
     this._cache = null
@@ -64,7 +73,15 @@ export class Storage {
   }
 
   importAll(jsonString) {
-    const data = JSON.parse(jsonString)
+    let data
+    try {
+      data = JSON.parse(jsonString)
+    } catch {
+      throw new Error('导入数据格式错误：不是有效的 JSON')
+    }
+    if (!Array.isArray(data)) {
+      throw new Error('导入数据格式错误：应为数组')
+    }
     this._writeToStorage(data)
   }
 }

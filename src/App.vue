@@ -24,9 +24,6 @@ function applyTheme(theme) {
   applyNavBarColor(theme)
 }
 
-// 导出供页面调用
-uni.$applyTheme = applyTheme
-
 function applyNavBarColor(theme) {
   const frontColor = theme === 'light' ? '#000000' : '#ffffff'
   const backgroundColor = theme === 'light' ? '#F4F1EC' : '#0A0A12'
@@ -62,8 +59,6 @@ interceptors.forEach(method => {
 })
 
 onLaunch(() => {
-  console.log('大胃王APP 启动')
-
   const settings = settingsStore.get()
   const theme = settings.theme || 'dark'
 
@@ -85,7 +80,9 @@ onLaunch(() => {
 @import './theme-light.css';
 
 /* ═══ CSS Custom Properties — Theme Variables ═══ */
-/* 直接在 App.vue 全局样式中定义，绕过 uni.scss 被 scoped 破坏的问题 */
+/* 变量定义的唯一事实来源见 src/theme-vars.js */
+/* 此处 CSS 变量作为初始渲染回退值，与 theme-vars.js 保持一致 */
+/* apply-page-theme.js 运行时注入的值会覆盖这些回退值 */
 :root,
 [data-theme="dark"] {
   --c-bg: #030306;
@@ -105,7 +102,7 @@ onLaunch(() => {
   --c-text-secondary: #9E9EB8;
   --c-text-tertiary: #8080A0;
   --c-text-muted: #7575A0;
-  --c-text-ghost: #4A4A68;
+  --c-text-ghost: #5A5A78;
   --c-accent: #FF6B35;
   --c-accent-light: #FF8F60;
   --c-accent-deep: #E85520;
@@ -134,6 +131,8 @@ onLaunch(() => {
   --c-cat-staples: #F59E0B;
   --c-cat-dessert: #EC4899;
   --c-cat-drinks: #8B5CF6;
+  --c-cat-vegetables: #34D399;
+  --c-cat-vegetables-glow: rgba(52, 211, 153, 0.3);
   --c-cat-other: #9CA3AF;
   --c-cat-meat-glow: rgba(232, 69, 60, 0.25);
   --c-cat-seafood-glow: rgba(59, 130, 246, 0.25);
@@ -165,6 +164,15 @@ onLaunch(() => {
   --c-shadow-lg: 0 8rpx 36rpx rgba(0, 0, 0, 0.45), 0 4rpx 10rpx rgba(0, 0, 0, 0.25);
   --c-shadow-xl: 0 16rpx 56rpx rgba(0, 0, 0, 0.5), 0 8rpx 20rpx rgba(0, 0, 0, 0.3);
   --c-shadow-2xl: 0 24rpx 80rpx rgba(0, 0, 0, 0.55), 0 12rpx 28rpx rgba(0, 0, 0, 0.35);
+  --c-glow-accent-strong: rgba(255, 107, 53, 0.3);
+  --c-danger-glow: rgba(255, 59, 48, 0.4);
+  --c-gold-muted: rgba(255, 215, 0, 0.45);
+  --c-tier-bronze-soft: rgba(205, 127, 50, 0.12);
+  --c-tier-bronze-border: rgba(205, 127, 50, 0.2);
+  --c-tier-silver-soft: rgba(192, 192, 192, 0.12);
+  --c-tier-silver-border: rgba(192, 192, 192, 0.25);
+  --c-tier-platinum-border: rgba(0, 191, 255, 0.4);
+  --c-tier-diamond-border: rgba(0, 191, 255, 0.5);
 
   /* Typography tokens */
   --text-display-size: #{$type-display-size};
@@ -245,6 +253,8 @@ onLaunch(() => {
   --c-cat-staples: #B45309;
   --c-cat-dessert: #BE185D;
   --c-cat-drinks: #6D28D9;
+  --c-cat-vegetables: #16A36A;
+  --c-cat-vegetables-glow: rgba(22, 163, 106, 0.3);
   --c-cat-other: #4B5563;
   --c-cat-meat-glow: rgba(192, 48, 48, 0.15);
   --c-cat-seafood-glow: rgba(37, 99, 235, 0.15);
@@ -276,10 +286,19 @@ onLaunch(() => {
   --c-shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.10);
   --c-shadow-xl: 0 12rpx 48rpx rgba(0, 0, 0, 0.12);
   --c-shadow-2xl: 0 24rpx 64rpx rgba(0, 0, 0, 0.16);
+  --c-glow-accent-strong: rgba(217, 79, 30, 0.2);
+  --c-danger-glow: rgba(204, 45, 32, 0.3);
+  --c-gold-muted: rgba(154, 112, 8, 0.35);
+  --c-tier-bronze-soft: rgba(205, 127, 50, 0.08);
+  --c-tier-bronze-border: rgba(205, 127, 50, 0.15);
+  --c-tier-silver-soft: rgba(192, 192, 192, 0.08);
+  --c-tier-silver-border: rgba(192, 192, 192, 0.15);
+  --c-tier-platinum-border: rgba(0, 191, 255, 0.3);
+  --c-tier-diamond-border: rgba(0, 191, 255, 0.4);
 }
 
 /* ═══ Font Loading (only weights actually used by design system) ═══ */
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap');
 
 /* ═══ Global Reset & Foundation ═══ */
 page {
@@ -303,20 +322,12 @@ page {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--c-hairline);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-[data-theme="light"] ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--c-surface-12);
 }
 
 /* ═══ Entrance Animation Keyframes (Physics-Based) ═══ */
@@ -340,22 +351,6 @@ page {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
 }
 
 @keyframes pulseGlow {
@@ -433,17 +428,6 @@ page {
   }
 }
 
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes shimmerGold {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
 /* ═══ Premium Animation Keyframes ═══ */
 @keyframes revealSlide {
   from {
@@ -474,84 +458,35 @@ page {
 
 @keyframes glowPulse {
   0%, 100% {
-    box-shadow: 0 0 20rpx rgba(255, 107, 53, 0.15);
+    box-shadow: 0 0 20rpx var(--c-glow-accent);
   }
   50% {
-    box-shadow: 0 0 40rpx rgba(255, 107, 53, 0.3);
+    box-shadow: 0 0 40rpx var(--c-glow-accent-strong);
   }
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(30rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-@keyframes scaleUp {
-  from {
-    opacity: 0;
-    transform: scale(0.85);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+@keyframes expShimmer {
+  0% { background-position: 0% 0; }
+  50% { background-position: 100% 0; }
+  100% { background-position: 0% 0; }
 }
 
-@keyframes shimmerSlide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* ═══ Reduced Motion ═══ */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* ═══ Grain Texture Overlay (H5 only — too expensive on APP WebView) ═══ */
-/* #ifdef H5 */
-page::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 998;
-  pointer-events: none;
-  opacity: var(--c-noise-opacity, 0.02);
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-  mix-blend-mode: overlay;
-}
-/* #endif */
 
 /* ═══ Focus Ring (Premium) ═══ */
 :focus-visible {
-  outline: 2rpx solid rgba(255, 107, 53, 0.4);
+  outline: 2rpx solid var(--c-border-active);
   outline-offset: 4rpx;
   border-radius: 8rpx;
 }
 
-[data-theme="light"] :focus-visible {
-  outline-color: rgba(217, 79, 30, 0.3);
-}
-
 /* ═══ Selection Color ═══ */
 ::selection {
-  background: rgba(255, 107, 53, 0.18);
+  background: var(--c-accent-glow);
   color: $text-primary;
-}
-
-[data-theme="light"] ::selection {
-  background: rgba(217, 79, 30, 0.12);
 }
 
 /* ═══ Reduced Motion ═══ */

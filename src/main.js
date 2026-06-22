@@ -1,10 +1,10 @@
 import { createSSRApp } from 'vue'
-import { createPinia } from 'pinia'
 import App from './App.vue'
 
 export function createApp() {
   const app = createSSRApp(App)
-  const pinia = createPinia()
-  app.use(pinia)
+  app.config.errorHandler = (err, instance, info) => {
+    console.error('[Vue Error]', err, info)
+  }
   return { app }
 }

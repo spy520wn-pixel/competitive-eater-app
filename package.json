@@ -19,7 +19,6 @@
     "@dcloudio/uni-h5": "3.0.0-alpha-5010220260604001",
     "@dcloudio/uni-mp-weixin": "3.0.0-alpha-5010220260604001",
     "echarts": "^5.6.0",
-    "pinia": "^2.1.0",
     "vue": "^3.4.0"
   },
   "devDependencies": {

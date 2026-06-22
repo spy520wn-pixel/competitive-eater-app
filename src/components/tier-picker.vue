@@ -1,6 +1,6 @@
 <template>
-  <view v-if="visible" class="tier-picker-mask" @tap="close">
-    <view class="tier-picker" @tap.stop role="dialog" aria-modal="true">
+  <view v-if="visible" class="tier-picker-mask" @tap="close" @keydown.esc="close">
+    <view class="tier-picker" @tap.stop role="dialog" aria-modal="true" tabindex="-1">
       <!-- Glass highlight -->
       <view class="picker-glass" />
 
@@ -16,7 +16,11 @@
           class="tier-card"
           :class="{ 'tier-card--selected': selectedId === tier.id }"
           :style="{ animationDelay: index * 80 + 'ms' }"
+          role="button"
+          tabindex="0"
+          :aria-label="'选择档位 ' + tier.name"
           @tap="onSelect(tier)"
+          @keydown.enter="onSelect(tier)"
         >
           <view class="tier-card__left">
             <text class="tier-card__name">{{ tier.name }}</text>
@@ -32,7 +36,7 @@
       </view>
 
       <view class="picker-footer">
-        <view class="btn-cancel" @tap="close">
+        <view class="btn-cancel" role="button" tabindex="0" aria-label="取消" @tap="close" @keydown.enter="close">
           <text class="btn-cancel__text">取消</text>
         </view>
       </view>
@@ -41,8 +45,6 @@
 </template>
 
 <script setup>
-import { defineProps, defineEmits } from 'vue'
-
 const props = defineProps({
   visible: { type: Boolean, default: false },
   tiers: { type: Array, default: () => [] },

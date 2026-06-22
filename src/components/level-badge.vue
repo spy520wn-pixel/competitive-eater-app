@@ -1,15 +1,15 @@
 <template>
-  <view class="level-badge" :class="[sizeClass, layoutClass]">
+  <view class="level-badge" :class="[sizeClass, layoutClass]" :aria-label="'等级 ' + level.name + (level.levelText ? ' ' + level.levelText : '')">
     <view class="badge-glow" />
     <view class="badge-inner">
-      <text class="icon">{{ level.icon }}</text>
+      <text class="icon" aria-hidden="true">{{ level.icon }}</text>
       <view class="badge-text">
         <text class="name">{{ level.name }}</text>
         <text class="tier" v-if="level.levelText">{{ level.levelText }}</text>
       </view>
     </view>
     <view v-if="showExp" class="exp-bar-wrap">
-      <view class="exp-bar">
+      <view class="exp-bar" role="meter" :aria-valuenow="level.exp" :aria-valuemin="0" :aria-valuemax="level.nextExp || 100" :aria-label="'经验值 ' + level.exp + (level.nextExp ? ' / ' + level.nextExp : '')">
         <view class="exp-bar-fill" :style="{ '--fill-scale': level.progress }" />
       </view>
       <text class="exp-text">{{ level.exp }}{{ level.nextExp ? ' / ' + level.nextExp : '' }}</text>
@@ -64,7 +64,7 @@ const layoutClass = computed(() => `level-badge--${props.layout}`)
   border-radius: $radius-pill;
   background: radial-gradient(ellipse, var(--c-gold-glow-strong, $glow-gold-strong) 0%, transparent 70%);
   pointer-events: none;
-  animation: glowPulse 3s $ease-in-out-smooth infinite;
+  animation: glowPulse 3s $ease-in-out-smooth 3;
   will-change: opacity, transform, box-shadow;
   contain: layout style paint;
 }
@@ -136,7 +136,7 @@ const layoutClass = computed(() => `level-badge--${props.layout}`)
 }
 
 .tier {
-  color: rgba(255, 215, 0, 0.45);
+  color: var(--c-gold-muted);
   font-weight: 500;
   letter-spacing: $tracking-wide;
 }
@@ -168,25 +168,14 @@ const layoutClass = computed(() => `level-badge--${props.layout}`)
   transform-origin: left;
   transform: scaleX(var(--fill-scale, 0));
   transition: transform 1.2s $ease-out-expo;
-  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.35);
-  animation: expShimmer 2s $ease-in-out-smooth infinite;
+  box-shadow: 0 0 16rpx var(--c-gold-glow-strong);
+  animation: expShimmer 2s $ease-in-out-smooth 3;
   background-size: 200% 100%;
-}
-
-@keyframes expShimmer {
-  0% { background-position: 0% 0; }
-  50% { background-position: 100% 0; }
-  100% { background-position: 0% 0; }
 }
 
 .exp-text {
   font-size: 20rpx;
   color: var(--c-text-muted, $text-muted);
   font-variant-numeric: tabular-nums;
-}
-
-@keyframes breathe {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.08); }
 }
 </style>

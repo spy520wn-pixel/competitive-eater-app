@@ -9,6 +9,8 @@
         :key="tab.key"
         class="tab-item"
         :class="{ 'tab-item--active': activeTab === tab.key }"
+        role="button"
+        :aria-label="'切换到' + tab.label"
         @tap="switchTab(tab.key)"
       >
         <text class="tab-icon">{{ tab.icon }}</text>
@@ -33,6 +35,8 @@
         :key="item.id"
         class="card-shell"
         :style="{ animationDelay: index * 60 + 'ms' }"
+        role="button"
+        :aria-label="item.shopName || '创作项目'"
         @tap="onCardTap(item)"
       >
         <view class="card-core">
@@ -43,6 +47,8 @@
               class="thumb-img"
               :src="item.resultUrl"
               mode="aspectFill"
+              lazy-load
+              :aria-label="item.shopName || '创作缩略图'"
             />
             <view v-else class="thumb-placeholder">
               <text class="thumb-placeholder__icon">{{ item.type === 'video' ? '🎬' : '🖼️' }}</text>
@@ -87,7 +93,7 @@
     />
 
     <!-- FAB 悬浮按钮 -->
-    <view class="fab" @tap="goCreate">
+    <view class="fab" role="button" aria-label="新建创作" @tap="goCreate">
       <text class="fab-icon">✨</text>
       <text class="fab-text">创作</text>
     </view>
@@ -100,7 +106,7 @@ import EmptyState from '@/components/empty-state.vue'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow, onHide } from '@dcloudio/uni-app'
 import { creationStore } from '@/store/creation-store.js'
-import { currentTheme, settingsStore } from '@/store/settings-store.js'
+import { currentTheme, settingsStore, getConfirmColor } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 import { getRelativeTime } from '@/utils/time.js'
 import { queryVideoResult } from '@/utils/ai-service.js'
@@ -170,7 +176,7 @@ function onCardTap(item) {
       title: '重新创作',
       content: '上次创作失败，是否重新创作？',
       confirmText: '重新创作',
-      confirmColor: '#FF6B35',
+      confirmColor: getConfirmColor(),
       success(res) {
         if (res.confirm) {
           creationStore.update(item.id, { status: 'generating', resultUrl: '' })
@@ -190,6 +196,8 @@ function goCreate() {
 }
 
 // ── 视频轮询 ──
+let pollErrorCount = 0
+const MAX_POLL_ERRORS = 5
 
 function pollVideoStatus() {
   const generating = creationStore.getByType('video').filter(c => c.status === 'generating')
@@ -199,6 +207,7 @@ function pollVideoStatus() {
     if (!item.videoId) return
     try {
       const result = await queryVideoResult(item.videoId)
+      pollErrorCount = 0
       if (result.status === 'completed' || result.status === 'succeeded') {
         creationStore.update(item.id, {
           status: 'completed',
@@ -211,7 +220,11 @@ function pollVideoStatus() {
       }
       // generating 状态继续等待下次轮询
     } catch (e) {
-      // 网络错误不更新状态，等下次轮询
+      pollErrorCount++
+      if (pollErrorCount >= MAX_POLL_ERRORS) {
+        stopPolling()
+        uni.showToast({ title: '视频状态查询失败，请检查网络后刷新', icon: 'none' })
+      }
     }
   })
 }
@@ -282,12 +295,12 @@ onHide(() => {
   border-radius: $radius-xl;
   background: var(--c-surface-2, $glass-white-2);
   border: 1rpx solid transparent;
-  transition: all $dur-fast $ease-out-expo;
+  transition: background $dur-fast $ease-out-expo;
   position: relative;
 }
 
 .tab-item--active {
-  background: rgba(255, 107, 53, 0.08);
+  background: var(--c-accent-soft);
   border-color: $accent-orange;
 }
 
@@ -323,7 +336,7 @@ onHide(() => {
 .tab-badge__text {
   font-size: 18rpx;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--c-text-on-accent);
 }
 
 /* ── Creation List ── */
@@ -337,7 +350,7 @@ onHide(() => {
   background: var(--c-surface-1, $surface-1);
   border: 1rpx solid var(--c-border, $hairline);
   border-radius: $radius-xl;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.25), 0 1rpx 3rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2rpx 12rpx var(--c-shadow-md), 0 1rpx 3rpx var(--c-shadow-sm);
   margin-bottom: $inter-group;
   animation: revealSlide $dur-entrance $ease-out-expo both;
   transition: transform $dur-fast $ease-spring, box-shadow $dur-fast $ease-spring;
@@ -346,7 +359,7 @@ onHide(() => {
 
 .card-shell:active {
   transform: scale(0.98);
-  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1rpx 4rpx var(--c-shadow-sm);
 }
 
 .card-core {
@@ -504,35 +517,8 @@ onHide(() => {
 .fab-text {
   font-size: $type-title-size;
   font-weight: 600;
-  color: #FFFFFF;
+  color: var(--c-text-on-accent);
   letter-spacing: $type-title-ls;
 }
 
-/* ── Animations ── */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes revealSlide {
-  from {
-    opacity: 0;
-    transform: translateY(24rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 </style>

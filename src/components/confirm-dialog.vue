@@ -1,19 +1,23 @@
 <template>
-  <view v-if="visible" class="confirm-mask" @tap.self="$emit('cancel')">
-    <view class="confirm-dialog" @tap.stop>
+  <view v-if="visible" class="confirm-mask" @tap.self="$emit('cancel')" @keydown.esc="$emit('cancel')">
+    <view class="confirm-dialog" role="dialog" aria-modal="true" :aria-label="title" @tap.stop tabindex="-1" ref="dialogRef">
       <view class="confirm-glow" />
       <view class="confirm-content">
         <text class="confirm-title">{{ title }}</text>
         <text v-if="description" class="confirm-desc">{{ description }}</text>
         <slot />
         <view class="confirm-actions">
-          <view class="confirm-btn confirm-btn--cancel" @tap="$emit('cancel')">
+          <view class="confirm-btn confirm-btn--cancel" role="button" tabindex="0" :aria-label="cancelText" @tap="$emit('cancel')" @keydown.enter="$emit('cancel')">
             <text class="confirm-btn-text">{{ cancelText }}</text>
           </view>
           <view
             class="confirm-btn confirm-btn--confirm"
             :class="{ 'confirm-btn--danger': danger }"
+            role="button"
+            tabindex="0"
+            :aria-label="confirmText"
             @tap="$emit('confirm')"
+            @keydown.enter="$emit('confirm')"
           >
             <text class="confirm-btn-text confirm-btn-text--confirm">{{ confirmText }}</text>
           </view>
@@ -24,7 +28,9 @@
 </template>
 
 <script setup>
-defineProps({
+import { ref, watch, nextTick } from 'vue'
+
+const props = defineProps({
   visible: { type: Boolean, default: false },
   title: { type: String, required: true },
   description: { type: String, default: '' },
@@ -34,6 +40,18 @@ defineProps({
 })
 
 defineEmits(['confirm', 'cancel'])
+
+const dialogRef = ref(null)
+
+watch(() => props.visible, (val) => {
+  if (val) {
+    nextTick(() => {
+      if (dialogRef.value) {
+        dialogRef.value.focus?.()
+      }
+    })
+  }
+})
 </script>
 
 <style lang="scss" scoped>

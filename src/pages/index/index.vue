@@ -33,9 +33,44 @@
       </view>
     </view>
 
+    <!-- Welcome Banner (inline, replaces popup) -->
+    <view v-if="showWelcome" class="welcome-banner" role="region" aria-label="欢迎引导">
+      <view class="welcome-banner__header">
+        <text class="welcome-banner__emoji" aria-hidden="true">🍽️</text>
+        <view class="welcome-banner__text">
+          <text class="welcome-banner__title">欢迎来到大胃王！</text>
+          <text class="welcome-banner__desc">三步开始你的挑战之旅</text>
+        </view>
+        <view class="welcome-banner__close" role="button" aria-label="关闭" @tap="dismissWelcome">
+          <text class="welcome-banner__close-icon">✕</text>
+        </view>
+      </view>
+      <view class="welcome-banner__steps">
+        <view class="welcome-step">
+          <text class="welcome-step-num">1</text>
+          <text class="welcome-step-text">添加店铺</text>
+        </view>
+        <text class="welcome-step-arrow">→</text>
+        <view class="welcome-step">
+          <text class="welcome-step-num">2</text>
+          <text class="welcome-step-text">记录菜品</text>
+        </view>
+        <text class="welcome-step-arrow">→</text>
+        <view class="welcome-step">
+          <text class="welcome-step-num">3</text>
+          <text class="welcome-step-text">查看评分</text>
+        </view>
+      </view>
+      <view class="welcome-banner__actions">
+        <view class="welcome-banner__btn" role="button" aria-label="去添加店铺" @tap="goToShops">
+          <text class="welcome-banner__btn-text">去添加店铺</text>
+        </view>
+      </view>
+    </view>
+
     <!-- Empty state -->
     <EmptyState
-      v-if="stats.totalRecords === 0"
+      v-if="stats.totalRecords === 0 && !showWelcome"
       icon="🍽️"
       title="空空如也"
       description="去挑战一家自助餐，开始你的大胃王之路"
@@ -76,10 +111,10 @@
             <view>
               <text class="card-title">挑战足迹</text>
             </view>
-            <view class="city-picker" @tap="showCityPicker = true">
-              <text class="city-picker__icon">📍</text>
+            <view class="city-picker" role="button" aria-label="选择城市" @tap="toggleCityPicker">
+              <text class="city-picker__icon" aria-hidden="true">📍</text>
               <text class="city-picker__text">{{ selectedCity }}</text>
-              <text class="city-picker__arrow">▾</text>
+              <text class="city-picker__arrow">{{ showCityPicker ? '▴' : '▾' }}</text>
             </view>
           </view>
           <map-view
@@ -91,70 +126,26 @@
           />
         </view>
       </view>
-    </view>
-  </view>
 
-  <!-- City picker popup -->
-  <view v-if="showCityPicker" class="picker-mask" @tap="showCityPicker = false">
-    <view class="picker-popup" @tap.stop>
-      <view class="picker-header">
-        <text class="picker-title">{{ isFirstTimeCity ? '欢迎！请选择你的城市' : '选择城市' }}</text>
-        <view class="picker-close" @tap="showCityPicker = false">
-          <text class="picker-close-text">✕</text>
+      <!-- Inline City Picker (expandable) -->
+      <view v-if="showCityPicker" class="inline-picker">
+        <view class="inline-picker__search">
+          <input class="inline-picker__input" placeholder="搜索城市..." aria-label="搜索城市" placeholder-class="inline-picker__placeholder" :value="cityKeyword" @input="onCitySearch" />
         </view>
-      </view>
-      <view class="picker-search">
-        <view class="picker-search-wrap">
-          <input class="picker-search-input" placeholder="搜索城市..." placeholder-class="picker-search-placeholder" :value="cityKeyword" @input="onCitySearch" />
-        </view>
-      </view>
-      <view v-if="!cityKeyword" class="picker-section">
-        <text class="picker-section-title">热门城市</text>
-        <view class="picker-grid">
-          <view v-for="city in hotCities" :key="city" class="picker-grid-item" :class="{ 'picker-grid-item--active': city === selectedCity }" @tap="onSelectCity(city)">
-            <text class="picker-grid-text">{{ city }}</text>
+        <view v-if="!cityKeyword" class="inline-picker__hot">
+          <view v-for="city in hotCities" :key="city" class="inline-picker__chip" role="button" :aria-label="'选择' + city" :class="{ 'inline-picker__chip--active': city === selectedCity }" @tap="onSelectCity(city)">
+            <text class="inline-picker__chip-text">{{ city }}</text>
           </view>
         </view>
+        <scroll-view scroll-y class="inline-picker__list">
+          <view v-for="city in displayedCities" :key="city" class="inline-picker__item" role="button" :aria-label="'选择' + city" :class="{ 'inline-picker__item--active': city === selectedCity }" @tap="onSelectCity(city)">
+            <text class="inline-picker__item-text">{{ city }}</text>
+          </view>
+        </scroll-view>
       </view>
-      <scroll-view scroll-y class="picker-list">
-        <view v-for="city in displayedCities" :key="city" class="picker-list-item" :class="{ 'picker-list-item--active': city === selectedCity }" @tap="onSelectCity(city)">
-          <text class="picker-list-text">{{ city }}</text>
-        </view>
-      </scroll-view>
     </view>
   </view>
 
-  <!-- Welcome Dialog (outside city picker) -->
-  <view v-if="showWelcome" class="welcome-mask">
-    <view class="welcome-dialog">
-      <view class="welcome-header">
-        <text class="welcome-emoji">🍽️</text>
-        <text class="welcome-title">欢迎来到大胃王！</text>
-      </view>
-      <view class="welcome-body">
-        <view class="welcome-step">
-          <text class="welcome-step-icon">1️⃣</text>
-          <text class="welcome-step-text">先添加一家自助餐店铺</text>
-        </view>
-        <view class="welcome-step">
-          <text class="welcome-step-icon">2️⃣</text>
-          <text class="welcome-step-text">记录你吃了什么</text>
-        </view>
-        <view class="welcome-step">
-          <text class="welcome-step-icon">3️⃣</text>
-          <text class="welcome-step-text">看看你的战斗力评分</text>
-        </view>
-      </view>
-      <view class="welcome-actions">
-        <view class="welcome-btn welcome-btn--primary" @tap="goToShops">
-          <text class="welcome-btn-text">去添加店铺</text>
-        </view>
-        <view class="welcome-btn welcome-btn--secondary" @tap="dismissWelcome">
-          <text class="welcome-btn-text welcome-btn-text--secondary">先看看</text>
-        </view>
-      </view>
-    </view>
-  </view>
 </template>
 
 <script setup>
@@ -184,6 +175,11 @@ function onCityChange(city) {
   selectedCity.value = city
 }
 
+function toggleCityPicker() {
+  showCityPicker.value = !showCityPicker.value
+  if (!showCityPicker.value) cityKeyword.value = ''
+}
+
 function onCitySearch(e) {
   cityKeyword.value = e.detail.value
 }
@@ -199,16 +195,10 @@ function onSelectCity(city) {
   }
 }
 
-const hotCities = ['北京', '上海', '广州', '深圳', '成都', '杭州', '武汉', '重庆', '西安', '南京', '长沙']
+import { CITIES, HOT_CITIES } from '@/constants/cities.js'
 
-const allCities = [
-  '全国', '北京', '上海', '天津', '重庆', '广州', '深圳', '东莞', '佛山', '珠海',
-  '杭州', '宁波', '温州', '嘉兴', '南京', '苏州', '无锡', '常州', '南通', '徐州',
-  '济南', '青岛', '烟台', '潍坊', '成都', '绵阳', '武汉', '宜昌', '襄阳', '长沙',
-  '岳阳', '郑州', '洛阳', '石家庄', '唐山', '福州', '厦门', '合肥', '芜湖', '沈阳',
-  '大连', '南昌', '赣州', '西安', '咸阳', '南宁', '昆明', '贵阳', '太原', '哈尔滨',
-  '长春', '兰州', '呼和浩特', '乌鲁木齐', '海口', '拉萨'
-]
+const hotCities = HOT_CITIES
+const allCities = CITIES.filter(c => c !== '其他')
 
 const displayedCities = computed(() => {
   if (!cityKeyword.value) return allCities.filter(c => c !== selectedCity.value)
@@ -246,10 +236,15 @@ function handleThemeChange(theme) {
 const parallaxY1 = ref(0)
 const parallaxY2 = ref(0)
 
+let _parallaxRaf = null
 onPageScroll((e) => {
-  const scrollY = e.scrollTop
-  parallaxY1.value = scrollY * 0.3
-  parallaxY2.value = scrollY * 0.5
+  if (_parallaxRaf) return
+  _parallaxRaf = requestAnimationFrame(() => {
+    const scrollY = e.scrollTop
+    parallaxY1.value = scrollY * 0.3
+    parallaxY2.value = scrollY * 0.5
+    _parallaxRaf = null
+  })
 })
 
 onMounted(() => {
@@ -321,7 +316,7 @@ function goToShops() {
   right: -250rpx;
   border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
   background: radial-gradient(ellipse at 30% 30%, rgba(255, 107, 53, 0.12) 0%, rgba(139, 92, 246, 0.04) 40%, transparent 70%);
-  animation: orbFloat1 15s $ease-in-out-smooth infinite;
+  animation: orbFloat1 15s $ease-in-out-smooth 3;
 }
 
 .ambient-orb--2 {
@@ -331,7 +326,7 @@ function goToShops() {
   left: -180rpx;
   border-radius: 55% 45% 50% 50% / 45% 55% 45% 55%;
   background: radial-gradient(ellipse at 70% 70%, rgba(139, 92, 246, 0.08) 0%, rgba(52, 211, 153, 0.04) 40%, transparent 70%);
-  animation: orbFloat2 12s $ease-in-out-smooth infinite;
+  animation: orbFloat2 12s $ease-in-out-smooth 3;
 }
 
 @keyframes orbFloat1 {
@@ -363,8 +358,6 @@ function goToShops() {
   border: 1rpx solid var(--c-surface-15, $glass-white-15);
   border-radius: $radius-2xl;
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner), 0 0 40rpx rgba(255, 107, 53, 0.06);
-  backdrop-filter: blur(16rpx);
-  -webkit-backdrop-filter: blur(16rpx);
   animation: fadeInUp $dur-slow $ease-out-expo 0.1s both;
   overflow: hidden;
 }
@@ -409,7 +402,7 @@ function goToShops() {
   0% {
     opacity: 0;
     transform: scale(0.7) translateY(16rpx);
-    filter: blur(6rpx);
+    filter: blur(3rpx);
   }
   50% {
     opacity: 1;
@@ -481,7 +474,7 @@ function goToShops() {
   align-items: center;
   justify-content: center;
   margin-bottom: $intra-group;
-  animation: floatSlow 6s $ease-in-out-smooth infinite;
+  animation: floatSlow 6s $ease-in-out-smooth 3;
   box-shadow: var(--c-shadow-lg, $shadow-lg), var(--c-shadow-inner, $shadow-inner);
 }
 
@@ -569,8 +562,6 @@ function goToShops() {
   border: 1rpx solid var(--c-surface-8, $glass-white-8);
   border-radius: $radius-2xl;
   box-shadow: var(--c-shadow-lg, $shadow-lg), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(8rpx);
-  -webkit-backdrop-filter: blur(8rpx);
   animation: fadeInUp $dur-slow $ease-out-expo both;
   overflow: hidden;
 }
@@ -641,225 +632,214 @@ function goToShops() {
 .city-picker__text { font-size: var(--text-label-size, $type-label-size); font-weight: var(--text-label-weight, $type-label-weight); color: var(--c-text-primary, $text-primary); }
 .city-picker__arrow { font-size: var(--text-caption-size, $type-caption-size); color: var(--c-text-muted, $text-muted); }
 
-/* ── City Picker Popup ── */
-.picker-mask {
-  position: fixed;
-  inset: 0;
-  background: var(--c-overlay, $glass-black-60);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
-  z-index: $z-modal;
-  display: flex;
-  align-items: flex-end;
-  animation: fadeIn $dur-fast $ease-out-expo;
+/* ── Inline City Picker (expandable) ── */
+.inline-picker {
+  margin-top: 16rpx;
+  background: var(--c-surface-3, $glass-white-3);
+  border: 1rpx solid var(--c-hairline, $hairline);
+  border-radius: $radius-2xl;
+  padding: 20rpx;
+  animation: fadeInUp $dur-fast $ease-out-expo;
 }
 
-.picker-popup {
-  width: 100%;
-  max-height: 75vh;
-  background: var(--c-surface-1, $surface-1);
-  border-radius: $radius-3xl $radius-3xl 0 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: slideInBottom $dur-normal $ease-out-expo;
-  box-shadow: var(--c-shadow-2xl, $shadow-2xl);
+.inline-picker__search {
+  margin-bottom: 16rpx;
 }
 
-.picker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 32rpx 36rpx 18rpx;
-}
-
-.picker-title { font-size: var(--text-headline-size, $type-headline-size); font-weight: var(--text-headline-weight, $type-headline-weight); line-height: var(--text-headline-lh, $type-headline-lh); color: var(--c-text-primary, $text-primary); letter-spacing: var(--text-headline-ls, $type-headline-ls); }
-
-.picker-close {
-  width: 52rpx;
-  height: 52rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--c-surface-4, $glass-white-4);
-  transition: background $dur-fast $ease-spring;
-}
-.picker-close:active { background: var(--c-surface-8, $glass-white-8); }
-.picker-close-text { font-size: 28rpx; color: var(--c-text-muted, $text-muted); }
-
-.picker-search { padding: 0 36rpx 18rpx; }
-
-.picker-search-wrap {
+.inline-picker__input {
   width: 100%;
   background: var(--c-surface-4, $glass-white-4);
   border: 1rpx solid var(--c-hairline, $hairline);
   border-radius: $radius-lg;
-  padding: 24rpx 28rpx;
-  box-sizing: border-box;
-  min-height: 92rpx;
-  display: flex;
-  align-items: center;
-}
-
-.picker-search-input {
-  width: 100%;
-  height: 100%;
+  padding: 20rpx 24rpx;
   font-size: var(--text-body-size, $type-body-size);
-  font-weight: var(--text-body-weight, $type-body-weight);
   color: var(--c-text-primary, $text-primary);
-  background: transparent;
-  border: none;
-  padding: 0;
+  box-sizing: border-box;
 }
 
-.picker-search-placeholder {
+.inline-picker__placeholder {
   color: var(--c-text-muted, $text-muted);
 }
 
-.picker-section { padding: 0 36rpx 18rpx; }
-.picker-section-title { font-size: var(--text-label-size, $type-label-size); font-weight: var(--text-label-weight, $type-label-weight); line-height: var(--text-label-lh, $type-label-lh); color: var(--c-text-muted, $text-muted); margin-bottom: 14rpx; display: block; letter-spacing: var(--text-label-ls, $type-label-ls); }
+.inline-picker__hot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
 
-.picker-grid { display: flex; flex-wrap: wrap; gap: 14rpx; }
-
-.picker-grid-item {
-  padding: 12rpx 26rpx;
+.inline-picker__chip {
+  padding: 16rpx 24rpx;
   border-radius: $radius-pill;
   background: var(--c-surface-4, $glass-white-4);
   border: 1rpx solid var(--c-hairline, $hairline);
   transition: background $dur-fast $ease-spring, border-color $dur-fast $ease-spring;
 }
 
-.picker-grid-item--active {
+.inline-picker__chip--active {
   background: var(--c-accent-soft, $glow-orange-soft);
   border-color: rgba(255, 107, 53, 0.30);
 }
 
-.picker-grid-text { font-size: var(--text-label-size, $type-label-size); font-weight: var(--text-label-weight, $type-label-weight); color: var(--c-text-tertiary, $text-tertiary); }
-.picker-grid-item--active .picker-grid-text { color: var(--c-accent, $accent-orange); font-weight: 600; }
+.inline-picker__chip-text {
+  font-size: var(--text-label-size, $type-label-size);
+  font-weight: var(--text-label-weight, $type-label-weight);
+  color: var(--c-text-tertiary, $text-tertiary);
+}
 
-.picker-list { flex: 1; max-height: 45vh; padding: 0 36rpx; }
+.inline-picker__chip--active .inline-picker__chip-text {
+  color: var(--c-accent, $accent-orange);
+  font-weight: 600;
+}
 
-.picker-list-item {
-  padding: 24rpx 0;
+.inline-picker__list {
+  max-height: 300rpx;
+}
+
+.inline-picker__item {
+  padding: 18rpx 8rpx;
   border-bottom: 1rpx solid var(--c-border-subtle, $hairline-subtle);
 }
 
-.picker-list-item--active .picker-list-text { color: var(--c-accent, $accent-orange); font-weight: 600; }
-.picker-list-text { font-size: var(--text-body-size, $type-body-size); font-weight: var(--text-body-weight, $type-body-weight); color: var(--c-text-primary, $text-primary); }
-
-/* ── Welcome Dialog ── */
-.welcome-mask {
-  position: fixed;
-  inset: 0;
-  background: var(--c-overlay, $glass-black-60);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: $z-modal;
-  animation: fadeIn $dur-fast $ease-in-out-smooth;
+.inline-picker__item--active .inline-picker__item-text {
+  color: var(--c-accent, $accent-orange);
+  font-weight: 600;
 }
 
-.welcome-dialog {
-  width: 85vw;
-  max-width: 680rpx;
-  background: var(--c-bg-elevated, $abyss);
-  border: 1rpx solid var(--c-border, $hairline);
-  border-radius: $radius-3xl;
-  box-shadow: var(--c-card-shadow-elevated);
-  overflow: hidden;
-  animation: scaleIn $dur-normal $ease-out-expo;
+.inline-picker__item-text {
+  font-size: var(--text-body-size, $type-body-size);
+  font-weight: var(--text-body-weight, $type-body-weight);
+  color: var(--c-text-primary, $text-primary);
 }
 
-.welcome-header {
+/* ── Welcome Banner (inline) ── */
+.welcome-banner {
+  background: linear-gradient(135deg, var(--c-surface-6, $glass-white-6) 0%, var(--c-surface-3, $glass-white-3) 100%);
+  border: 1rpx solid var(--c-accent-glow);
+  border-radius: $radius-2xl;
+  padding: $card-pad-inner;
+  margin: 0 $page-pad-x;
+  animation: fadeInUp $dur-slow $ease-out-expo 0.2s both;
+}
+
+.welcome-banner__header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: $section-gap $card-pad-inner $intra-group;
   gap: $intra-group;
+  margin-bottom: $intra-group;
 }
 
-.welcome-emoji {
-  font-size: 96rpx;
+.welcome-banner__emoji {
+  font-size: 48rpx;
+  flex-shrink: 0;
 }
 
-.welcome-title {
+.welcome-banner__text {
+  flex: 1;
+}
+
+.welcome-banner__title {
   font-size: var(--text-headline-size, $type-headline-size);
   font-weight: var(--text-headline-weight, $type-headline-weight);
   line-height: var(--text-headline-lh, $type-headline-lh);
   color: var(--c-text-primary, $text-primary);
-  letter-spacing: var(--text-headline-ls, $type-headline-ls);
+  display: block;
 }
 
-.welcome-body {
-  padding: 0 $card-pad-inner $section-gap;
+.welcome-banner__desc {
+  font-size: var(--text-label-size, $type-label-size);
+  color: var(--c-text-tertiary, $text-tertiary);
+  margin-top: 4rpx;
+  display: block;
+}
+
+.welcome-banner__close {
+  width: 48rpx;
+  height: 48rpx;
   display: flex;
-  flex-direction: column;
-  gap: $intra-group;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--c-surface-4, $glass-white-4);
+  flex-shrink: 0;
+  transition: background $dur-fast $ease-spring;
+}
+
+.welcome-banner__close:active {
+  background: var(--c-surface-8, $glass-white-8);
+}
+
+.welcome-banner__close-icon {
+  font-size: 24rpx;
+  color: var(--c-text-muted, $text-muted);
+}
+
+.welcome-banner__steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: $intra-group;
 }
 
 .welcome-step {
   display: flex;
   align-items: center;
-  gap: $intra-group;
-  padding: $intra-group;
-  background: var(--c-surface-3, $glass-white-3);
-  border-radius: $radius-xl;
+  gap: 8rpx;
+  padding: 10rpx 18rpx;
+  background: var(--c-surface-4, $glass-white-4);
+  border-radius: $radius-lg;
 }
 
-.welcome-step-icon {
-  font-size: 36rpx;
+.welcome-step-num {
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background: var(--c-accent, $accent-orange);
+  color: var(--c-text-on-accent, #FFFFFF);
+  font-size: 20rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .welcome-step-text {
-  font-size: var(--text-body-size, $type-body-size);
-  font-weight: var(--text-body-weight, $type-body-weight);
-  line-height: var(--text-body-lh, $type-body-lh);
+  font-size: var(--text-label-size, $type-label-size);
+  font-weight: var(--text-label-weight, $type-label-weight);
   color: var(--c-text-secondary, $text-secondary);
 }
 
-.welcome-actions {
-  display: flex;
-  flex-direction: column;
-  gap: $intra-group;
-  padding: $card-pad-inner;
-  border-top: 1rpx solid var(--c-border-subtle, $hairline-subtle);
+.welcome-step-arrow {
+  font-size: 20rpx;
+  color: var(--c-text-ghost, $text-ghost);
 }
 
-.welcome-btn {
-  padding: 24rpx;
+.welcome-banner__actions {
+  display: flex;
+}
+
+.welcome-banner__btn {
+  flex: 1;
+  padding: 20rpx;
   border-radius: $radius-xl;
+  background: linear-gradient(135deg, var(--c-accent, $accent-orange), var(--c-accent-light, $accent-orange-light));
+  box-shadow: $shadow-glow-orange;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform $dur-fast $ease-spring;
 }
 
-.welcome-btn:active {
+.welcome-banner__btn:active {
   transform: scale(0.97);
 }
 
-.welcome-btn--primary {
-  background: linear-gradient(135deg, var(--c-accent, $accent-orange), var(--c-accent-light, $accent-orange-light));
-  box-shadow: $shadow-glow-orange;
-}
-
-.welcome-btn--secondary {
-  background: var(--c-surface-4, $glass-white-4);
-  border: 1rpx solid var(--c-hairline, $hairline);
-}
-
-.welcome-btn-text {
+.welcome-banner__btn-text {
   font-size: var(--text-title-size, $type-title-size);
   font-weight: var(--text-title-weight, $type-title-weight);
-  line-height: var(--text-title-lh, $type-title-lh);
   color: var(--c-text-on-accent, #FFFFFF);
-}
-
-.welcome-btn-text--secondary {
-  color: var(--c-text-secondary, $text-secondary);
 }
 
 </style>

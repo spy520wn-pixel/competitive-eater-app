@@ -4,7 +4,7 @@
       <!-- Header -->
       <view class="panel__header">
         <text class="panel__title">导入店铺</text>
-        <view class="panel__close" @tap="close">
+        <view class="panel__close" role="button" aria-label="关闭" @tap="close">
           <text class="close-icon">✕</text>
         </view>
       </view>
@@ -19,6 +19,8 @@
               :key="city"
               class="city-chip"
               :class="{ 'city-chip--active': selectedCity === city }"
+              role="button"
+              :aria-label="'选择城市 ' + city"
               @tap="selectCity(city)"
             >
               <text class="city-chip__text">{{ city }}</text>
@@ -37,7 +39,7 @@
       <view v-else-if="results.length > 0" class="results-section">
         <view class="results-header">
           <text class="results-count">找到 {{ results.length }} 家店铺</text>
-          <view class="select-all" @tap="toggleSelectAll">
+          <view class="select-all" role="button" :aria-label="isAllSelected ? '取消全选' : '全选'" @tap="toggleSelectAll">
             <text class="select-all__text">{{ isAllSelected ? '取消全选' : '全选' }}</text>
           </view>
         </view>
@@ -52,6 +54,9 @@
                 'result-item--selected': selectedIds.has(shop.id),
                 'result-item--duplicate': shop._isDuplicate
               }"
+              role="checkbox"
+              :aria-checked="selectedIds.has(shop.id)"
+              :aria-label="shop.name + (shop._isDuplicate ? '（已存在）' : '')"
               @tap="toggleSelect(shop)"
             >
               <view class="result-item__check">
@@ -79,7 +84,7 @@
         <text class="empty-icon">🔍</text>
         <text class="empty-text">未找到「{{ selectedCity }}」的自助餐店铺</text>
         <text class="empty-hint">请尝试其他城市，或手动添加店铺</text>
-        <view class="empty-action" @tap="goToAddShop">
+        <view class="empty-action" role="button" aria-label="手动添加店铺" @tap="goToAddShop">
           <text class="empty-action__text">手动添加</text>
         </view>
       </view>
@@ -100,6 +105,8 @@
         <view
           class="import-btn"
           :class="{ 'import-btn--disabled': selectedCount === 0 || importing }"
+          role="button"
+          :aria-label="importing ? '导入中' : '导入选中店铺'"
           @tap="handleImport"
         >
           <text class="import-btn__text">{{ importing ? '导入中...' : '导入选中' }}</text>
@@ -113,22 +120,16 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { searchAllBuffetShops, isDuplicate } from '@/utils/amap-service.js'
-import { shopStore } from '@/store/shop-store.js'
+import { CITIES } from '@/constants/cities.js'
 
 const props = defineProps({
-  visible: { type: Boolean, default: false }
+  visible: { type: Boolean, default: false },
+  existingShops: { type: Array, default: () => [] }
 })
 
-const emit = defineEmits(['close', 'imported'])
+const emit = defineEmits(['close', 'imported', 'import-shops'])
 
-const cities = [
-  '全国', '北京', '上海', '天津', '重庆', '广州', '深圳', '东莞', '佛山', '珠海',
-  '杭州', '宁波', '温州', '嘉兴', '南京', '苏州', '无锡', '常州', '南通', '徐州',
-  '济南', '青岛', '烟台', '潍坊', '成都', '绵阳', '武汉', '宜昌', '襄阳', '长沙',
-  '岳阳', '郑州', '洛阳', '石家庄', '唐山', '福州', '厦门', '合肥', '芜湖', '沈阳',
-  '大连', '南昌', '赣州', '西安', '咸阳', '南宁', '昆明', '贵阳', '太原', '哈尔滨',
-  '长春', '兰州', '呼和浩特', '乌鲁木齐', '海口', '拉萨'
-]
+const cities = CITIES
 
 const selectedCity = ref('')
 const loading = ref(false)
@@ -173,7 +174,7 @@ async function selectCity(city) {
     const pois = await searchAllBuffetShops(city, 4)
 
     // 获取已存在的店铺，用于去重
-    const existingShops = shopStore.getAll()
+    const existingShops = props.existingShops
 
     // 标记重复店铺
     const processedPois = pois.map(poi => ({
@@ -235,9 +236,8 @@ async function handleImport() {
 
   try {
     const selectedShops = results.value.filter(s => selectedIds.value.has(s.id))
-    // 循环外一次性获取已有店铺，避免 O(n²) 查询
-    const existingShops = shopStore.getAll()
-    let importedCount = 0
+    const existingShops = props.existingShops
+    const shopsToImport = []
 
     for (const shop of selectedShops) {
       if (isDuplicate(shop, existingShops)) continue
@@ -245,7 +245,7 @@ async function handleImport() {
       const rawCity = shop.city || selectedCity.value
       const normalizedCity = rawCity.replace(/市$/, '') || selectedCity.value
 
-      shopStore.create({
+      shopsToImport.push({
         name: shop.name,
         address: shop.address,
         category: shop.category || '自助餐',
@@ -256,12 +256,12 @@ async function handleImport() {
         photos: shop.photos || [],
         rating: shop.rating || ''
       })
-
-      importedCount++
     }
 
+    emit('import-shops', shopsToImport)
+
     uni.showToast({
-      title: `成功导入 ${importedCount} 家店铺`,
+      title: `成功导入 ${shopsToImport.length} 家店铺`,
       icon: 'success'
     })
 
@@ -302,7 +302,7 @@ function goToAddShop() {
 }
 
 .panel-mask--visible {
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--c-overlay);
 }
 
 .panel {
@@ -315,15 +315,6 @@ function goToAddShop() {
   animation: slideUp 0.3s ease-out;
   position: relative;
   overflow: hidden;
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
 }
 
 .panel__header {
@@ -341,8 +332,8 @@ function goToAddShop() {
 }
 
 .panel__close {
-  width: 56rpx;
-  height: 56rpx;
+  width: 88rpx;
+  height: 88rpx;
   border-radius: 50%;
   background: var(--c-surface-3, $glass-white-3);
   display: flex;
@@ -419,10 +410,6 @@ function goToAddShop() {
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 24rpx;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .loading-text {
@@ -596,7 +583,7 @@ function goToAddShop() {
 
 .empty-action {
   background: var(--c-accent-glow, $glow-orange);
-  border: 1rpx solid rgba(255, 107, 53, 0.2);
+  border: 1rpx solid var(--c-border-active);
   border-radius: 999rpx;
   padding: 16rpx 32rpx;
 }

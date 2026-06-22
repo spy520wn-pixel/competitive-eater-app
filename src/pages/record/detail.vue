@@ -81,6 +81,8 @@
           class="photo-thumb"
           :src="p"
           mode="aspectFill"
+          lazy-load
+          :aria-label="'挑战照片 ' + (i + 1)"
           @tap="previewPhoto(i)"
         />
       </view>
@@ -110,14 +112,11 @@ import { recordStore } from '../../store/record-store'
 import { getLevel, scoreToExp } from '../../utils/level'
 import { saveReceiptToAlbum, calcReceiptHeight } from '../../utils/receipt-renderer'
 import RadarChart from '../../components/radar-chart.vue'
-import { settingsStore, currentTheme } from '@/store/settings-store.js'
+import { CATEGORY_ORDER } from '@/constants/categories.js'
+import { settingsStore, currentTheme, getDangerColor } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
-
-import { CATEGORY_CSS } from '@/utils/category-constants.js'
-
-function getCategoryColor(name) {
-  return (CATEGORY_CSS[name] || { color: 'var(--c-accent)' }).color
-}
+import { formatDate } from '@/utils/time.js'
+import { getCategoryColor } from '@/utils/category-constants.js'
 
 const recordId = ref('')
 const canvasWidth = ref(375)
@@ -131,14 +130,6 @@ const record = ref({
   createdAt: '',
   status: ''
 })
-
-const CATEGORY_ORDER = ['肉类', '海鲜', '主食', '甜点', '饮料', '其他']
-
-function formatDate(isoStr) {
-  if (!isoStr) return ''
-  const d = new Date(isoStr)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
 
 const expGained = computed(() => scoreToExp(record.value.score))
 const levelInfo = computed(() => getLevel(expGained.value))
@@ -190,7 +181,7 @@ function onDelete() {
   uni.showModal({
     title: '确认删除',
     content: '确定要删除这条战绩记录吗？删除后无法恢复。',
-    confirmColor: '#FF4444',
+    confirmColor: getDangerColor(),
     success: (res) => {
       if (res.confirm) {
         recordStore.remove(recordId.value)
@@ -266,8 +257,6 @@ onShow(() => {
   border: 1rpx solid var(--c-surface-12, $glass-white-12);
   border-radius: $radius-2xl;
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
   overflow: hidden;
 }
 
@@ -317,7 +306,7 @@ onShow(() => {
   line-height: 1;
   font-variant-numeric: tabular-nums;
   letter-spacing: $tracking-tighter;
-  text-shadow: 0 0 40rpx rgba(255, 215, 0, 0.3);
+  text-shadow: 0 0 40rpx var(--c-gold-glow-strong);
 }
 
 .score-duration {

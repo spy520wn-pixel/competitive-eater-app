@@ -12,6 +12,9 @@ export function getRelativeTime(date) {
   const target = new Date(date)
   const diff = now - target
 
+  // 未来日期
+  if (diff < 0) return '刚刚'
+
   // 转换为秒
   const seconds = Math.floor(diff / 1000)
 

@@ -81,11 +81,11 @@
           <view class="diners-picker">
             <text class="diners-label">就餐人数</text>
             <view class="diners-control">
-              <view class="diners-btn" :class="{ 'diners-btn--disabled': diners <= 1 }" @tap="onDinersChange(-1)">
+              <view class="diners-btn" role="button" aria-label="减少就餐人数" :class="{ 'diners-btn--disabled': diners <= 1 }" @tap="onDinersChange(-1)">
                 <text class="diners-btn-text">-</text>
               </view>
               <text class="diners-value">{{ diners }}</text>
-              <view class="diners-btn" @tap="onDinersChange(1)">
+              <view class="diners-btn" role="button" aria-label="增加就餐人数" @tap="onDinersChange(1)">
                 <text class="diners-btn-text">+</text>
               </view>
             </view>
@@ -93,10 +93,10 @@
           <text class="confirm-hint" v-if="diners > 1">积分将均分给 {{ diners }} 人</text>
           <text class="confirm-hint" v-else>准备好了吗，大胃王？</text>
           <view class="confirm-actions">
-            <view class="confirm-btn confirm-btn--cancel" @tap="showConfirm = false">
+            <view class="confirm-btn confirm-btn--cancel" role="button" aria-label="取消" @tap="showConfirm = false">
               <text class="confirm-btn-text">取消</text>
             </view>
-            <view class="confirm-btn confirm-btn--go" @tap="startChallenge">
+            <view class="confirm-btn confirm-btn--go" role="button" aria-label="开始挑战" @tap="startChallenge">
               <text class="confirm-btn-text confirm-btn-text--go">开战！</text>
             </view>
           </view>
@@ -112,31 +112,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '../../store/shop-store'
 import { recordStore } from '../../store/record-store'
-
-function getShopBest(shopId) {
-  const best = recordStore.getBestByShop(shopId)
-  return best ? best.score : null
-}
-
-function getShopCount(shopId) {
-  return recordStore.getByShopId(shopId).filter(r => r.status === '已完成').length
-}
-
-function getShopTier(shopId) {
-  const count = getShopCount(shopId)
-  if (count >= 10) return 'shop-tier--gold'
-  if (count >= 5) return 'shop-tier--silver'
-  if (count >= 1) return 'shop-tier--bronze'
-  return ''
-}
-
-function isRecentShop(shopId) {
-  const records = recordStore.getByShopId(shopId).filter(r => r.status === '已完成')
-  if (records.length === 0) return false
-  const latest = new Date(records[0].createdAt)
-  const daysSince = (Date.now() - latest.getTime()) / (1000 * 60 * 60 * 24)
-  return daysSince <= 7
-}
+import { getShopTier as getShopTierByCount, isRecent, getCategoryIcon } from '@/utils/shop-utils.js'
 import TierPicker from '../../components/tier-picker.vue'
 import EmptyState from '@/components/empty-state.vue'
 import SearchBar from '@/components/search-bar.vue'
@@ -154,20 +130,25 @@ const confirmShopName = ref('')
 const confirmTierName = ref('')
 const diners = ref(1)
 
-const CATEGORY_ICONS = {
-  '自助餐': '🍖',
-  '火锅': '🍲',
-  '烧烤': '🥩',
-  '海鲜': '🦐',
-  '日料': '🍣',
-  '西餐': '🍝',
-  '中餐': '🥢',
-  '其他': '🍽️'
+function getShopBest(shopId) {
+  const best = recordStore.getBestByShop(shopId)
+  return best ? best.score : null
 }
 
-function getCategoryIcon(category) {
-  return CATEGORY_ICONS[category] || CATEGORY_ICONS['其他']
+function getShopCount(shopId) {
+  return recordStore.getByShopId(shopId).filter(r => r.status === '已完成').length
 }
+
+function getShopTier(shopId) {
+  return getShopTierByCount(getShopCount(shopId))
+}
+
+function isRecentShop(shopId) {
+  const records = recordStore.getByShopId(shopId).filter(r => r.status === '已完成')
+  if (records.length === 0) return false
+  return isRecent(records[0].createdAt)
+}
+
 
 const filteredShops = computed(() => {
   if (!keyword.value) return shops.value
@@ -315,7 +296,7 @@ onShow(() => {
   background: var(--c-surface-1, $surface-1);
   border: 1rpx solid var(--c-border, $hairline);
   border-radius: $radius-xl;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.25), 0 1rpx 3rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2rpx 12rpx var(--c-shadow-md);
   margin-bottom: $intra-group;
   animation: fadeInUp $dur-normal $ease-out-expo both;
   transition: transform $dur-fast $ease-spring, box-shadow $dur-fast ease;
@@ -324,7 +305,7 @@ onShow(() => {
 
 .shop-card-shell:active {
   transform: scale(0.98);
-  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1rpx 4rpx var(--c-shadow-sm);
 }
 
 .shop-card-core {
@@ -407,25 +388,25 @@ onShow(() => {
 
 /* ── Shop Tiers (visual weight by usage) ── */
 .shop-tier--bronze .shop-card__icon {
-  background: rgba(205, 127, 50, 0.12);
-  border-color: rgba(205, 127, 50, 0.2);
+  background: var(--c-tier-bronze-soft);
+  border-color: var(--c-tier-bronze-border);
   animation: badgePop 0.5s $ease-out-expo both;
 }
 
 .shop-tier--silver .shop-card__icon {
-  background: rgba(192, 192, 192, 0.12);
-  border-color: rgba(192, 192, 192, 0.25);
+  background: var(--c-tier-silver-soft);
+  border-color: var(--c-tier-silver-border);
   animation: badgePop 0.5s $ease-out-expo 0.1s both;
 }
 
 .shop-tier--gold {
-  border-color: rgba(255, 215, 0, 0.15) !important;
+  border-color: var(--c-gold-soft) !important;
 }
 
 .shop-tier--gold .shop-card__icon {
-  background: rgba(255, 215, 0, 0.1);
-  border-color: rgba(255, 215, 0, 0.25);
-  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.1);
+  background: var(--c-gold-soft);
+  border-color: var(--c-gold-glow-strong);
+  box-shadow: 0 0 16rpx var(--c-glow-gold);
   animation: badgePop 0.6s $ease-out-expo 0.15s both;
 }
 

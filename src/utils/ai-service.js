@@ -1,5 +1,22 @@
 import { settingsStore } from '../store/settings-store'
-import { withRetry } from './retry'
+import { requestWithRetry } from './request'
+
+// 清理用户输入，防止提示注入
+function sanitizeInput(text) {
+  if (typeof text !== 'string') return String(text || '')
+  return text
+    .replace(/[<>]/g, '')
+    .replace(/\{|\}/g, '')
+    .replace(/```/g, '')
+    .replace(/ignore\s+all\s+previous\s+instructions/gi, '')
+    .replace(/ignore\s+all\s+prior\s+instructions/gi, '')
+    .replace(/you\s+are\s+now/gi, '')
+    .replace(/system\s*:\s*/gi, '')
+    .replace(/assistant\s*:\s*/gi, '')
+    .replace(/user\s*:\s*/gi, '')
+    .trim()
+    .slice(0, 200)
+}
 
 function buildCategoryText(items) {
   const summary = {}
@@ -92,15 +109,15 @@ export async function generatePoster(record, style, photoPaths = []) {
   const prompt = `生成一张大胃王战绩海报。
 风格：${styleDesc}
 战绩信息：
-- 店铺：${record.shopName}
-${record.tierName ? '- 档位：' + record.tierName : ''}
+- 店铺：${sanitizeInput(record.shopName)}
+${record.tierName ? '- 档位：' + sanitizeInput(record.tierName) : ''}
 - 战斗力评分：${record.score}分
-- 菜品：${catText}
+- 菜品：${sanitizeInput(catText)}
 - 就餐时长：${record.duration}分钟
 
 要求：突出战绩数据，视觉冲击力强，适合发朋友圈炫耀。`
 
-  const response = await withRetry(() => uni.request({
+  const response = await requestWithRetry({
     url: settings.aiServiceUrl,
     method: 'POST',
     header: {
@@ -112,7 +129,7 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
       prompt,
       size: '1024x1024'
     }
-  }), { label: '生图大模型' })
+  }, { label: '生图大模型' })
 
   if (!response.data?.data?.[0]?.url) {
     throw new Error('生图服务返回数据格式错误')
@@ -339,45 +356,41 @@ export async function recognizeMenu(imagePath) {
   // 将图片转为base64
   const imageBase64 = await imageToBase64(imagePath)
 
-  const response = await withRetry(() => new Promise((resolve, reject) => {
-    uni.request({
-      url: ocrServiceUrl,
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${ocrApiKey}`
-      },
-      data: {
-        model: ocrModel || 'agnes-2.0-flash',
-        response_format: { type: 'json_object' },
-        messages: [
-          {
-            role: 'system',
-            content: MENU_SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: '请识别这张菜单图片中的所有菜品，按照指定的JSON格式返回结果。'
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageBase64
-                }
+  const response = await requestWithRetry({
+    url: ocrServiceUrl,
+    method: 'POST',
+    header: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${ocrApiKey}`
+    },
+    data: {
+      model: ocrModel || 'agnes-2.0-flash',
+      response_format: { type: 'json_object' },
+      messages: [
+        {
+          role: 'system',
+          content: MENU_SYSTEM_PROMPT
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: '请识别这张菜单图片中的所有菜品，按照指定的JSON格式返回结果。'
+            },
+            {
+              type: 'image_url',
+              image_url: {
+                url: imageBase64
               }
-            ]
-          }
-        ],
-        max_tokens: 65536,
-        temperature: 0.1
-      },
-      success: (res) => resolve(res),
-      fail: (err) => reject(err)
-    })
-  }), { label: '识图大模型' })
+            }
+          ]
+        }
+      ],
+      max_tokens: 65536,
+      temperature: 0.1
+    }
+  }, { label: '识图大模型' })
 
   if (response.statusCode !== 200) {
     throw new Error(`AI服务请求失败: ${response.statusCode}`)
@@ -447,36 +460,32 @@ export async function generatePrompt(record, style) {
   ).join('、')
 
   const userMessage = `请根据以下数据生成图像提示词：
-- 店铺：${record.shopName}
-${record.tierName ? '- 档位：' + record.tierName : ''}
-- 菜品：${itemsText}
+- 店铺：${sanitizeInput(record.shopName)}
+${record.tierName ? '- 档位：' + sanitizeInput(record.tierName) : ''}
+- 菜品：${sanitizeInput(itemsText)}
 - 风格：${style}（${styleDesc}）
 - 战斗力：${record.score}分
 - 时长：${record.duration}分钟`
 
   try {
-    const response = await withRetry(() => new Promise((resolve, reject) => {
-      uni.request({
-        // 复用 OCR 大模型配置（同一服务同时支持识图和文本生成）
-        url: settings.ocrServiceUrl,
-        method: 'POST',
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.ocrApiKey}`
-        },
-        data: {
-          model: settings.ocrModel || 'agnes-2.0-flash',
-          messages: [
-            { role: 'system', content: TEXT_TO_IMAGE_SYSTEM_PROMPT },
-            { role: 'user', content: userMessage }
-          ],
-          max_tokens: 1000,
-          temperature: 0.7
-        },
-        success: (res) => resolve(res),
-        fail: (err) => reject(err)
-      })
-    }), { label: 'LLM 提示词生成' })
+    const response = await requestWithRetry({
+      // 复用 OCR 大模型配置（同一服务同时支持识图和文本生成）
+      url: settings.ocrServiceUrl,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.ocrApiKey}`
+      },
+      data: {
+        model: settings.ocrModel || 'agnes-2.0-flash',
+        messages: [
+          { role: 'system', content: TEXT_TO_IMAGE_SYSTEM_PROMPT },
+          { role: 'user', content: userMessage }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7
+      }
+    }, { label: 'LLM 提示词生成' })
 
     if (response.statusCode === 200 && response.data.choices?.[0]) {
       return response.data.choices[0].message.content.trim()
@@ -501,9 +510,9 @@ export async function generatePromptWithPhoto(record, style, photoPaths) {
 
   const userMessage = `请根据以下数据和照片生成图像提示词：
 - 照片：用户上传了${photoPaths.length}张照片（将作为参考图）
-- 店铺：${record.shopName}
-${record.tierName ? '- 档位：' + record.tierName : ''}
-- 菜品：${itemsText}
+- 店铺：${sanitizeInput(record.shopName)}
+${record.tierName ? '- 档位：' + sanitizeInput(record.tierName) : ''}
+- 菜品：${sanitizeInput(itemsText)}
 - 风格：${style}（${styleDesc}）
 - 战斗力：${record.score}分
 - 时长：${record.duration}分钟
@@ -532,28 +541,24 @@ ${record.tierName ? '- 档位：' + record.tierName : ''}
   imageContent.push({ type: 'text', text: userMessage })
 
   try {
-    const response = await withRetry(() => new Promise((resolve, reject) => {
-      uni.request({
-        // 复用 OCR 大模型配置（同一服务同时支持识图和文本生成）
-        url: settings.ocrServiceUrl,
-        method: 'POST',
-        header: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${settings.ocrApiKey}`
-        },
-        data: {
-          model: settings.ocrModel || 'agnes-2.0-flash',
-          messages: [
-            { role: 'system', content: IMAGE_TO_IMAGE_SYSTEM_PROMPT },
-            { role: 'user', content: imageContent }
-          ],
-          max_tokens: 1000,
-          temperature: 0.7
-        },
-        success: (res) => resolve(res),
-        fail: (err) => reject(err)
-      })
-    }), { label: 'LLM 提示词生成' })
+    const response = await requestWithRetry({
+      // 复用 OCR 大模型配置（同一服务同时支持识图和文本生成）
+      url: settings.ocrServiceUrl,
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${settings.ocrApiKey}`
+      },
+      data: {
+        model: settings.ocrModel || 'agnes-2.0-flash',
+        messages: [
+          { role: 'system', content: IMAGE_TO_IMAGE_SYSTEM_PROMPT },
+          { role: 'user', content: imageContent }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7
+      }
+    }, { label: 'LLM 提示词生成' })
 
     if (response.statusCode === 200 && response.data.choices?.[0]) {
       return response.data.choices[0].message.content.trim()
@@ -572,9 +577,9 @@ function generateLocalPrompt(record, style) {
 
   return `${styleDesc}。
 大胃王战绩海报：
-- 店铺：${record.shopName}
+- 店铺：${sanitizeInput(record.shopName)}
 - 战斗力：${record.score}分
-- 菜品：${catText}
+- 菜品：${sanitizeInput(catText)}
 - 时长：${record.duration}分钟
 要求：突出战绩数据，视觉冲击力强，适合发朋友圈炫耀。`
 }
@@ -618,19 +623,15 @@ export async function generateImage({ record, style, photoPaths = [] }) {
     }
   }
 
-  const response = await withRetry(() => new Promise((resolve, reject) => {
-    uni.request({
-      url: settings.aiServiceUrl,
-      method: 'POST',
-      header: {
-        'Authorization': `Bearer ${settings.aiApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      data: requestData,
-      success: (res) => resolve(res),
-      fail: (err) => reject(err)
-    })
-  }), { label: '生图大模型' })
+  const response = await requestWithRetry({
+    url: settings.aiServiceUrl,
+    method: 'POST',
+    header: {
+      'Authorization': `Bearer ${settings.aiApiKey}`,
+      'Content-Type': 'application/json'
+    },
+    data: requestData
+  }, { label: '生图大模型' })
 
   if (response.statusCode !== 200) {
     throw new Error(`生图服务返回错误 (${response.statusCode}): ${JSON.stringify(response.data)}`)
@@ -649,7 +650,7 @@ export async function createVideoTask({ record, photoPath }) {
 
   const catText = buildCategoryText(record.items)
 
-  const prompt = `大胃王挑战精彩瞬间，${record.shopName}，战斗力${record.score}分，吃了${catText}，动感镜头，电影级画质。`
+  const prompt = `大胃王挑战精彩瞬间，${sanitizeInput(record.shopName)}，战斗力${record.score}分，吃了${sanitizeInput(catText)}，动感镜头，电影级画质。`
 
   const requestData = {
     model: settings.videoModel || 'agnes-video-v2.0',
@@ -663,19 +664,15 @@ export async function createVideoTask({ record, photoPath }) {
   // 注意：视频 API 的 image 字段要求是公网 URL，不支持 base64
   // 当前不传 image，使用纯文生视频模式
 
-  const response = await withRetry(() => new Promise((resolve, reject) => {
-    uni.request({
-      url: settings.videoServiceUrl,
-      method: 'POST',
-      header: {
-        'Authorization': `Bearer ${settings.videoApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      data: requestData,
-      success: (res) => resolve(res),
-      fail: (err) => reject(err)
-    })
-  }), { label: '视频大模型' })
+  const response = await requestWithRetry({
+    url: settings.videoServiceUrl,
+    method: 'POST',
+    header: {
+      'Authorization': `Bearer ${settings.videoApiKey}`,
+      'Content-Type': 'application/json'
+    },
+    data: requestData
+  }, { label: '视频大模型' })
 
   if (response.statusCode !== 200) {
     throw new Error(`视频服务返回错误 (${response.statusCode}): ${JSON.stringify(response.data)}`)
@@ -690,17 +687,13 @@ export async function createVideoTask({ record, photoPath }) {
 export async function queryVideoResult(videoId) {
   const settings = settingsStore.get()
 
-  const response = await new Promise((resolve, reject) => {
-    uni.request({
-      url: `https://apihub.agnes-ai.com/agnesapi?video_id=${videoId}`,
-      method: 'GET',
-      header: {
-        'Authorization': `Bearer ${settings.videoApiKey}`
-      },
-      success: (res) => resolve(res),
-      fail: (err) => reject(err)
-    })
-  })
+  const response = await requestWithRetry({
+    url: `${settings.videoServiceUrl}?video_id=${videoId}`,
+    method: 'GET',
+    header: {
+      'Authorization': `Bearer ${settings.videoApiKey}`
+    }
+  }, { label: '视频查询' })
 
   if (response.statusCode !== 200) {
     throw new Error(`视频查询返回错误 (${response.statusCode}): ${JSON.stringify(response.data)}`)

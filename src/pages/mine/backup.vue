@@ -12,7 +12,7 @@
     <!-- Export Section — Double-Bezel -->
     <view class="card-shell">
       <view class="card-core">
-        <view class="btn btn--primary" @tap="handleExport">
+        <view class="btn btn--primary" role="button" aria-label="导出数据" @tap="handleExport">
           <text class="btn__icon">📤</text>
           <text class="btn__text">导出数据到文件</text>
         </view>
@@ -24,7 +24,7 @@
     <!-- Import Section — Double-Bezel -->
     <view class="card-shell">
       <view class="card-core">
-        <view class="btn btn--accent" @tap="handleImport">
+        <view class="btn btn--accent" role="button" aria-label="导入数据" @tap="handleImport">
           <text class="btn__icon">📥</text>
           <text class="btn__text">从文件导入数据</text>
         </view>
@@ -46,7 +46,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'
 import { recordStore } from '@/store/record-store.js'
-import { settingsStore, currentTheme } from '@/store/settings-store.js'
+import { settingsStore, currentTheme, getConfirmColor } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const LAST_BACKUP_KEY = 'eater_last_backup_time'
@@ -122,7 +122,7 @@ function handleImport() {
   uni.showModal({
     title: '确认导入',
     content: '导入将覆盖当前所有数据，是否继续？',
-    confirmColor: '#FF6B35',
+    confirmColor: getConfirmColor(),
     success(res) {
       if (!res.confirm) return
       doImport()
@@ -315,7 +315,7 @@ onShow(() => {
   display: flex;
   align-items: center;
   background: var(--c-accent-soft, $glow-orange-soft);
-  border: 1rpx solid rgba(255, 107, 53, 0.12);
+  border: 1rpx solid var(--c-accent-glow);
   border-radius: $radius-xl;
   padding: $intra-group $page-pad-x;
   margin-top: $intra-tight;

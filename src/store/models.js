@@ -1,6 +1,6 @@
 let idCounter = Date.now()
 function generateId() {
-  return (++idCounter).toString(36)
+  return (++idCounter).toString(36) + Math.random().toString(36).slice(2, 8)
 }
 
 export function createShop({ name, category = '自助餐', city = '', address = '', mealTimeLimit = 90, location = null, cost = '', photos = [], rating = '' }) {

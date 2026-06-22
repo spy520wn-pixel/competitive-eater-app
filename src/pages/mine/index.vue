@@ -72,17 +72,17 @@
     </view>
 
     <!-- About Dialog -->
-    <view v-if="showAboutDialog" class="dialog-mask" @tap="showAboutDialog = false">
+    <view v-if="showAboutDialog" class="dialog-mask" aria-label="关闭关于对话框" @tap="showAboutDialog = false">
       <view class="dialog" @tap.stop>
         <view class="dialog-header">
           <text class="dialog-title">关于大胃王</text>
-          <view class="dialog-close" @tap="showAboutDialog = false">
+          <view class="dialog-close" role="button" aria-label="关闭" @tap="showAboutDialog = false">
             <text class="dialog-close-text">✕</text>
           </view>
         </view>
         <view class="dialog-body">
           <text class="dialog-icon">🍽️</text>
-          <text class="dialog-app-name">大胃王 v1.0.0</text>
+          <text class="dialog-app-name">大胃王 v{{ APP_VERSION }}</text>
           <text class="dialog-desc">记录你的每一餐挑战！</text>
           <text class="dialog-copy">© 2024 Competitive Eater</text>
         </view>
@@ -93,16 +93,17 @@
 
 <script setup>
 import NavBar from '@/components/nav-bar.vue'
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { getLevel } from '@/utils/level.js'
 import { recordStore } from '@/store/record-store.js'
 import { settingsStore, currentTheme } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
+const APP_VERSION = '1.0.0'
 const level = ref({ tier: 1, name: '青铜', icon: '🥉' })
 const showAboutDialog = ref(false)
-const stats = reactive({
+const stats = ref({
   totalRecords: 0,
   maxScore: 0,
   totalExp: 0,
@@ -119,7 +120,7 @@ const menuItems = [
 
 function loadStats() {
   const s = recordStore.getStats()
-  Object.assign(stats, s)
+  stats.value = s
   level.value = getLevel(s.totalExp)
 }
 
@@ -168,8 +169,6 @@ function showAbout() {
   border: 1rpx solid var(--c-surface-12, $glass-white-12);
   border-radius: $radius-3xl;
   box-shadow: var(--c-shadow-xl, $shadow-xl), var(--c-shadow-inner, $shadow-inner);
-  backdrop-filter: blur(12rpx);
-  -webkit-backdrop-filter: blur(12rpx);
   position: relative;
   z-index: 1;
   animation: fadeInUp $dur-slow $ease-out-expo both;
@@ -190,9 +189,9 @@ function showAbout() {
   width: 240rpx;
   height: 240rpx;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 107, 53, 0.10) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--c-accent-glow) 0%, transparent 70%);
   pointer-events: none;
-  animation: breathe 6s $ease-in-out-smooth infinite;
+  animation: breathe 6s $ease-in-out-smooth 3;
 }
 
 .profile-card {
@@ -220,16 +219,16 @@ function showAbout() {
   position: absolute;
   inset: -8rpx;
   border-radius: 50%;
-  border: 2rpx solid rgba(255, 107, 53, 0.18);
+  border: 2rpx solid var(--c-border-active);
 }
 
-.avatar-ring--1 { border-color: rgba(205, 127, 50, 0.3); } /* 青铜 */
-.avatar-ring--2 { border-color: rgba(192, 192, 192, 0.4); } /* 白银 */
-.avatar-ring--3 { border-color: rgba(255, 215, 0, 0.4); } /* 黄金 */
-.avatar-ring--4 { border-color: rgba(0, 191, 255, 0.4); } /* 铂金 */
-.avatar-ring--5 { border-color: rgba(0, 191, 255, 0.5); } /* 钻石 */
+.avatar-ring--1 { border-color: var(--c-tier-bronze-border); } /* 青铜 */
+.avatar-ring--2 { border-color: var(--c-tier-silver-border); } /* 白银 */
+.avatar-ring--3 { border-color: var(--c-gold-glow-strong); } /* 黄金 */
+.avatar-ring--4 { border-color: var(--c-tier-platinum-border); } /* 铂金 */
+.avatar-ring--5 { border-color: var(--c-tier-diamond-border); } /* 钻石 */
 .avatar-ring--6 { border-color: rgba(138, 43, 226, 0.5); } /* 大师 */
-.avatar-ring--7 { border-color: rgba(255, 107, 53, 0.6); } /* 传奇 */
+.avatar-ring--7 { border-color: var(--c-glow-accent-strong); } /* 传奇 */
 
 .avatar-icon {
   font-size: 56rpx;
@@ -271,7 +270,7 @@ function showAbout() {
   font-size: var(--text-label-size, $type-label-size);
   font-weight: var(--text-label-weight, $type-label-weight);
   line-height: var(--text-label-lh, $type-label-lh);
-  color: rgba(255, 215, 0, 0.45);
+  color: var(--c-gold-muted);
   letter-spacing: var(--text-label-ls, $type-label-ls);
 }
 
@@ -298,15 +297,9 @@ function showAbout() {
   transform-origin: left;
   transform: scaleX(var(--fill-scale, 0));
   transition: transform 1.2s $ease-out-expo;
-  box-shadow: 0 0 16rpx rgba(255, 215, 0, 0.35);
-  animation: expShimmer 2s $ease-in-out-smooth infinite;
+  box-shadow: 0 0 16rpx var(--c-glow-gold);
+  animation: expShimmer 2s $ease-in-out-smooth 3;
   background-size: 200% 100%;
-}
-
-@keyframes expShimmer {
-  0% { background-position: 0% 0; }
-  50% { background-position: 100% 0; }
-  100% { background-position: 0% 0; }
 }
 
 .exp-text {
@@ -345,7 +338,7 @@ function showAbout() {
   background: var(--c-surface-1, $surface-1);
   border: 1rpx solid var(--c-border, $hairline);
   border-radius: $radius-2xl;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2rpx 12rpx var(--c-shadow-md);
   position: relative;
   z-index: 1;
   animation: fadeInUp $dur-slow $ease-out-expo 0.1s both;
@@ -395,7 +388,7 @@ function showAbout() {
   background: var(--c-surface-1, $surface-1);
   border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
   border-radius: $radius-2xl;
-  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1rpx 4rpx var(--c-shadow-sm);
   overflow: hidden;
   position: relative;
   z-index: 1;

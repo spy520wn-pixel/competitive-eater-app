@@ -3,6 +3,12 @@ import { createRecord, createRecordItem } from './models'
 import { scoreToExp } from '../utils/level'
 
 const recordStorage = new Storage('records')
+let _statsCache = null
+let _statsDirty = true
+
+function markDirty() {
+  _statsDirty = true
+}
 
 export const recordStore = {
   getAll() {
@@ -22,41 +28,49 @@ export const recordStore = {
   create(recordData) {
     const record = createRecord(recordData)
     recordStorage.save(record)
+    markDirty()
     return record
   },
 
   addItem(recordId, itemData) {
     const record = recordStorage.getById(recordId)
-    if (!record || record.status !== '进行中') return
+    if (!record) return { success: false, error: '记录不存在' }
+    if (record.status !== '进行中') return { success: false, error: '记录已结束' }
     const item = createRecordItem(itemData)
     const existingIndex = record.items.findIndex(
       i => i.menuItemId === item.menuItemId
     )
+    let newItems
     if (existingIndex !== -1) {
-      record.items[existingIndex].quantity += item.quantity
+      newItems = record.items.map((it, idx) =>
+        idx === existingIndex ? { ...it, quantity: it.quantity + item.quantity } : it
+      )
     } else {
-      record.items.push(item)
+      newItems = [...record.items, item]
     }
-    recordStorage.update(recordId, { items: record.items })
+    recordStorage.update(recordId, { items: newItems })
+    markDirty()
+    return { success: true, data: item }
   },
 
   updateItemQuantity(recordId, menuItemId, quantity) {
     const record = recordStorage.getById(recordId)
-    if (!record || record.status !== '进行中') return
-    if (quantity <= 0) {
-      record.items = record.items.filter(i => i.menuItemId !== menuItemId)
-    } else {
-      record.items = record.items.map(i =>
-        i.menuItemId === menuItemId ? { ...i, quantity } : i
-      )
-    }
-    recordStorage.update(recordId, { items: record.items })
+    if (!record) return { success: false, error: '记录不存在' }
+    if (record.status !== '进行中') return { success: false, error: '记录已结束' }
+    const newItems = quantity <= 0
+      ? record.items.filter(i => i.menuItemId !== menuItemId)
+      : record.items.map(i =>
+          i.menuItemId === menuItemId ? { ...i, quantity } : i
+        )
+    recordStorage.update(recordId, { items: newItems })
+    markDirty()
+    return { success: true }
   },
 
   finish(recordId, score) {
     const now = new Date().toISOString()
     const record = recordStorage.getById(recordId)
-    if (!record) return
+    if (!record) return { success: false, error: '记录不存在' }
     const duration = Math.round((new Date(now) - new Date(record.startTime)) / 60000)
     recordStorage.update(recordId, {
       endTime: now,
@@ -64,37 +78,46 @@ export const recordStore = {
       status: '已完成',
       score
     })
+    markDirty()
+    return { success: true }
   },
 
   abandon(recordId) {
     const now = new Date().toISOString()
     const record = recordStorage.getById(recordId)
-    if (!record) return
+    if (!record) return { success: false, error: '记录不存在' }
     const duration = Math.round((new Date(now) - new Date(record.startTime)) / 60000)
     recordStorage.update(recordId, {
       endTime: now,
       duration,
       status: '已放弃'
     })
+    markDirty()
+    return { success: true }
   },
 
   addPhoto(recordId, photoPath) {
     const record = recordStorage.getById(recordId)
-    if (!record) return
-    if (!record.photos) record.photos = []
-    record.photos.push(photoPath)
-    recordStorage.update(recordId, { photos: record.photos })
+    if (!record) return { success: false, error: '记录不存在' }
+    const newPhotos = [...(record.photos || []), photoPath]
+    recordStorage.update(recordId, { photos: newPhotos })
+    markDirty()
+    return { success: true }
   },
 
   remove(recordId) {
     recordStorage.remove(recordId)
+    markDirty()
   },
 
   getStats() {
+    if (!_statsDirty && _statsCache) return _statsCache
     const all = recordStorage.getAll()
     const completed = all.filter(r => r.status === '已完成')
     if (completed.length === 0) {
-      return { totalRecords: 0, maxScore: 0, totalExp: 0, shopCount: 0, categoryTotals: {} }
+      _statsCache = { totalRecords: 0, maxScore: 0, totalExp: 0, shopCount: 0, categoryTotals: {} }
+      _statsDirty = false
+      return _statsCache
     }
     const maxScore = Math.max(...completed.map(r => r.score))
     const totalExp = completed.reduce((sum, r) => sum + scoreToExp(r.score), 0)
@@ -106,13 +129,15 @@ export const recordStore = {
         categoryTotals[item.category] += item.quantity
       })
     })
-    return {
+    _statsCache = {
       totalRecords: completed.length,
       maxScore,
       totalExp,
       shopCount: shopIds.size,
       categoryTotals
     }
+    _statsDirty = false
+    return _statsCache
   },
 
   getBestByShop(shopId) {

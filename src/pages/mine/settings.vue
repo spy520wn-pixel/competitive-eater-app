@@ -12,7 +12,7 @@
         <view class="section-core">
           <view class="setting-row">
             <text class="setting-label">默认城市</text>
-            <picker :range="cities" @change="onCityChange" :value="cityIndex">
+            <picker :range="cities" @change="onCityChange" :value="cityIndex" aria-label="选择默认城市">
               <view class="picker-box">
                 <text class="picker-value">{{ settings.defaultCity || '未设置' }}</text>
                 <text class="picker-arrow">▾</text>
@@ -21,7 +21,7 @@
           </view>
           <view class="setting-row">
             <text class="setting-label">地图默认范围</text>
-            <picker :range="mapRanges" @change="onMapRangeChange" :value="mapRangeIndex">
+            <picker :range="mapRanges" @change="onMapRangeChange" :value="mapRangeIndex" aria-label="选择地图范围">
               <view class="picker-box">
                 <text class="picker-value">{{ settings.mapRange }}</text>
                 <text class="picker-arrow">▾</text>
@@ -42,13 +42,13 @@
       <view class="section-shell">
         <view class="section-core">
           <view class="theme-options">
-            <view class="theme-option" :class="{ 'theme-option--active': settings.theme === 'dark' }" @tap="onThemeChange('dark')">
+            <view class="theme-option" :class="{ 'theme-option--active': settings.theme === 'dark' }" role="button" aria-label="切换到深色主题" @tap="onThemeChange('dark')">
               <view class="theme-preview theme-preview--dark">
                 <view class="theme-preview__card" />
               </view>
               <text class="theme-option__label">深色</text>
             </view>
-            <view class="theme-option" :class="{ 'theme-option--active': settings.theme === 'light' }" @tap="onThemeChange('light')">
+            <view class="theme-option" :class="{ 'theme-option--active': settings.theme === 'light' }" role="button" aria-label="切换到浅色主题" @tap="onThemeChange('light')">
               <view class="theme-preview theme-preview--light">
                 <view class="theme-preview__card" />
               </view>
@@ -70,11 +70,11 @@
         <view class="section-core">
           <view class="setting-row">
             <text class="setting-label">倒计时提醒</text>
-            <switch :checked="settings.countdownWarning" color="#FF6B35" @change="onToggle('countdownWarning', $event)" />
+            <switch :checked="settings.countdownWarning" color="#FF6B35" aria-label="倒计时提醒" @change="onToggle('countdownWarning', $event)" />
           </view>
           <view class="setting-row" v-if="settings.countdownWarning">
             <text class="setting-label">提前提醒时间</text>
-            <picker :range="countdownOptions" @change="onCountdownChange" :value="countdownIndex">
+            <picker :range="countdownOptions" @change="onCountdownChange" :value="countdownIndex" aria-label="选择提前提醒时间">
               <view class="picker-box">
                 <text class="picker-value">{{ settings.countdownWarningMinutes }} 分钟</text>
                 <text class="picker-arrow">▾</text>
@@ -83,7 +83,7 @@
           </view>
           <view class="setting-row">
             <text class="setting-label">长按输入精确数量</text>
-            <switch :checked="settings.longPressInput" color="#FF6B35" @change="onToggle('longPressInput', $event)" />
+            <switch :checked="settings.longPressInput" color="#FF6B35" aria-label="长按输入精确数量" @change="onToggle('longPressInput', $event)" />
           </view>
         </view>
       </view>
@@ -91,7 +91,7 @@
 
     <!-- AI 模型配置 (高级设置) -->
     <view class="section">
-      <view class="section-header section-header--collapsible" @tap="showAI = !showAI">
+      <view class="section-header section-header--collapsible" role="button" :aria-label="(showAI ? '收起' : '展开') + 'AI 设置'" @tap="showAI = !showAI">
         <view class="header-left">
           <view class="eyebrow">
             <text class="eyebrow-text">AI 模型</text>
@@ -108,20 +108,20 @@
             <view class="setting-row setting-row--input">
               <text class="setting-label">服务地址</text>
               <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.ocrServiceUrl }">
-                <input class="setting-input" :value="settings.ocrServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" @input="onInput('ocrServiceUrl', $event)" @blur="onInputBlur('ocrServiceUrl', $event)" />
+                <input class="setting-input" :value="settings.ocrServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" aria-label="识图服务地址" @input="onInput('ocrServiceUrl', $event)" @blur="onInputBlur('ocrServiceUrl', $event)" />
               </view>
               <text v-if="errors.ocrServiceUrl" class="setting-error">{{ errors.ocrServiceUrl }}</text>
             </view>
             <view class="setting-row setting-row--input">
               <text class="setting-label">API Key</text>
               <view class="setting-input-wrap">
-                <input class="setting-input" :value="settings.ocrApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" @blur="onInput('ocrApiKey', $event)" />
+                <input class="setting-input" :value="settings.ocrApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" aria-label="识图 API Key" @blur="onInput('ocrApiKey', $event)" />
               </view>
             </view>
             <view class="setting-row setting-row--input">
               <text class="setting-label">模型 ID</text>
               <view class="setting-input-wrap">
-                <input class="setting-input" :value="settings.ocrModel" placeholder="model-name" placeholder-class="input-placeholder" @blur="onInput('ocrModel', $event)" />
+                <input class="setting-input" :value="settings.ocrModel" placeholder="model-name" placeholder-class="input-placeholder" aria-label="识图模型 ID" @blur="onInput('ocrModel', $event)" />
               </view>
             </view>
           </view>
@@ -132,20 +132,20 @@
             <view class="setting-row setting-row--input">
               <text class="setting-label">服务地址</text>
               <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.aiServiceUrl }">
-                <input class="setting-input" :value="settings.aiServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" @input="onInput('aiServiceUrl', $event)" @blur="onInputBlur('aiServiceUrl', $event)" />
+                <input class="setting-input" :value="settings.aiServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" aria-label="生图服务地址" @input="onInput('aiServiceUrl', $event)" @blur="onInputBlur('aiServiceUrl', $event)" />
               </view>
               <text v-if="errors.aiServiceUrl" class="setting-error">{{ errors.aiServiceUrl }}</text>
             </view>
             <view class="setting-row setting-row--input">
               <text class="setting-label">API Key</text>
               <view class="setting-input-wrap">
-                <input class="setting-input" :value="settings.aiApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" @blur="onInput('aiApiKey', $event)" />
+                <input class="setting-input" :value="settings.aiApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" aria-label="生图 API Key" @blur="onInput('aiApiKey', $event)" />
               </view>
             </view>
             <view class="setting-row setting-row--input">
               <text class="setting-label">模型 ID</text>
               <view class="setting-input-wrap">
-                <input class="setting-input" :value="settings.aiModel" placeholder="model-name" placeholder-class="input-placeholder" @blur="onInput('aiModel', $event)" />
+                <input class="setting-input" :value="settings.aiModel" placeholder="model-name" placeholder-class="input-placeholder" aria-label="生图模型 ID" @blur="onInput('aiModel', $event)" />
               </view>
             </view>
           </view>
@@ -156,20 +156,20 @@
             <view class="setting-row setting-row--input">
               <text class="setting-label">服务地址</text>
               <view class="setting-input-wrap" :class="{ 'setting-input-wrap--error': errors.videoServiceUrl }">
-                <input class="setting-input" :value="settings.videoServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" @input="onInput('videoServiceUrl', $event)" @blur="onInputBlur('videoServiceUrl', $event)" />
+                <input class="setting-input" :value="settings.videoServiceUrl" placeholder="https://..." placeholder-class="input-placeholder" aria-label="视频服务地址" @input="onInput('videoServiceUrl', $event)" @blur="onInputBlur('videoServiceUrl', $event)" />
               </view>
               <text v-if="errors.videoServiceUrl" class="setting-error">{{ errors.videoServiceUrl }}</text>
             </view>
             <view class="setting-row setting-row--input">
               <text class="setting-label">API Key</text>
               <view class="setting-input-wrap">
-                <input class="setting-input" :value="settings.videoApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" @blur="onInput('videoApiKey', $event)" />
+                <input class="setting-input" :value="settings.videoApiKey" :password="true" placeholder="sk-..." placeholder-class="input-placeholder" aria-label="视频 API Key" @blur="onInput('videoApiKey', $event)" />
               </view>
             </view>
             <view class="setting-row setting-row--input">
               <text class="setting-label">模型 ID</text>
               <view class="setting-input-wrap">
-                <input class="setting-input" :value="settings.videoModel" placeholder="model-name" placeholder-class="input-placeholder" @blur="onInput('videoModel', $event)" />
+                <input class="setting-input" :value="settings.videoModel" placeholder="model-name" placeholder-class="input-placeholder" aria-label="视频模型 ID" @blur="onInput('videoModel', $event)" />
               </view>
             </view>
           </view>
@@ -189,7 +189,7 @@
           <view class="setting-row setting-row--input">
             <text class="setting-label">高德地图 API Key</text>
             <view class="setting-input-wrap">
-              <input class="setting-input" :value="settings.amapKey" :password="true" placeholder="高德地图 Key" placeholder-class="input-placeholder" @blur="onInput('amapKey', $event)" />
+              <input class="setting-input" :value="settings.amapKey" :password="true" placeholder="高德地图 Key" placeholder-class="input-placeholder" aria-label="高德地图 API Key" @blur="onInput('amapKey', $event)" />
             </view>
           </view>
         </view>
@@ -205,13 +205,13 @@
       </view>
       <view class="section-shell">
         <view class="section-core">
-          <view class="setting-row setting-row--nav" @tap="goToBackup">
+          <view class="setting-row setting-row--nav" role="button" aria-label="数据备份" @tap="goToBackup">
             <text class="setting-label">数据备份</text>
             <view class="arrow-wrap">
               <text class="nav-arrow">›</text>
             </view>
           </view>
-          <view class="setting-row setting-row--nav" @tap="handleClear">
+          <view class="setting-row setting-row--nav" role="button" aria-label="清除所有数据" @tap="handleClear">
             <text class="setting-label setting-label--danger">清除所有数据</text>
             <view class="arrow-wrap">
               <text class="nav-arrow">›</text>
@@ -226,21 +226,16 @@
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme, getDangerColor } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage, applyNavBarColor } from '@/utils/apply-page-theme.js'
 import NavBar from '@/components/nav-bar.vue'
 
-const cities = [
-  '全国', '北京', '上海', '天津', '重庆', '广州', '深圳', '东莞', '佛山', '珠海',
-  '杭州', '宁波', '温州', '嘉兴', '南京', '苏州', '无锡', '常州', '南通', '徐州',
-  '济南', '青岛', '烟台', '潍坊', '成都', '绵阳', '武汉', '宜昌', '襄阳', '长沙',
-  '岳阳', '郑州', '洛阳', '石家庄', '唐山', '福州', '厦门', '合肥', '芜湖', '沈阳',
-  '大连', '南昌', '赣州', '西安', '咸阳', '南宁', '昆明', '贵阳', '太原', '哈尔滨',
-  '长春', '兰州', '呼和浩特', '乌鲁木齐', '海口', '拉萨'
-]
+import { CITIES } from '@/constants/cities.js'
+
+const cities = CITIES
 const mapRanges = ['城市', '区域', '全国']
 
-const countdownOptions = ['10', '20', '30']
+const countdownOptions = ['5', '10', '20', '30']
 const showAI = ref(false)
 
 const settings = reactive({
@@ -378,7 +373,7 @@ function handleClear() {
     title: '确认清除',
     content: '将删除所有店铺、战绩和设置数据，此操作不可恢复！',
     confirmText: '确认清除',
-    confirmColor: '#FF4444',
+    confirmColor: getDangerColor(),
     success(res) {
       if (res.confirm) {
         uni.clearStorageSync()
@@ -471,7 +466,7 @@ onShow(() => {
   background: var(--c-surface-1, $surface-1);
   border: 1rpx solid var(--c-border-subtle, $hairline-subtle);
   border-radius: $radius-2xl;
-  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1rpx 4rpx var(--c-shadow-sm);
   overflow: hidden;
   animation: fadeInUp $dur-slow $ease-out-expo both;
 }

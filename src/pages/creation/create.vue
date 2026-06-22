@@ -32,6 +32,8 @@
           :key="record.id"
           class="record-card"
           :class="{ 'record-card--selected': selectedRecord?.id === record.id }"
+          role="button"
+          :aria-label="'选择战绩 ' + record.shopName"
           @tap="selectedRecord = record"
         >
           <view class="record-card__left">
@@ -62,9 +64,11 @@
           :key="i"
           class="photo-item"
           :class="{ 'photo-item--selected': selectedPhotos.includes(photo) }"
+          role="button"
+          :aria-label="'选择照片 ' + (i + 1)"
           @tap="togglePhoto(photo)"
         >
-          <image :src="photo" mode="aspectFill" class="photo-img" />
+          <image :src="photo" mode="aspectFill" class="photo-img" lazy-load :aria-label="'照片 ' + (index + 1)" />
           <view v-if="selectedPhotos.includes(photo)" class="photo-check">
             <text class="photo-check-text">✓</text>
           </view>
@@ -72,6 +76,8 @@
         <view
           class="photo-item photo-item--add"
           :class="{ 'photo-item--disabled': selectedPhotos.length >= 3 }"
+          role="button"
+          aria-label="添加照片"
           @tap="selectedPhotos.length < 3 && addNewPhoto()"
         >
           <text class="photo-add-icon">+</text>
@@ -89,6 +95,8 @@
         <view
           class="type-card"
           :class="{ 'type-card--selected': selectedType === 'image' }"
+          role="button"
+          aria-label="生成海报"
           @tap="selectedType = 'image'"
         >
           <text class="type-card__icon">🖼️</text>
@@ -98,6 +106,8 @@
         <view
           class="type-card"
           :class="{ 'type-card--selected': selectedType === 'video' }"
+          role="button"
+          aria-label="生成视频"
           @tap="selectedType = 'video'"
         >
           <text class="type-card__icon">🎬</text>
@@ -117,6 +127,8 @@
           :key="name"
           class="style-card"
           :class="{ 'style-card--selected': selectedStyle === name }"
+          role="button"
+          :aria-label="'选择风格 ' + name"
           @tap="selectedStyle = name"
         >
           <view class="style-card__color" :style="{ background: getStyleColor(name) }" />
@@ -131,7 +143,7 @@
       <view class="generating-card">
         <view class="generating-spinner" />
         <text class="generating-text">{{ generatingText }}</text>
-        <view class="generating-cancel" @tap="cancelGeneration">
+        <view class="generating-cancel" role="button" aria-label="取消生成" @tap="cancelGeneration">
           <text class="generating-cancel-text">取消</text>
         </view>
       </view>
@@ -142,6 +154,8 @@
       <view
         v-if="step > 0"
         class="btn btn--secondary"
+        role="button"
+        aria-label="上一步"
         @tap="prevStep"
       >
         <text class="btn-text btn-text--secondary">上一步</text>
@@ -151,6 +165,8 @@
       <view
         class="btn btn--primary"
         :class="{ 'btn--disabled': !canProceed }"
+        role="button"
+        aria-label="下一步"
         @tap="nextStep"
       >
         <text class="btn-text btn-text--primary">{{ isLastStep ? '开始创作' : '下一步' }}</text>
@@ -163,8 +179,7 @@
 import NavBar from '@/components/nav-bar.vue'
 import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { currentTheme } from '@/store/settings-store.js'
-import { settingsStore } from '@/store/settings-store.js'
+import { settingsStore, currentTheme, getConfirmColor } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 import { recordStore } from '@/store/record-store.js'
 import { creationStore } from '@/store/creation-store.js'
@@ -317,7 +332,7 @@ async function submit() {
       title: '创作失败',
       content: 'AI 创作请求失败，是否重试？',
       confirmText: '重试',
-      confirmColor: '#FF6B35',
+      confirmColor: getConfirmColor(),
       cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
@@ -365,8 +380,8 @@ onShow(() => {
 }
 
 .step-dot {
-  width: 48rpx;
-  height: 48rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
   background: var(--c-surface-5, $glass-white-5);
   border: 1rpx solid var(--c-border, $hairline);
@@ -374,7 +389,7 @@ onShow(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .step-item--active .step-dot {
@@ -396,7 +411,7 @@ onShow(() => {
 
 .step-item--active .step-dot-text,
 .step-item--done .step-dot-text {
-  color: #FFFFFF;
+  color: var(--c-text-on-accent);
 }
 
 .step-label {
@@ -465,7 +480,7 @@ onShow(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: all 0.25s $ease-spring;
+  transition: transform 0.25s $ease-spring;
 }
 
 .record-card:active {
@@ -545,7 +560,7 @@ onShow(() => {
   overflow: hidden;
   position: relative;
   border: 2rpx solid transparent;
-  transition: all 0.25s $ease-spring;
+  transition: transform 0.25s $ease-spring, border-color 0.25s $ease-spring, box-shadow 0.25s $ease-spring;
 }
 
 .photo-item--selected {
@@ -573,7 +588,7 @@ onShow(() => {
 
 .photo-check-text {
   font-size: 22rpx;
-  color: #FFFFFF;
+  color: var(--c-text-on-accent);
   font-weight: 700;
 }
 
@@ -626,7 +641,7 @@ onShow(() => {
   flex-direction: column;
   align-items: center;
   gap: 16rpx;
-  transition: all 0.25s $ease-spring;
+  transition: transform 0.25s $ease-spring;
 }
 
 .type-card:active {
@@ -671,7 +686,7 @@ onShow(() => {
   display: flex;
   flex-direction: column;
   gap: 8rpx;
-  transition: all 0.25s $ease-spring;
+  transition: transform 0.25s $ease-spring;
 }
 
 .style-card:active {
@@ -761,10 +776,6 @@ onShow(() => {
   color: var(--c-text-secondary, $text-secondary);
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
 /* ── Bottom Bar ── */
 .bottom-bar {
   position: fixed;
@@ -789,7 +800,7 @@ onShow(() => {
   justify-content: center;
   padding: 0 48rpx;
   min-width: 200rpx;
-  transition: all 0.25s $ease-spring;
+  transition: transform 0.25s $ease-spring;
 }
 
 .btn:active {
@@ -818,7 +829,7 @@ onShow(() => {
 }
 
 .btn-text--primary {
-  color: #FFFFFF;
+  color: var(--c-text-on-accent);
 }
 
 .btn-text--secondary {
@@ -829,20 +840,4 @@ onShow(() => {
   width: 200rpx;
 }
 
-/* ── Animations ── */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(24rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 </style>

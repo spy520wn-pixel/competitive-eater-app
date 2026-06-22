@@ -1,29 +1,35 @@
 <template>
-  <view class="tabbar" :class="{ 'tabbar--light': isLight }" :data-theme="theme" :style="isLight ? { background: '#FAF8F5', borderTopColor: 'rgba(0,0,0,0.06)' } : {}">
+  <view class="tabbar" :class="{ 'tabbar--light': isLight }" :data-theme="theme" role="tablist">
     <view
       v-for="(item, index) in tabs"
       :key="item.pagePath"
       class="tabbar-item"
       :class="{ 'tabbar-item--active': current === index }"
+      role="tab"
+      tabindex="0"
+      :aria-label="item.text"
+      :aria-selected="current === index"
       @tap="switchTab(index)"
+      @keydown.enter="switchTab(index)"
     >
       <image
         class="tabbar-icon-img"
         :src="current === index ? item.activeIcon : item.icon"
         mode="aspectFit"
+        aria-hidden="true"
       />
-      <text class="tabbar-text" :style="isLight ? { color: '#545468' } : {}">{{ item.text }}</text>
+      <text class="tabbar-text">{{ item.text }}</text>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { settingsStore } from '@/store/settings-store.js'
+import { useTheme } from '@/composables/useTheme.js'
 
 const current = ref(0)
-const theme = ref('dark')
+const { theme } = useTheme()
 
 const isLight = computed(() => theme.value === 'light')
 
@@ -48,28 +54,7 @@ function switchTab(index) {
   uni.switchTab({ url: '/' + pages[index] })
 }
 
-function updateTheme() {
-  const settings = settingsStore.get()
-  theme.value = settings.theme || 'dark'
-}
-
-function onThemeChange(newTheme) {
-  theme.value = newTheme
-}
-
-onMounted(() => {
-  updateTheme()
-  uni.$on('tabbar-theme-change', onThemeChange)
-  uni.$on('theme-apply', onThemeChange)
-})
-
-onUnmounted(() => {
-  uni.$off('tabbar-theme-change', onThemeChange)
-  uni.$off('theme-apply', onThemeChange)
-})
-
 onShow(() => {
-  updateTheme()
   const pageStack = getCurrentPages()
   const currentPage = pageStack[pageStack.length - 1]
   if (currentPage) {
@@ -89,10 +74,8 @@ onShow(() => {
   align-items: center;
   justify-content: space-around;
   height: 100rpx;
-  background: var(--c-bg-elevated, $abyss);
-  backdrop-filter: blur(20rpx);
-  -webkit-backdrop-filter: blur(20rpx);
-  border-top: 1rpx solid var(--c-hairline, $hairline);
+  background: var(--c-bg-elevated);
+  border-top: 1rpx solid var(--c-hairline);
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 999;
 }

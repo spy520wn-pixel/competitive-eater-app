@@ -1,11 +1,11 @@
 <template>
   <view class="empty-state">
     <view class="empty-plate">
-      <text class="empty-icon">{{ icon }}</text>
+      <text class="empty-icon" aria-hidden="true">{{ icon }}</text>
     </view>
     <text class="empty-title">{{ title }}</text>
     <text v-if="description" class="empty-desc">{{ description }}</text>
-    <view v-if="actionText" class="empty-action" @tap="$emit('action')">
+    <view v-if="actionText" class="empty-action" role="button" tabindex="0" :aria-label="actionText" @tap="$emit('action')" @keydown.enter="$emit('action')">
       <text class="empty-action__text">{{ actionText }}</text>
     </view>
     <text v-if="hint" class="empty-hint">{{ hint }}</text>
@@ -44,12 +44,12 @@ defineEmits(['action'])
   justify-content: center;
   margin-bottom: $intra-group;
   box-shadow: var(--c-shadow-md, $shadow-md), var(--c-shadow-inner, $shadow-inner);
-  animation: emptyFloat 5s $ease-in-out-smooth infinite;
+  animation: emptyFloat 5s $ease-in-out-smooth 3;
 }
 
 .empty-icon {
   font-size: 64rpx;
-  animation: emptyBounce 2s $ease-in-out-smooth infinite;
+  animation: emptyBounce 2s $ease-in-out-smooth 3;
 }
 
 .empty-title {
@@ -101,25 +101,14 @@ defineEmits(['action'])
   text-align: center;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes emptyFloat {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12rpx); }
 }
 
 @keyframes emptyBounce {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  25% { transform: scale(1.05) rotate(-3deg); }
-  75% { transform: scale(1.05) rotate(3deg); }
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.04) rotate(-2deg); }
+  100% { transform: scale(1) rotate(0deg); }
 }
 </style>

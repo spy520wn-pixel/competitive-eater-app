@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { CATEGORY_CSS } from '@/utils/category-constants.js'
+import { getCategoryColor, getCategoryGlow } from '@/utils/category-constants.js'
 
 defineProps({
   categories: { type: Array, default: () => [] },
@@ -25,24 +25,17 @@ defineProps({
 })
 
 defineEmits(['update:modelValue'])
-
-function getCategoryColor(name) {
-  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).color
-}
-
-function getCategoryGlow(name) {
-  return (CATEGORY_CSS[name] || CATEGORY_CSS['其他']).glow
-}
 </script>
 
 <style lang="scss" scoped>
 .category-tabs {
   display: flex;
   flex-direction: column;
-  background: var(--c-surface-0, #08080F);
-  width: 220rpx;
+  background: var(--c-surface-0, $void-black);
+  width: 200rpx;
+  flex-shrink: 0;
   padding-top: 8rpx;
-  border-right: 2rpx solid rgba(255, 107, 53, 0.12);
+  border-right: 1rpx solid var(--c-border-subtle, $hairline-subtle);
 }
 
 .tab-item {
@@ -60,7 +53,7 @@ function getCategoryGlow(name) {
 }
 
 .tab-item--active {
-  background: rgba(255, 107, 53, 0.08);
+  background: var(--c-accent-soft);
 }
 
 .tab-indicator {
@@ -78,7 +71,7 @@ function getCategoryGlow(name) {
   transform: scaleY(1);
   background: var(--c-accent, $accent-orange);
   box-shadow: 0 0 24rpx var(--c-accent-glow, $glow-orange);
-  animation: indicatorGlow 2s $ease-in-out-smooth infinite;
+  animation: indicatorGlow 2s $ease-in-out-smooth 3;
 }
 
 @keyframes indicatorGlow {

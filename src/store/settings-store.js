@@ -10,18 +10,18 @@ const defaultSettings = {
   longPressInput: true,
   // 识图大模型
   ocrServiceUrl: 'https://apihub.agnes-ai.com/v1/chat/completions',
-  ocrApiKey: 'sk-dm2wMzpI3zhFLhb2bDW2wEtF4lu95fVYQWj4jHQi1vhUqXbK',
+  ocrApiKey: '',
   ocrModel: 'agnes-2.0-flash',
   // 生图大模型
   aiServiceUrl: 'https://apihub.agnes-ai.com/v1/images/generations',
-  aiApiKey: 'sk-dm2wMzpI3zhFLhb2bDW2wEtF4lu95fVYQWj4jHQi1vhUqXbK',
+  aiApiKey: '',
   aiModel: 'agnes-image-2.0-flash',
   // 视频大模型
   videoServiceUrl: 'https://apihub.agnes-ai.com/v1/videos',
-  videoApiKey: 'sk-dm2wMzpI3zhFLhb2bDW2wEtF4lu95fVYQWj4jHQi1vhUqXbK',
+  videoApiKey: '',
   videoModel: 'agnes-video-v2.0',
   // 高德地图
-  amapKey: 'cc91515d50ab91e20bc1ac6c8ca69600',
+  amapKey: '',
   theme: 'dark'
 }
 
@@ -34,12 +34,25 @@ try {
   currentTheme.value = s.theme || 'dark'
 } catch (e) { /* ignore */ }
 
+// uni.showModal 确认按钮颜色（原生 API 不支持 CSS 变量，需 JS 解析）
+export function getConfirmColor() {
+  return currentTheme.value === 'light' ? '#D94F1E' : '#FF6B35'
+}
+
+export function getDangerColor() {
+  return currentTheme.value === 'light' ? '#CC2D20' : '#FF3B30'
+}
+
+let _cache = null
+let _migrationDone = false
+
 export const settingsStore = {
   get() {
+    if (_cache) return _cache
     try {
       const stored = uni.getStorageSync(SETTINGS_KEY) || {}
-      // 迁移：如果存储中没有 ocrServiceUrl（新字段），说明是旧版配置，需要用新默认值覆盖 AI 系列
-      if (!stored.ocrServiceUrl && stored.aiServiceUrl !== undefined) {
+      // 迁移：仅首次执行
+      if (!_migrationDone && !stored.ocrServiceUrl && stored.aiServiceUrl !== undefined) {
         stored.ocrServiceUrl = defaultSettings.ocrServiceUrl
         stored.ocrApiKey = defaultSettings.ocrApiKey
         stored.ocrModel = defaultSettings.ocrModel
@@ -50,27 +63,31 @@ export const settingsStore = {
         stored.videoApiKey = defaultSettings.videoApiKey
         stored.videoModel = defaultSettings.videoModel
         stored.amapKey = stored.amapKey || defaultSettings.amapKey
-        // 写回 storage
         try { uni.setStorageSync(SETTINGS_KEY, stored) } catch (e) { /* ignore */ }
       }
-      return { ...defaultSettings, ...stored }
+      _migrationDone = true
+      _cache = { ...defaultSettings, ...stored }
+      return _cache
     } catch {
-      return { ...defaultSettings }
+      _cache = { ...defaultSettings }
+      return _cache
     }
   },
 
   update(updates) {
-    const current = this.get()
+    const current = { ...this.get() }
     const merged = { ...current, ...updates }
     uni.setStorageSync(SETTINGS_KEY, merged)
-    // 同步响应式变量
+    _cache = merged
     if (updates.theme !== undefined) {
       currentTheme.value = updates.theme
     }
   },
 
   reset() {
-    uni.setStorageSync(SETTINGS_KEY, { ...defaultSettings })
+    const defaults = { ...defaultSettings }
+    uni.setStorageSync(SETTINGS_KEY, defaults)
+    _cache = defaults
     currentTheme.value = defaultSettings.theme
   }
 }

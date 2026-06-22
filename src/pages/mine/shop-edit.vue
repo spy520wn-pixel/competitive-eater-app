@@ -14,21 +14,21 @@
       >
         <swiper-item v-for="(photo, idx) in form.photos" :key="idx">
           <view class="photo-wrap">
-            <image class="carousel-image" :src="photo" mode="aspectFill" />
-            <view class="photo-delete" @tap="deletePhoto(idx)">
+            <image class="carousel-image" :src="photo" mode="aspectFill" lazy-load :aria-label="'店铺照片 ' + (idx + 1)" />
+            <view class="photo-delete" role="button" aria-label="删除照片" @tap="deletePhoto(idx)">
               <text class="photo-delete-icon">✕</text>
             </view>
           </view>
         </swiper-item>
         <swiper-item v-if="form.photos.length < 9">
-          <view class="photo-add" @tap="showPhotoOptions">
+          <view class="photo-add" role="button" aria-label="添加照片" @tap="showPhotoOptions">
             <text class="photo-add-icon">+</text>
             <text class="photo-add-text">添加照片</text>
           </view>
         </swiper-item>
       </swiper>
     </view>
-    <view v-else class="carousel-shell carousel-shell--empty" @tap="showPhotoOptions">
+    <view v-else class="carousel-shell carousel-shell--empty" role="button" aria-label="添加照片" @tap="showPhotoOptions">
       <view class="photo-add photo-add--standalone">
         <text class="photo-add-icon">+</text>
         <text class="photo-add-text">添加店铺照片</text>
@@ -54,7 +54,7 @@
 
         <view class="form-item">
           <text class="form-label">店铺分类</text>
-          <picker :range="categories" :value="categoryIndex" @change="onCategoryChange">
+          <picker :range="categories" :value="categoryIndex" @change="onCategoryChange" aria-label="选择店铺分类">
             <view class="form-picker">
               <text class="form-picker__text">{{ form.category }}</text>
               <text class="form-picker__arrow">▾</text>
@@ -78,7 +78,7 @@
 
         <view class="form-item">
           <text class="form-label">所在城市</text>
-          <picker :range="cities" :value="cityIndex" @change="onCityChange">
+          <picker :range="cities" :value="cityIndex" @change="onCityChange" aria-label="选择所在城市">
             <view class="form-picker">
               <text class="form-picker__text">{{ form.city || '请选择城市' }}</text>
               <text class="form-picker__arrow">▾</text>
@@ -141,7 +141,7 @@
 
         <view class="form-item">
           <text class="form-label">位置定位</text>
-          <view class="location-btn" @tap="getLocation">
+          <view class="location-btn" role="button" aria-label="获取位置" @tap="getLocation">
             <text class="location-icon">📍</text>
             <text class="location-text">{{ form.location ? '已获取位置' : '获取当前位置' }}</text>
           </view>
@@ -152,6 +152,7 @@
           <switch
             :checked="form.hasTiers"
             color="#FF6B35"
+            aria-label="是否分档位"
             @change="form.hasTiers = $event.detail.value"
           />
         </view>
@@ -165,11 +166,11 @@
           <text class="section-title">菜单管理</text>
         </view>
         <view class="menu-actions">
-          <view class="menu-action-btn" @tap="onOcrImport()">
+          <view class="menu-action-btn" role="button" aria-label="识图导入菜单" @tap="onOcrImport()">
             <text class="menu-action-icon">📷</text>
             <text class="menu-action-text">图片识别导入</text>
           </view>
-          <view class="menu-action-btn" @tap="onAddDish()">
+          <view class="menu-action-btn" role="button" aria-label="手动添加菜品" @tap="onAddDish()">
             <text class="menu-action-icon">➕</text>
             <text class="menu-action-text">手动添加</text>
           </view>
@@ -181,8 +182,8 @@
               <text class="menu-item-name">{{ item.name }}</text>
               <text class="menu-item-unit">{{ item.unit }}</text>
               <view class="menu-item-actions">
-                <text class="menu-item-action" @tap="onEditDish(item)">编辑</text>
-                <text class="menu-item-action menu-item-action--del" @tap="onDeleteDish(item)">删除</text>
+                <text class="menu-item-action" role="button" aria-label="编辑菜品" @tap="onEditDish(item)">编辑</text>
+                <text class="menu-item-action menu-item-action--del" role="button" aria-label="删除菜品" @tap="onDeleteDish(item)">删除</text>
               </view>
             </view>
           </view>
@@ -198,7 +199,7 @@
       <view class="tier-core">
         <view class="section-header">
           <text class="section-title">档位管理</text>
-          <view class="add-tier-btn" @tap="onAddTier">
+          <view class="add-tier-btn" role="button" aria-label="添加档位" @tap="onAddTier">
             <text class="add-tier-text">+ 添加档位</text>
           </view>
         </view>
@@ -206,14 +207,14 @@
         <view v-for="tier in form.tiers" :key="tier.id" class="tier-block">
           <view class="tier-block__header">
             <text class="tier-block__name">{{ tier.name }}</text>
-            <text class="tier-block__del" @tap="onDeleteTier(tier)">删除档位</text>
+            <text class="tier-block__del" role="button" aria-label="删除档位" @tap="onDeleteTier(tier)">删除档位</text>
           </view>
           <view class="menu-actions">
-            <view class="menu-action-btn" @tap="onOcrImport(tier.id)">
+            <view class="menu-action-btn" role="button" aria-label="识图导入菜单" @tap="onOcrImport(tier.id)">
               <text class="menu-action-icon">📷</text>
               <text class="menu-action-text">图片识别</text>
             </view>
-            <view class="menu-action-btn" @tap="onAddDish(tier.id)">
+            <view class="menu-action-btn" role="button" aria-label="手动添加菜品" @tap="onAddDish(tier.id)">
               <text class="menu-action-icon">➕</text>
               <text class="menu-action-text">手动添加</text>
             </view>
@@ -225,8 +226,8 @@
                 <text class="menu-item-name">{{ item.name }}</text>
                 <text class="menu-item-unit">{{ item.unit }}</text>
                 <view class="menu-item-actions">
-                  <text class="menu-item-action" @tap="onEditDish(item, tier.id)">编辑</text>
-                  <text class="menu-item-action menu-item-action--del" @tap="onDeleteDish(item, tier.id)">删除</text>
+                  <text class="menu-item-action" role="button" aria-label="编辑菜品" @tap="onEditDish(item, tier.id)">编辑</text>
+                  <text class="menu-item-action menu-item-action--del" role="button" aria-label="删除菜品" @tap="onDeleteDish(item, tier.id)">删除</text>
                 </view>
               </view>
             </view>
@@ -245,12 +246,12 @@
     </view>
 
     <!-- Save Button -->
-    <view class="save-btn" @tap="onSave">
+    <view class="save-btn" role="button" aria-label="保存店铺" @tap="onSave">
       <text class="save-btn__text">保存店铺</text>
     </view>
 
     <!-- Add Dish Popup -->
-    <view v-if="showDishPopup" class="popup-mask" @tap="showDishPopup = false">
+    <view v-if="showDishPopup" class="popup-mask" aria-label="关闭弹窗" @tap="showDishPopup = false">
       <view class="popup" @tap.stop>
         <view class="popup-glow" />
         <view class="popup-inner">
@@ -271,7 +272,7 @@
             </view>
             <view class="popup-form-item">
               <text class="popup-label">分类</text>
-              <picker :range="dishCategories" :value="dishCategoryIndex" @change="onDishCategoryChange">
+              <picker :range="dishCategories" :value="dishCategoryIndex" @change="onDishCategoryChange" aria-label="选择菜品分类">
                 <view class="form-picker">
                   <text class="form-picker__text">{{ dishForm.category }}</text>
                   <text class="form-picker__arrow">▾</text>
@@ -293,10 +294,10 @@
             </view>
           </view>
           <view class="popup-actions">
-            <view class="popup-btn popup-btn--cancel" @tap="showDishPopup = false">
+            <view class="popup-btn popup-btn--cancel" role="button" aria-label="取消" @tap="showDishPopup = false">
               <text class="popup-btn-text">取消</text>
             </view>
-            <view class="popup-btn popup-btn--confirm" @tap="confirmDish">
+            <view class="popup-btn popup-btn--confirm" role="button" aria-label="确认" @tap="confirmDish">
               <text class="popup-btn-text">确定</text>
             </view>
           </view>
@@ -305,7 +306,7 @@
     </view>
 
     <!-- Add Tier Popup -->
-    <view v-if="showTierPopup" class="popup-mask" @tap="showTierPopup = false">
+    <view v-if="showTierPopup" class="popup-mask" aria-label="关闭弹窗" @tap="showTierPopup = false">
       <view class="popup" @tap.stop>
         <view class="popup-glow" />
         <view class="popup-inner">
@@ -326,10 +327,10 @@
             </view>
           </view>
           <view class="popup-actions">
-            <view class="popup-btn popup-btn--cancel" @tap="showTierPopup = false">
+            <view class="popup-btn popup-btn--cancel" role="button" aria-label="取消" @tap="showTierPopup = false">
               <text class="popup-btn-text">取消</text>
             </view>
-            <view class="popup-btn popup-btn--confirm" @tap="confirmTier">
+            <view class="popup-btn popup-btn--confirm" role="button" aria-label="确认" @tap="confirmTier">
               <text class="popup-btn-text">确定</text>
             </view>
           </view>
@@ -346,22 +347,18 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { shopStore } from '@/store/shop-store.js'
 import { createShop, createTier, createMenuItem } from '@/store/models.js'
 import { recognizeMenu } from '@/utils/ai-service.js'
-import { settingsStore, currentTheme } from '@/store/settings-store.js'
+import { settingsStore, currentTheme, getConfirmColor } from '@/store/settings-store.js'
 import { applyPageTheme, syncThemeFromStorage } from '@/utils/apply-page-theme.js'
 
 const isEdit = ref(false)
 const shopId = ref('')
 
-const categories = ['自助餐', '火锅', '烧烤', '日料', '西餐', '中餐', '其他']
-const cities = [
-  '全国', '北京', '上海', '天津', '重庆', '广州', '深圳', '东莞', '佛山', '珠海',
-  '杭州', '宁波', '温州', '嘉兴', '南京', '苏州', '无锡', '常州', '南通', '徐州',
-  '济南', '青岛', '烟台', '潍坊', '成都', '绵阳', '武汉', '宜昌', '襄阳', '长沙',
-  '岳阳', '郑州', '洛阳', '石家庄', '唐山', '福州', '厦门', '合肥', '芜湖', '沈阳',
-  '大连', '南昌', '赣州', '西安', '咸阳', '南宁', '昆明', '贵阳', '太原', '哈尔滨',
-  '长春', '兰州', '呼和浩特', '乌鲁木齐', '海口', '拉萨', '其他'
-]
-const dishCategories = ['肉类', '海鲜', '蔬菜', '主食', '饮品', '甜点', '其他']
+import { CITIES } from '@/constants/cities.js'
+import { SHOP_CATEGORIES, DISH_CATEGORIES } from '@/constants/categories.js'
+
+const categories = SHOP_CATEGORIES
+const cities = CITIES
+const dishCategories = DISH_CATEGORIES
 
 const form = reactive({
   name: '',
@@ -595,7 +592,7 @@ function onDeleteDish(item, tierId = null) {
   uni.showModal({
     title: '确认删除',
     content: `确定删除「${item.name}」？`,
-    confirmColor: '#FF6B35',
+    confirmColor: getConfirmColor(),
     success(res) {
       if (res.confirm) {
         if (tierId) {
@@ -632,7 +629,7 @@ function onDeleteTier(tier) {
   uni.showModal({
     title: '确认删除',
     content: `确定删除档位「${tier.name}」及其所有菜品？`,
-    confirmColor: '#FF6B35',
+    confirmColor: getConfirmColor(),
     success(res) {
       if (res.confirm) {
         form.tiers = form.tiers.filter(t => t.id !== tier.id)
@@ -732,7 +729,7 @@ async function onOcrImport(tierId = null) {
       title: '识别成功',
       content: confirmMsg,
       confirmText: '导入',
-      confirmColor: '#FF6B35',
+      confirmColor: getConfirmColor(),
       success(res) {
         if (res.confirm) {
           importOcrResult(result, tierId)
@@ -915,7 +912,7 @@ function onSave() {
   width: 28rpx;
   height: 12rpx;
   border-radius: 6rpx;
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--c-surface-3);
   transform: scaleX(0.43);
   transform-origin: center;
   transition: transform $dur-fast $ease-out-quint, background $dur-fast $ease-out-quint;
@@ -1096,7 +1093,7 @@ function onSave() {
 
 .add-tier-btn {
   background: var(--c-accent-glow, $glow-orange);
-  border: 1rpx solid rgba(255, 107, 53, 0.2);
+  border: 1rpx solid var(--c-border-active);
   border-radius: $radius-pill;
   padding: 10rpx 24rpx;
 }
@@ -1268,7 +1265,7 @@ function onSave() {
   padding: 28rpx;
   text-align: center;
   z-index: 10;
-  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.3), var(--c-shadow-inner, $shadow-inner);
+  box-shadow: 0 -4rpx 20rpx var(--c-shadow-md), var(--c-shadow-inner, $shadow-inner);
 }
 
 .save-btn__text {
@@ -1420,7 +1417,7 @@ function onSave() {
   width: 48rpx;
   height: 48rpx;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--c-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1428,7 +1425,7 @@ function onSave() {
 }
 
 .photo-delete-icon {
-  color: #fff;
+  color: var(--c-text-on-accent);
   font-size: 24rpx;
 }
 
